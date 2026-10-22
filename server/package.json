@@ -5,13 +5,14 @@
   "type": "module",
   "main": "app.js",
   "scripts": {
-    "test": "node --test",
+    "test": "node --test \"test/**/*.test.js\"",
     "migrar": "node scripts/migrar.js",
     "crear-admin": "node scripts/crear-admin.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "express": "^5.3.0",
+    "jose": "^6.2.13",
     "pg": "^8.23.1"
   },
   "devDependencies": {
