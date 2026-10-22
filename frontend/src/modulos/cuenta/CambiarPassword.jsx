@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { api } from '../../compartido/api.js';
+import { PantallaAcceso } from '../../compartido/layout/PantallaAcceso.jsx';
 import { rutaInicio, useSesion } from '../../compartido/sesion/contexto.js';
 import { CampoTexto } from '../../compartido/ui/Campos.jsx';
+import { IlustracionLlave } from '../../compartido/ui/Ilustraciones.jsx';
 import { useEnvio } from '../../compartido/utilidades/useEnvio.js';
 import './cuenta.css';
 
@@ -40,21 +42,21 @@ export function CambiarPassword() {
   }
 
   return (
-    <main className="login">
-      <form className="tarjeta login-formulario" onSubmit={guardar} noValidate>
-        <h1>{obligatorio ? 'Crea tu contraseña' : 'Cambiar contraseña'}</h1>
-        <p className="subtitulo">
-          {obligatorio
+    <PantallaAcceso ilustracion={<IlustracionLlave />}>
+      <h1>{obligatorio ? 'Crea tu contraseña' : 'Cambiar contraseña'}</h1>
+      <p className="subtitulo">
+        {obligatorio
             ? `Hola, ${usuario.nombre.split(' ')[0]}. Entraste con una contraseña temporal; crea una propia que solo tú conozcas.`
             : 'Al cambiarla se cierran tus sesiones abiertas en otros dispositivos.'}
         </p>
 
-        {error && (
-          <p className="error" role="alert">
-            {error}
-          </p>
-        )}
+      {error && (
+        <p className="error" role="alert">
+          {error}
+        </p>
+      )}
 
+      <form onSubmit={guardar} noValidate>
         <CampoTexto
           etiqueta={obligatorio ? 'Contraseña temporal' : 'Contraseña actual'}
           type={ver ? 'text' : 'password'}
@@ -76,7 +78,7 @@ export function CambiarPassword() {
         <ul className="reglas" aria-label="Requisitos">
           {REGLAS.map(([texto, ok]) => (
             <li key={texto} className={ok(datos.nueva) ? 'regla-ok' : ''}>
-              {ok(datos.nueva) ? '✅' : '▫️'} {texto}
+              {ok(datos.nueva) ? '✓' : '·'} {texto}
             </li>
           ))}
         </ul>
@@ -101,13 +103,13 @@ export function CambiarPassword() {
         >
           {enviando ? 'Guardando…' : 'Guardar contraseña'}
         </button>
-
-        {!obligatorio && (
-          <Link to={rutaInicio(usuario)} className="enlace-centrado">
-            Volver
-          </Link>
-        )}
       </form>
-    </main>
+
+      {!obligatorio && (
+        <Link to={rutaInicio(usuario)} className="enlace-centrado">
+          Volver al panel
+        </Link>
+      )}
+    </PantallaAcceso>
   );
 }

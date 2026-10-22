@@ -1,88 +1,101 @@
+.dashboard-fecha {
+  margin: 0 0 8px;
+  font-size: var(--texto-sm);
+  color: var(--pizarra);
+}
+
+.dashboard-fecha::first-letter {
+  text-transform: uppercase;
+}
+
+/* ---- Indicadores ---- */
 .indicadores {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
-  margin-bottom: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+  gap: var(--separacion);
+  margin-bottom: var(--separacion-seccion);
 }
 
 .indicador {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  background: var(--tarjeta);
-  border-radius: 12px;
-  padding: 16px 18px;
-  box-shadow: var(--sombra);
-  border-top: 4px solid var(--borde);
+  align-items: flex-start;
+  gap: 8px;
+  background: var(--niebla);
+  border-radius: var(--radio);
+  padding: var(--relleno-tarjeta);
 }
 
 .indicador-etiqueta {
-  font-size: 0.9rem;
-  color: var(--texto-suave);
+  font-size: var(--texto-sm);
+  color: var(--pizarra);
 }
 
 .indicador-valor {
-  font-size: 2rem;
-  font-weight: 600;
+  font-size: var(--titulo);
+  font-weight: 400;
   line-height: 1.1;
 }
 
 .indicador-nota {
-  font-size: 0.85rem;
-  color: var(--texto-suave);
+  font-size: var(--texto-sm);
+  color: var(--pizarra);
 }
 
-.indicador-critico {
-  border-top-color: var(--estado-critico);
-}
-
-.indicador-advertencia {
-  border-top-color: var(--estado-advertencia);
-}
-
-.indicador-bien {
-  border-top-color: var(--estado-bien);
-}
-
+/* ---- Dos columnas: alertas y flota ---- */
 .dashboard-columnas {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr));
+  gap: 48px;
   align-items: start;
 }
 
-.dashboard-columnas .tarjeta {
-  margin-top: 0;
+.dashboard-columnas section {
   min-width: 0;
 }
 
-@media (max-width: 520px) {
-  .dashboard-columnas {
-    grid-template-columns: 1fr;
-  }
-}
-
-.tarjeta-encabezado {
+.seccion-encabezado {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
   gap: 8px;
 }
 
-.tarjeta-encabezado a {
-  color: var(--cafe);
-  font-size: 0.9rem;
+.seccion-encabezado a {
+  font-size: var(--texto-sm);
+  font-weight: 500;
+  text-underline-offset: 3px;
+}
+
+.dashboard-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  background: var(--niebla);
+  border-radius: var(--radio);
+  padding: var(--relleno-tarjeta);
+  margin: 0;
+}
+
+.dashboard-vacio p {
+  margin: 0;
 }
 
 .sin-asignar {
-  color: var(--texto-suave);
-  font-style: italic;
+  color: var(--pizarra);
 }
 
-/* Solicitudes de recuperación de contraseña */
+/* ---- Solicitudes de recuperación de contraseña ---- */
 .solicitudes {
-  margin: 0 0 20px;
-  border-left: 4px solid var(--estado-advertencia);
+  margin-bottom: 32px;
+  border-left: 4px solid var(--negro);
+  border-radius: 0 var(--radio) var(--radio) 0;
+}
+
+.solicitudes h2 {
+  font-size: var(--texto-sub);
+  font-weight: 500;
 }
 
 .lista-solicitudes {
@@ -90,7 +103,7 @@
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .lista-solicitudes li {
@@ -98,5 +111,22 @@
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--linea);
+}
+
+.lista-solicitudes li:first-child {
+  padding-top: 0;
+  border-top: none;
+}
+
+@media (max-width: 640px) {
+  .indicador {
+    padding: 16px;
+  }
+
+  .indicador-valor {
+    font-size: var(--titulo-sm);
+  }
 }

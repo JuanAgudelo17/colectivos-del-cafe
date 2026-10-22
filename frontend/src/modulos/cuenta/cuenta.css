@@ -2,10 +2,20 @@
   list-style: none;
   margin: -6px 0 0;
   padding: 0;
-  font-size: 0.88rem;
-  color: var(--texto-suave);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: var(--texto-caption);
+}
+
+.reglas li {
+  padding: 2px 10px;
+  border-radius: var(--radio);
+  background: var(--niebla);
+  color: var(--pizarra);
 }
 
 .reglas .regla-ok {
-  color: var(--ok);
+  background: var(--negro);
+  color: var(--blanco);
 }

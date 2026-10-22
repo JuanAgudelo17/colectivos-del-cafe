@@ -31,12 +31,14 @@ export function Dashboard() {
   const sinConductor = busetas?.filter((b) => !b.conductor).length;
   const error = busetasDatos.error ?? conductoresDatos.error;
 
+  const estadoDe = (n, siHay) => (n === undefined ? undefined : n > 0 ? siHay : 'bien');
+
   return (
     <>
       <div className="titulo-pagina">
         <div>
+          <p className="dashboard-fecha">{fechaLargaHoy()}</p>
           <h1>Panel general</h1>
-          <p className="subtitulo">{fechaLargaHoy()}</p>
         </div>
       </div>
 
@@ -48,25 +50,23 @@ export function Dashboard() {
         <Indicador
           etiqueta="Busetas activas"
           valor={busetas?.length}
-          nota={sinConductor ? `${sinConductor} sin conductor` : busetas && 'Todas con conductor'}
+          nota={busetas && (sinConductor ? `${sinConductor} sin conductor asignado` : 'Todas con conductor')}
         />
         <Indicador etiqueta="Conductores activos" valor={conductores?.length} />
-        <Indicador
-          etiqueta="Documentos vencidos"
-          valor={vencidos}
-          estado={vencidos === undefined ? undefined : vencidos > 0 ? 'critico' : 'bien'}
-        />
+        <Indicador etiqueta="Documentos vencidos" valor={vencidos} estado={estadoDe(vencidos, 'critico')} />
         <Indicador
           etiqueta="Vencen en 30 días o menos"
           valor={porVencer}
-          estado={porVencer === undefined ? undefined : porVencer > 0 ? 'advertencia' : 'bien'}
+          estado={estadoDe(porVencer, 'advertencia')}
         />
       </section>
 
       <div className="dashboard-columnas">
-        <section className="tarjeta">
+        <section>
           <h2>Documentos que requieren atención</h2>
-          {busetas && alertas.length === 0 && <p className="ok">Todos los documentos están al día. ✅</p>}
+          {busetas && alertas.length === 0 && (
+            <p className="dashboard-vacio">✓ Todos los documentos de la flota están al día.</p>
+          )}
           {alertas.length > 0 && (
             <div className="tabla-contenedor">
               <table className="tabla">
@@ -84,8 +84,8 @@ export function Dashboard() {
                       <td>
                         <strong>{buseta.numeroInterno}</strong> · {buseta.placa}
                       </td>
-                      <td>{nombre}</td>
-                      <td className="numero">{fecha(documento.fecha)}</td>
+                      <td data-etiqueta="">{nombre}</td>
+                      <td className="numero" data-etiqueta="Vence">{fecha(documento.fecha)}</td>
                       <td>
                         <EstadoDocumento documento={documento} />
                       </td>
@@ -97,15 +97,18 @@ export function Dashboard() {
           )}
         </section>
 
-        <section className="tarjeta">
-          <div className="tarjeta-encabezado">
+        <section>
+          <div className="seccion-encabezado">
             <h2>Estado de la flota</h2>
-            <Link to="busetas">Ver busetas →</Link>
+            <Link to="busetas">Ver busetas</Link>
           </div>
           {busetas?.length === 0 && (
-            <p className="vacio">
-              Aún no hay busetas. <Link to="busetas">Registra la primera</Link>.
-            </p>
+            <div className="dashboard-vacio">
+              <p>Aún no hay busetas registradas.</p>
+              <Link to="busetas" className="boton-principal">
+                Registrar la primera buseta
+              </Link>
+            </div>
           )}
           {busetas?.length > 0 && (
             <div className="tabla-contenedor">
@@ -124,11 +127,11 @@ export function Dashboard() {
                       <td>
                         <strong>{b.numeroInterno}</strong> · {b.placa}
                       </td>
-                      <td>{b.conductor?.nombre ?? <span className="sin-asignar">Sin asignar</span>}</td>
-                      <td>
+                      <td data-etiqueta="Conductor">{b.conductor?.nombre ?? <span className="sin-asignar">Sin asignar</span>}</td>
+                      <td data-etiqueta="SOAT">
                         <EstadoDocumento documento={b.documentos.soat} compacto />
                       </td>
-                      <td>
+                      <td data-etiqueta="Tecnomecánica">
                         <EstadoDocumento documento={b.documentos.tecnomecanica} compacto />
                       </td>
                     </tr>

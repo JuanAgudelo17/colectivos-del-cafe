@@ -135,6 +135,7 @@ neto         = bruto − costos
 - Migraciones SQL numeradas; nunca editar una migración ya aplicada.
 - `frontend/` y `server/` tienen `package.json` propio; **no usar npm workspaces** (Netlify CLI los detecta como monorepo y `netlify dev` se bloquea pidiendo elegir proyecto). Dependencias con `npm install <pkg> --prefix server|frontend`. `serverless-http` vive en la raíz porque lo importa `netlify/functions/api.js`.
 - `docs/requerimientos.pdf` está en `.gitignore` (tiene cédulas); existe solo en local.
+- **Estilo visual** (`frontend/src/compartido/estilos/base.css`): kiosco de transporte en blanco y negro, fuente Inter, sin sombras, radios de 8px (píldora solo en la barra y los interruptores). El color vive solo en las ilustraciones planas (`compartido/ui/Ilustraciones.jsx`); excepción: estados de documentos (rojo/ámbar, siempre con icono + texto). Turquesa solo en la pestaña activa. En celular la acción principal de una página usa la clase `accion-fija` (barra negra abajo).
 - Vite escucha en `127.0.0.1` (si queda en IPv6, `netlify dev` responde "Could not proxy request").
 - Las pruebas del backend van junto al módulo (`modulos/<m>/<m>.test.js`) y usan PGlite (`compartido/test/helpers.js`).
 - Trabajo en pareja: una rama por cambio (`modulo/descripcion`), Pull Request a `main`, el CI debe pasar (el bot comenta el resultado en el PR). Ver `docs/MODULOS.md`.

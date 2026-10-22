@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { api } from '../../compartido/api.js';
 import { Dialogo } from '../../compartido/ui/Dialogo.jsx';
 import { PasswordUnaVez } from '../../compartido/ui/PasswordUnaVez.jsx';
+import { Pestanas } from '../../compartido/ui/Pestanas.jsx';
+import { FILTROS_ACTIVO, opcionesActivo } from '../../compartido/utilidades/filtros.js';
 import { useDatos } from '../../compartido/utilidades/useDatos.js';
 import { useEnvio } from '../../compartido/utilidades/useEnvio.js';
 import { FormularioConductor } from './FormularioConductor.jsx';
@@ -13,9 +15,11 @@ export function PaginaConductores() {
   const solicitudes = useDatos('/auth/solicitudes');
   const pidieronRecuperar = new Set(solicitudes.datos?.solicitudes.map((s) => s.usuarioId));
   const [editando, setEditando] = useState(null);
+  const [filtro, setFiltro] = useState('activos');
   // { usuario, password } recién generados, para mostrarlos una sola vez.
   const [credenciales, setCredenciales] = useState(null);
   const restablecer = useEnvio();
+  const conductores = datos?.conductores.filter(FILTROS_ACTIVO[filtro]);
 
   async function restablecerPassword(conductor) {
     if (!window.confirm(`¿Generar una contraseña nueva para ${conductor.nombre}? La actual dejará de funcionar.`)) {
@@ -34,32 +38,53 @@ export function PaginaConductores() {
   return (
     <>
       <div className="titulo-pagina">
-        <h1>Conductores</h1>
-        <button type="button" className="boton-principal" onClick={() => setEditando(NUEVO)}>
+        <div>
+          <h1>Conductores</h1>
+          <p className="subtitulo">Cuentas de acceso, datos de contacto y buseta asignada.</p>
+        </div>
+        <button type="button" className="boton-principal accion-fija" onClick={() => setEditando(NUEVO)}>
           + Nuevo conductor
         </button>
       </div>
 
+      <Pestanas
+        etiqueta="Filtrar conductores"
+        opciones={opcionesActivo(datos?.conductores)}
+        valor={filtro}
+        alCambiar={setFiltro}
+      />
+
       {(error || restablecer.error) && <p className="error">{error ?? restablecer.error}</p>}
-      {cargando && !datos && <p>Cargando…</p>}
-      {datos?.conductores.length === 0 && <p className="vacio">Todavía no hay conductores registrados.</p>}
+      {cargando && !datos && <p className="vacio">Cargando…</p>}
+      {conductores?.length === 0 && (
+        <p className="vacio">
+          {datos.conductores.length === 0
+            ? 'Todavía no hay conductores registrados.'
+            : 'No hay conductores en este filtro.'}
+        </p>
+      )}
 
       <ul className="lista">
-        {datos?.conductores.map((c) => (
+        {conductores?.map((c) => (
           <li key={c.id} className={c.activo ? 'tarjeta item' : 'tarjeta item inactivo'}>
             <div className="item-principal">
-              <h3>
-                {c.nombre} {!c.activo && <span className="etiqueta">Inactivo</span>}{' '}
-                {pidieronRecuperar.has(c.id) && <span className="etiqueta etiqueta-alerta">🔑 Pidió recuperar</span>}{' '}
-                {c.debeCambiarPassword && <span className="etiqueta">Contraseña temporal</span>}
-              </h3>
+              {(!c.activo || pidieronRecuperar.has(c.id) || c.debeCambiarPassword) && (
+                <div className="etiquetas">
+                  {!c.activo && <span className="etiqueta etiqueta-oscura">Inactivo</span>}
+                  {pidieronRecuperar.has(c.id) && (
+                    <span className="etiqueta etiqueta-alerta">🔑 Pidió recuperar contraseña</span>
+                  )}
+                  {c.debeCambiarPassword && <span className="etiqueta">Contraseña temporal</span>}
+                </div>
+              )}
+              <h3>{c.nombre}</h3>
               <p className="detalle">
-                Usuario: <code>{c.usuario}</code>
-                {c.telefono && ` · Tel: ${c.telefono}`}
+                Usuario <code>{c.usuario}</code>
               </p>
               <p className="detalle">
                 Buseta: {c.busetaPlaca ? `${c.busetaNumeroInterno} · ${c.busetaPlaca}` : 'sin asignar'}
               </p>
+              {c.telefono && <p className="detalle">Tel. {c.telefono}</p>}
             </div>
             <div className="item-acciones">
               <button type="button" className="boton-secundario-oscuro" onClick={() => setEditando(c)}>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router';
+import { PantallaAcceso } from '../../compartido/layout/PantallaAcceso.jsx';
 import { rutaInicio, useSesion } from '../../compartido/sesion/contexto.js';
 
 export function Login() {
@@ -26,18 +27,19 @@ export function Login() {
   }
 
   return (
-    <main className="login">
-      <form className="tarjeta login-formulario" onSubmit={enviar}>
-        <h1>Colectivos del Café</h1>
-        <p className="subtitulo">Ingresa con tu usuario</p>
+    <PantallaAcceso>
+      <p className="acceso-ubicacion">Pereira, Risaralda</p>
+      <h1>Las cuentas de tu buseta, al día</h1>
+      <p className="subtitulo">Ingresa con tu usuario y contraseña.</p>
 
-        {aviso && !error && <p className="aviso">{aviso}</p>}
-        {error && (
-          <p className="error" role="alert">
-            {error}
-          </p>
-        )}
+      {aviso && !error && <p className="aviso">{aviso}</p>}
+      {error && (
+        <p className="error" role="alert">
+          {error}
+        </p>
+      )}
 
+      <form onSubmit={enviar}>
         <label>
           Usuario
           <input name="usuario" autoComplete="username" autoCapitalize="none" required />
@@ -50,11 +52,11 @@ export function Login() {
         <button type="submit" className="boton-principal" disabled={enviando}>
           {enviando ? 'Ingresando…' : 'Ingresar'}
         </button>
-
-        <Link to="/recuperar" className="enlace-centrado">
-          ¿Olvidaste tu contraseña?
-        </Link>
       </form>
-    </main>
+
+      <Link to="/recuperar" className="enlace-centrado">
+        ¿Olvidaste tu contraseña?
+      </Link>
+    </PantallaAcceso>
   );
 }

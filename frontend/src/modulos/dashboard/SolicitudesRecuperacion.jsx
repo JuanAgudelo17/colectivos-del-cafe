@@ -30,18 +30,23 @@ export function SolicitudesRecuperacion() {
 
   return (
     <section className="tarjeta solicitudes">
-      <h2>🔑 Solicitudes de recuperación de contraseña</h2>
+      <h2>
+        {solicitudes.length === 0
+          ? 'Solicitudes de recuperación atendidas'
+          : solicitudes.length === 1
+            ? '1 conductor pidió recuperar su contraseña'
+            : `${solicitudes.length} conductores pidieron recuperar su contraseña`}
+      </h2>
       {error && <p className="error">{error}</p>}
       <ul className="lista-solicitudes">
         {solicitudes.map((s) => (
           <li key={s.id}>
             <div>
               <strong>{s.nombre}</strong> · <code>{s.usuario}</code>
-              <span className="detalle">
-                {' '}
-                · {formatoHora.format(new Date(s.creadoEn))}
-                {s.telefono && ` · Tel: ${s.telefono}`}
-              </span>
+              <p className="detalle">
+                {formatoHora.format(new Date(s.creadoEn))}
+                {s.telefono && ` · Tel. ${s.telefono}`}
+              </p>
             </div>
             <button type="button" className="boton-principal" disabled={enviando} onClick={() => generar(s)}>
               Generar contraseña temporal
