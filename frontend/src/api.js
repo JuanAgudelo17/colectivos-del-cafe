@@ -23,6 +23,7 @@ export async function api(ruta, { cuerpo, headers, ...opciones } = {}) {
     }
     const error = new Error(datos?.error ?? `Error ${res.status}`);
     error.status = res.status;
+    error.campos = datos?.campos ?? {};
     throw error;
   }
   return datos;

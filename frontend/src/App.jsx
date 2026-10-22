@@ -1,7 +1,10 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 import { Plantilla } from './componentes/Plantilla.jsx';
 import { RutaProtegida } from './componentes/RutaProtegida.jsx';
-import { InicioAdmin } from './paginas/InicioAdmin.jsx';
+import { Busetas } from './paginas/admin/Busetas.jsx';
+import { Conductores } from './paginas/admin/Conductores.jsx';
+import { Empresas } from './paginas/admin/Empresas.jsx';
+import { InicioAdmin } from './paginas/admin/InicioAdmin.jsx';
 import { InicioConductor } from './paginas/InicioConductor.jsx';
 import { Login } from './paginas/Login.jsx';
 import { ProveedorSesion } from './sesion/ProveedorSesion.jsx';
@@ -23,6 +26,9 @@ export default function App() {
           <Route element={<RutaProtegida rol="admin" />}>
             <Route element={<Plantilla />}>
               <Route path="/admin" element={<InicioAdmin />} />
+              <Route path="/admin/empresas" element={<Empresas />} />
+              <Route path="/admin/busetas" element={<Busetas />} />
+              <Route path="/admin/conductores" element={<Conductores />} />
             </Route>
           </Route>
 
