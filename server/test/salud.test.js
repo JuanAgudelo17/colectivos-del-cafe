@@ -1,23 +1,37 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { crearApp } from '../app.js';
-import { iniciarServidor } from './helpers.js';
+import { crearBdPrueba, iniciarServidor } from './helpers.js';
 
 let servidor;
 
-// /api/salud no toca la base de datos.
 before(async () => {
-  servidor = await iniciarServidor(crearApp({ db: null }));
+  servidor = await iniciarServidor(crearApp({ db: await crearBdPrueba() }));
 });
 
 after(() => servidor.cerrar());
 
-test('GET /api/salud responde ok', async () => {
+test('GET /api/salud responde ok con JWT y base de datos bien configurados', async () => {
   const res = await fetch(`${servidor.base}/api/salud`);
   assert.equal(res.status, 200);
   const cuerpo = await res.json();
   assert.equal(cuerpo.ok, true);
+  assert.equal(cuerpo.jwt, 'ok');
+  assert.equal(cuerpo.baseDatos, 'ok');
   assert.match(cuerpo.hora, /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
+});
+
+test('GET /api/salud avisa si la base de datos falla, sin detalles', async () => {
+  const dbRota = { query: () => Promise.reject(new Error('password authentication failed')) };
+  const otro = await iniciarServidor(crearApp({ db: dbRota }));
+  try {
+    const cuerpo = await (await fetch(`${otro.base}/api/salud`)).json();
+    assert.equal(cuerpo.ok, false);
+    assert.match(cuerpo.baseDatos, /error de conexión/);
+    assert.equal(JSON.stringify(cuerpo).includes('password'), false);
+  } finally {
+    await otro.cerrar();
+  }
 });
 
 test('también responde en la ruta directa de la función', async () => {
