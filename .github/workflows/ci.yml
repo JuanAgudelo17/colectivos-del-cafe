@@ -17,6 +17,8 @@ jobs:
   server:
     name: Backend (pruebas)
     runs-on: ubuntu-latest
+    outputs:
+      pruebas: ${{ steps.pruebas.outcome }}
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -25,11 +27,22 @@ jobs:
           cache: npm
           cache-dependency-path: server/package-lock.json
       - run: npm ci --prefix server
-      - run: npm test --prefix server
+      - id: pruebas
+        run: npm run test:ci --prefix server
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reporte-backend
+          path: reporte-backend.json
+          if-no-files-found: ignore
+          retention-days: 7
 
   frontend:
     name: Frontend (lint + build)
     runs-on: ubuntu-latest
+    outputs:
+      lint: ${{ steps.lint.outcome }}
+      build: ${{ steps.build.outcome }}
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -37,6 +50,71 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-      - run: npm ci --prefix frontend
-      - run: npm run lint --prefix frontend
-      - run: npm run build --prefix frontend
+      - id: instalar
+        run: npm ci --prefix frontend
+      - id: lint
+        name: Lint (con anotaciones en el código)
+        run: |
+          (cd frontend && npx eslint . -f json -o ../reporte-eslint.json) || true
+          node .github/scripts/reporte-lint.mjs reporte-eslint.json reporte-lint.json
+      # El build corre aunque el lint falle, para reportar ambos.
+      - id: build
+        if: ${{ !cancelled() && steps.instalar.outcome == 'success' }}
+        run: npm run build --prefix frontend
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reporte-lint
+          path: reporte-lint.json
+          if-no-files-found: ignore
+          retention-days: 7
+
+  # Junta los reportes y deja (o actualiza) un único comentario en el PR.
+  # En pushes a main solo escribe el resumen de la ejecución.
+  comentario:
+    name: Resumen para el PR
+    needs: [server, frontend]
+    if: ${{ always() && !cancelled() }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          sparse-checkout: .github/scripts
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: reporte-*
+          merge-multiple: true
+          path: reportes
+      - name: Armar resumen
+        env:
+          BACKEND_PRUEBAS: ${{ needs.server.outputs.pruebas || needs.server.result }}
+          FRONTEND_LINT: ${{ needs.frontend.outputs.lint || needs.frontend.result }}
+          FRONTEND_BUILD: ${{ needs.frontend.outputs.build || 'skipped' }}
+          URL_EJECUCION: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          node .github/scripts/armar-comentario.mjs reportes comentario.md > /dev/null
+          cat comentario.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Comentar en el PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('node:fs');
+            const body = fs.readFileSync('comentario.md', 'utf8');
+            const marca = '<!-- ci-colectivos -->';
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+
+            const comentarios = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number });
+            const previo = comentarios.find((c) => c.user.type === 'Bot' && c.body.includes(marca));
+
+            if (previo) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: previo.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }

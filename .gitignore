@@ -26,3 +26,7 @@ docs/requerimientos.pdf
 .DS_Store
 Thumbs.db
 *.log
+
+# Reportes del CI
+reporte-*.json
+comentario.md

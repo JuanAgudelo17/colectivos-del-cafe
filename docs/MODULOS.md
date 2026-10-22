@@ -102,7 +102,10 @@ romper a nadie.
    gh pr create --fill
    ```
 5. En el PR:
-   - El **CI** (pruebas + lint + build) debe quedar en verde.
+   - El **CI** (pruebas + lint + build) debe quedar en verde. El bot **github-actions** deja un
+     comentario con el resultado: qué pruebas fallaron y por qué, y los problemas de lint (que además
+     salen marcados en la línea exacta en **Files changed**). Cada push a la rama actualiza ese mismo
+     comentario.
    - Netlify publica un **Deploy Preview** con su propia URL para revisarlo. Ojo: usa la misma
      base de datos que producción.
    - El otro revisa y aprueba.

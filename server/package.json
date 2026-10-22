@@ -6,6 +6,7 @@
   "main": "app.js",
   "scripts": {
     "test": "node --test \"compartido/**/*.test.js\" \"modulos/**/*.test.js\"",
+    "test:ci": "node --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=./compartido/test/reporte-ci.js --test-reporter-destination=../reporte-backend.json \"compartido/**/*.test.js\" \"modulos/**/*.test.js\"",
     "migrar": "node scripts/migrar.js",
     "crear-admin": "node scripts/crear-admin.js",
     "restablecer-password": "node scripts/restablecer-password.js"
