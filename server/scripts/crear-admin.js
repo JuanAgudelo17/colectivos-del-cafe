@@ -1,10 +1,10 @@
-// Crea un usuario administrador global con una contraseña aleatoria que se
+// Crea un usuario administrador con una contraseña aleatoria que se
 // muestra una sola vez. Así ninguna contraseña queda escrita en git ni en el
 // historial de la terminal.
 // Uso: npm run crear-admin -- --usuario juan --nombre "Juan Agudelo"
 import { parseArgs } from 'node:util';
-import { conCliente } from '../db/conexion.js';
-import { generarPassword, hashPassword } from '../lib/passwords.js';
+import { conCliente } from '../compartido/bd/conexion.js';
+import { generarPassword, hashPassword } from '../compartido/seguridad/passwords.js';
 
 const { values } = parseArgs({
   options: {

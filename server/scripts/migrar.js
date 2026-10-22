@@ -1,7 +1,7 @@
 // Aplica en la base de datos las migraciones de db/migrations que falten.
 // Uso: npm run migrar
-import { conCliente } from '../db/conexion.js';
-import { aplicarMigraciones, listarMigraciones } from '../db/migraciones.js';
+import { conCliente } from '../compartido/bd/conexion.js';
+import { aplicarMigraciones, listarMigraciones } from '../compartido/bd/migraciones.js';
 
 await conCliente(async (db) => {
   const total = (await listarMigraciones()).length;
