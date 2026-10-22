@@ -12,7 +12,9 @@
     "dev": "netlify dev",
     "build": "npm run build --prefix frontend",
     "test": "npm test --prefix server",
-    "lint": "npm run lint --prefix frontend"
+    "lint": "npm run lint --prefix frontend",
+    "migrar": "npm run migrar --prefix server",
+    "crear-admin": "npm run crear-admin --prefix server --"
   },
   "dependencies": {
     "serverless-http": "^4.0.0"
