@@ -26,7 +26,14 @@ test('login correcto devuelve el usuario y una cookie segura', async () => {
   const { status, cuerpo, res } = await login('pedro', 'clave-correcta');
   assert.equal(status, 200);
   assert.deepEqual(cuerpo, {
-    usuario: { id: pedro.id, usuario: 'pedro', nombre: 'Nombre pedro', rol: 'conductor', busetaId: 1 },
+    usuario: {
+      id: pedro.id,
+      usuario: 'pedro',
+      nombre: 'Nombre pedro',
+      rol: 'conductor',
+      busetaId: 1,
+      debeCambiarPassword: false,
+    },
   });
 
   const setCookie = res.headers.getSetCookie()[0];
@@ -81,7 +88,7 @@ test('token alterado devuelve 401 y borra la cookie', async () => {
 
 test('token vencido por inactividad devuelve 401', async () => {
   const hace31Min = Math.floor(Date.now() / 1000) - 31 * 60;
-  assert.equal((await yo(`sesion=${await firmarToken(pedro.id, hace31Min)}`)).status, 401);
+  assert.equal((await yo(`sesion=${await firmarToken(pedro.id, 0, hace31Min)}`)).status, 401);
 });
 
 test('desactivar al usuario corta su sesión de inmediato', async () => {

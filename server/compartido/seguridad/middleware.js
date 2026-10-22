@@ -1,11 +1,14 @@
-import { noAutenticado, prohibido } from '../http/errores.js';
+import { ErrorHttp, noAutenticado, prohibido } from '../http/errores.js';
 import { COOKIE_SESION, borrarCookieSesion, leerCookie, ponerCookieSesion, verificarToken } from './sesion.js';
 
 // Usuario activo de una sesión. Se consulta en cada petición para que
-// desactivar a alguien le corte el acceso de inmediato.
+// desactivar a alguien o cambiar su contraseña le corte el acceso de inmediato.
 async function buscarUsuarioSesion(db, id) {
   const { rows } = await db.query(
-    `SELECT id, usuario, nombre, rol, buseta_id AS "busetaId"
+    `SELECT id, usuario, nombre, rol,
+            buseta_id             AS "busetaId",
+            debe_cambiar_password AS "debeCambiarPassword",
+            sesion_version        AS "sesionVersion"
        FROM usuario
       WHERE id = $1 AND activo`,
     [id],
@@ -17,23 +20,29 @@ async function buscarUsuarioSesion(db, id) {
 // Renueva la cookie en cada petición (expiración por inactividad).
 export async function autenticar(req, res, next) {
   const token = leerCookie(req, COOKIE_SESION);
-  const id = token && (await verificarToken(token));
-  const usuario = id && (await buscarUsuarioSesion(req.app.locals.db, id));
+  const sesion = token && (await verificarToken(token));
+  const encontrado = sesion && (await buscarUsuarioSesion(req.app.locals.db, sesion.id));
 
-  if (!usuario) {
+  // Token de antes del último cambio de contraseña → ya no sirve.
+  if (!encontrado || encontrado.sesionVersion !== sesion.version) {
     if (token) borrarCookieSesion(res);
     throw noAutenticado();
   }
 
+  const { sesionVersion, ...usuario } = encontrado;
   req.usuario = usuario;
-  await ponerCookieSesion(res, usuario.id);
+  await ponerCookieSesion(res, usuario.id, sesionVersion);
   next();
 }
 
 // Uso: router.get('/x', autenticar, requiereRol('admin'), handler)
+// Mientras el usuario tenga una contraseña temporal solo puede cambiarla.
 export function requiereRol(...roles) {
   return (req, res, next) => {
     if (!req.usuario) throw noAutenticado();
+    if (req.usuario.debeCambiarPassword) {
+      throw new ErrorHttp(403, 'Primero debes crear tu propia contraseña');
+    }
     if (!roles.includes(req.usuario.rol)) throw prohibido();
     next();
   };

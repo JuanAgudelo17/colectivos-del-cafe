@@ -26,6 +26,20 @@ test('es idempotente: la segunda corrida no aplica nada', async () => {
   assert.deepEqual(await aplicarMigraciones(db), []);
 });
 
+test('usuario tiene los campos de contraseña propia con sus valores por defecto', async () => {
+  const { rows } = await db.query(
+    `SELECT debe_cambiar_password, password_temporal_hasta, sesion_version FROM usuario WHERE usuario = 'pedro'`,
+  );
+  assert.deepEqual(rows[0], { debe_cambiar_password: false, password_temporal_hasta: null, sesion_version: 0 });
+});
+
+test('una sola solicitud de recuperación pendiente por usuario', async () => {
+  await db.query(`INSERT INTO solicitud_recuperacion (usuario_id) VALUES (1)`);
+  await rechaza(`INSERT INTO solicitud_recuperacion (usuario_id) VALUES (1)`, [], '23505');
+  await db.query(`UPDATE solicitud_recuperacion SET atendida_en = now() WHERE usuario_id = 1`);
+  await db.query(`INSERT INTO solicitud_recuperacion (usuario_id) VALUES (1)`); // ya puede pedir otra
+});
+
 test('ya no existe la tabla empresa', async () => {
   const { rows } = await db.query(`SELECT to_regclass('empresa') AS tabla`);
   assert.equal(rows[0].tabla, null);

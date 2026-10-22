@@ -12,8 +12,10 @@ function llaveSecreta() {
   return new TextEncoder().encode(secreto);
 }
 
-export async function firmarToken(usuarioId, ahora = Math.floor(Date.now() / 1000)) {
-  return new SignJWT({})
+// `version` = usuario.sesion_version: al cambiar la contraseña sube y los
+// tokens anteriores dejan de servir.
+export async function firmarToken(usuarioId, version = 0, ahora = Math.floor(Date.now() / 1000)) {
+  return new SignJWT({ v: version })
     .setProtectedHeader({ alg: 'HS256' })
     .setSubject(String(usuarioId))
     .setIssuedAt(ahora)
@@ -21,12 +23,13 @@ export async function firmarToken(usuarioId, ahora = Math.floor(Date.now() / 100
     .sign(llaveSecreta());
 }
 
-// Devuelve el id del usuario, o null si el token es inválido o expiró.
+// Devuelve { id, version }, o null si el token es inválido o expiró.
 export async function verificarToken(token) {
   try {
     const { payload } = await jwtVerify(token, llaveSecreta(), { algorithms: ['HS256'] });
     const id = Number(payload.sub);
-    return Number.isSafeInteger(id) ? id : null;
+    const version = Number(payload.v ?? 0);
+    return Number.isSafeInteger(id) && Number.isSafeInteger(version) ? { id, version } : null;
   } catch (err) {
     if (err.code?.startsWith('ERR_JW')) return null;
     throw err;
@@ -43,8 +46,14 @@ export function opcionesCookie() {
   };
 }
 
-export async function ponerCookieSesion(res, usuarioId) {
-  res.cookie(COOKIE_SESION, await firmarToken(usuarioId), {
+// Reemplaza cualquier cookie de sesión puesta antes en la misma respuesta
+// (ej. la que renovó `autenticar` antes de un cambio de contraseña).
+export async function ponerCookieSesion(res, usuarioId, version) {
+  const otras = [res.get('Set-Cookie') ?? []].flat().filter((c) => !c.startsWith(`${COOKIE_SESION}=`));
+  if (otras.length) res.set('Set-Cookie', otras);
+  else res.removeHeader('Set-Cookie');
+
+  res.cookie(COOKIE_SESION, await firmarToken(usuarioId, version), {
     ...opcionesCookie(),
     maxAge: DURACION_SESION_SEG * 1000,
   });

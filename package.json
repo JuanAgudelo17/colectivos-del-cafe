@@ -14,7 +14,8 @@
     "test": "npm test --prefix server",
     "lint": "npm run lint --prefix frontend",
     "migrar": "npm run migrar --prefix server",
-    "crear-admin": "npm run crear-admin --prefix server --"
+    "crear-admin": "npm run crear-admin --prefix server --",
+    "restablecer-password": "npm run restablecer-password --prefix server --"
   },
   "dependencies": {
     "serverless-http": "^4.0.0"

@@ -24,9 +24,10 @@ await conCliente(async (db) => {
   const passwordHash = await hashPassword(password);
 
   try {
+    // Sin vencimiento, pero al entrar debe crear su propia contraseña.
     await db.query(
-      `INSERT INTO usuario (usuario, nombre, password_hash, rol)
-       VALUES ($1, $2, $3, 'admin')`,
+      `INSERT INTO usuario (usuario, nombre, password_hash, rol, debe_cambiar_password)
+       VALUES ($1, $2, $3, 'admin', TRUE)`,
       [values.usuario.trim(), values.nombre.trim(), passwordHash],
     );
   } catch (err) {
@@ -35,6 +36,6 @@ await conCliente(async (db) => {
   }
 
   console.log(`✔ Admin "${values.usuario}" creado.`);
-  console.log(`  Contraseña: ${password}`);
-  console.log('  Guárdala en tu gestor de contraseñas; no se vuelve a mostrar.');
+  console.log(`  Contraseña inicial: ${password}`);
+  console.log('  Úsala para entrar: el sistema te pedirá crear tu propia contraseña.');
 });
