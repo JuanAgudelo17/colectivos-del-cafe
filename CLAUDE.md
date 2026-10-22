@@ -57,7 +57,8 @@ Un módulo solo usa otro a través de lo que este exporta en su `index.js` (nunc
 
 Dinero en pesos colombianos: usar `BIGINT` (pesos enteros) o `NUMERIC(14,2)`. **Nunca float.**
 
-- **usuario**: id, usuario (único sin distinguir mayúsculas, para login), nombre, cedula, telefono, password_hash, rol (`admin` | `conductor`), buseta_id (FK única, nullable; solo conductores), activo, creado_en
+- **usuario**: id, usuario (único sin distinguir mayúsculas, para login), nombre, cedula, telefono, password_hash, rol (`admin` | `conductor`), buseta_id (FK única, nullable; solo conductores), activo, debe_cambiar_password, password_temporal_hasta, sesion_version, creado_en
+- **solicitud_recuperacion**: usuario_id, ip, creado_en, atendida_en, atendida_por — a lo sumo una pendiente por usuario
 - **buseta**: id, numero_interno (único), placa (única, mayúsculas), modelo, tiene_cupo (bool), valor_arriendo (obligatorio si no tiene cupo), activo
 - **documento_buseta**: id, buseta_id (único), fecha_soat, fecha_tecnomecanica
 - **producido_diario**: id, buseta_id, conductor_id, fecha, ingreso, peajes, salidas, acpm, mantenimiento, otros, observacion, creado_por, creado_en — único (buseta_id, fecha)
@@ -99,7 +100,9 @@ neto         = bruto − costos
 
 ## Seguridad
 
-- Contraseñas con bcrypt.
+- Contraseñas con bcrypt. Cada usuario crea la suya: las que genera el sistema (crear conductor, restablecer, recuperar) son **temporales** (vencen en 48 h) y obligan a crear una propia antes de usar cualquier módulo (`requiereRol` responde 403). Reglas: ≥ 8 caracteres, con letra y número, sin el nombre de usuario.
+- Cambiar o restablecer la contraseña sube `usuario.sesion_version` (va en el JWT) y cierra las demás sesiones.
+- Recuperación sin correo: el conductor pide en /recuperar, el admin genera la temporal desde el panel. Si el admin olvida la suya: `npm run restablecer-password -- --usuario <u>`.
 - Sesión con JWT en cookie `httpOnly`, `secure`, `sameSite`, expiración por inactividad de 30 min.
 - Secretos solo en variables de entorno: `DATABASE_URL`, `JWT_SECRET`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`. Nunca en el frontend ni en git. Mantener `.env.example` sin valores reales.
 - Comprimir imágenes en el navegador antes de subir (`browser-image-compression`).
