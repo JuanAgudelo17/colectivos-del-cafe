@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router';
-import { rutaInicio, useSesion } from '../sesion/contexto.js';
+import { rutaInicio, useSesion } from '../../compartido/sesion/contexto.js';
 
 export function Login() {
   const { usuario, cargando, aviso, iniciarSesion } = useSesion();

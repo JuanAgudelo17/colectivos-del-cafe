@@ -1,7 +1,7 @@
-import { useSesion } from '../sesion/contexto.js';
+import { useSesion } from '../../compartido/sesion/contexto.js';
 
-// Vista del conductor. Su buseta y documentos llegan en la Fase 1.5.
-export function InicioConductor() {
+// Vista del conductor: su buseta y el estado de sus documentos. Llega en la Fase 1.5.
+export function MiBuseta() {
   const { usuario } = useSesion();
 
   return (

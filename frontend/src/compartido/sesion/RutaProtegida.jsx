@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from 'react-router';
-import { rutaInicio, useSesion } from '../sesion/contexto.js';
+import { rutaInicio, useSesion } from './contexto.js';
 
 // Solo deja pasar a usuarios con sesión y con el rol indicado.
 // Es comodidad de interfaz: la seguridad real la aplica el backend.

@@ -1,64 +1,141 @@
 import { Link } from 'react-router';
-import { EstadoDocumento } from '../../componentes/EstadoDocumento.jsx';
-import { useSesion } from '../../sesion/contexto.js';
-import { useDatos } from '../../utilidades/useDatos.js';
+import { EstadoDocumento } from '../../compartido/ui/EstadoDocumento.jsx';
+import { Indicador } from '../../compartido/ui/Indicador.jsx';
+import { fecha, fechaLargaHoy } from '../../compartido/utilidades/formato.js';
+import { useDatos } from '../../compartido/utilidades/useDatos.js';
+import './dashboard.css';
 
-const URGENCIA = { vencido: 0, por_vencer: 1 };
+const DOCUMENTOS = [
+  ['soat', 'SOAT'],
+  ['tecnomecanica', 'Tecnomecánica'],
+];
 
-// Resumen: totales y documentos vencidos o por vencer de todas las busetas activas.
-export function InicioAdmin() {
-  const { usuario } = useSesion();
-  const empresas = useDatos('/empresas').datos?.empresas;
-  const busetas = useDatos('/busetas').datos?.busetas;
-  const conductores = useDatos('/conductores').datos?.conductores;
+// Panel general del admin: indicadores de la flota y documentos que requieren atención.
+export function Dashboard() {
+  const busetasDatos = useDatos('/busetas');
+  const conductoresDatos = useDatos('/conductores');
+  const busetas = busetasDatos.datos?.busetas.filter((b) => b.activo);
+  const conductores = conductoresDatos.datos?.conductores.filter((c) => c.activo);
 
   const alertas = (busetas ?? [])
-    .filter((b) => b.activo)
     .flatMap((b) =>
-      [
-        ['SOAT', b.documentos.soat],
-        ['Tecnomecánica', b.documentos.tecnomecanica],
-      ]
-        .filter(([, d]) => d.estado in URGENCIA)
-        .map(([nombre, documento]) => ({ buseta: b, nombre, documento })),
+      DOCUMENTOS.map(([clave, nombre]) => ({ buseta: b, nombre, documento: b.documentos[clave] })).filter(
+        ({ documento }) => documento.estado === 'vencido' || documento.estado === 'por_vencer',
+      ),
     )
     .sort((a, b) => a.documento.dias - b.documento.dias);
 
-  const contar = (lista) => lista?.filter((x) => x.activo).length ?? '…';
+  const vencidos = busetas && alertas.filter((a) => a.documento.estado === 'vencido').length;
+  const porVencer = busetas && alertas.length - vencidos;
+  const sinConductor = busetas?.filter((b) => !b.conductor).length;
+  const error = busetasDatos.error ?? conductoresDatos.error;
 
   return (
     <>
-      <h1>Hola, {usuario.nombre.split(' ')[0]}</h1>
-
-      <div className="resumen">
-        <Link to="/admin/empresas" className="tarjeta cifra">
-          <strong>{contar(empresas)}</strong>
-          <span>Empresas</span>
-        </Link>
-        <Link to="/admin/busetas" className="tarjeta cifra">
-          <strong>{contar(busetas)}</strong>
-          <span>Busetas</span>
-        </Link>
-        <Link to="/admin/conductores" className="tarjeta cifra">
-          <strong>{contar(conductores)}</strong>
-          <span>Conductores</span>
-        </Link>
+      <div className="titulo-pagina">
+        <div>
+          <h1>Panel general</h1>
+          <p className="subtitulo">{fechaLargaHoy()}</p>
+        </div>
       </div>
 
-      <section className="tarjeta">
-        <h2>Documentos que requieren atención</h2>
-        {busetas && alertas.length === 0 && <p className="ok">Todos los documentos están al día. ✅</p>}
-        <ul className="lista-simple">
-          {alertas.map(({ buseta, nombre, documento }) => (
-            <li key={`${buseta.id}-${nombre}`}>
-              <span className="placa">
-                {buseta.numeroInterno} · {buseta.placa}
-              </span>
-              <EstadoDocumento nombre={nombre} documento={documento} />
-            </li>
-          ))}
-        </ul>
+      {error && <p className="error">{error}</p>}
+
+      <section className="indicadores" aria-label="Indicadores">
+        <Indicador
+          etiqueta="Busetas activas"
+          valor={busetas?.length}
+          nota={sinConductor ? `${sinConductor} sin conductor` : busetas && 'Todas con conductor'}
+        />
+        <Indicador etiqueta="Conductores activos" valor={conductores?.length} />
+        <Indicador
+          etiqueta="Documentos vencidos"
+          valor={vencidos}
+          estado={vencidos === undefined ? undefined : vencidos > 0 ? 'critico' : 'bien'}
+        />
+        <Indicador
+          etiqueta="Vencen en 30 días o menos"
+          valor={porVencer}
+          estado={porVencer === undefined ? undefined : porVencer > 0 ? 'advertencia' : 'bien'}
+        />
       </section>
+
+      <div className="dashboard-columnas">
+        <section className="tarjeta">
+          <h2>Documentos que requieren atención</h2>
+          {busetas && alertas.length === 0 && <p className="ok">Todos los documentos están al día. ✅</p>}
+          {alertas.length > 0 && (
+            <div className="tabla-contenedor">
+              <table className="tabla">
+                <thead>
+                  <tr>
+                    <th>Buseta</th>
+                    <th>Documento</th>
+                    <th>Vence</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {alertas.map(({ buseta, nombre, documento }) => (
+                    <tr key={`${buseta.id}-${nombre}`}>
+                      <td>
+                        <strong>{buseta.numeroInterno}</strong> · {buseta.placa}
+                      </td>
+                      <td>{nombre}</td>
+                      <td className="numero">{fecha(documento.fecha)}</td>
+                      <td>
+                        <EstadoDocumento documento={documento} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+
+        <section className="tarjeta">
+          <div className="tarjeta-encabezado">
+            <h2>Estado de la flota</h2>
+            <Link to="busetas">Ver busetas →</Link>
+          </div>
+          {busetas?.length === 0 && (
+            <p className="vacio">
+              Aún no hay busetas. <Link to="busetas">Registra la primera</Link>.
+            </p>
+          )}
+          {busetas?.length > 0 && (
+            <div className="tabla-contenedor">
+              <table className="tabla">
+                <thead>
+                  <tr>
+                    <th>Buseta</th>
+                    <th>Conductor</th>
+                    <th>SOAT</th>
+                    <th>Tecnomecánica</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {busetas.map((b) => (
+                    <tr key={b.id}>
+                      <td>
+                        <strong>{b.numeroInterno}</strong> · {b.placa}
+                      </td>
+                      <td>{b.conductor?.nombre ?? <span className="sin-asignar">Sin asignar</span>}</td>
+                      <td>
+                        <EstadoDocumento documento={b.documentos.soat} compacto />
+                      </td>
+                      <td>
+                        <EstadoDocumento documento={b.documentos.tecnomecanica} compacto />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      </div>
     </>
   );
 }

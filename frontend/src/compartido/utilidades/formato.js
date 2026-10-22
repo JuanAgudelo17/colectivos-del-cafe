@@ -16,6 +16,11 @@ export function fecha(iso) {
   return `${d}/${m}/${a}`;
 }
 
+// "jueves, 22 de octubre de 2026" en hora de Bogotá.
+export function fechaLargaHoy() {
+  return new Intl.DateTimeFormat('es-CO', { timeZone: 'America/Bogota', dateStyle: 'full' }).format(new Date());
+}
+
 // Texto de un documento según el estado que calcula el backend.
 export function textoDocumento({ estado, dias, fecha: vence }) {
   if (estado === 'sin_fecha') return 'Sin fecha registrada';

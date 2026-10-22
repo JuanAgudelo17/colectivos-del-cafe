@@ -1,10 +1,22 @@
+/* Estilos compartidos por todos los módulos. Lo específico de un módulo va en
+   su propia carpeta (ej. modulos/dashboard/dashboard.css). */
+
 :root {
   --cafe: #5a3e2b;
-  --fondo: #f7f3ef;
-  --texto: #2b2420;
+  --cafe-oscuro: #3b281c;
+  --fondo: #f5f1ec;
   --tarjeta: #ffffff;
+  --texto: #2b2420;
+  --texto-suave: #6b5f57;
+  --borde: #e6ddd5;
+  --sombra: 0 1px 3px rgb(0 0 0 / 0.08);
   --ok: #1f7a3f;
   --error: #b42318;
+
+  /* Estados: siempre acompañados de icono y texto */
+  --estado-critico: #d03b3b;
+  --estado-advertencia: #fab219;
+  --estado-bien: #0ca30c;
 
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.5;
@@ -21,34 +33,32 @@ body {
   min-height: 100vh;
 }
 
-.contenedor {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 24px 16px;
-}
-
 h1 {
   color: var(--cafe);
   margin: 0;
-  font-size: clamp(1.5rem, 5vw, 2.25rem);
+  font-size: clamp(1.5rem, 4vw, 2rem);
+}
+
+h2 {
+  font-size: 1.1rem;
+  margin: 0 0 12px;
 }
 
 .subtitulo {
-  margin-top: 4px;
-  opacity: 0.75;
+  margin: 4px 0 0;
+  color: var(--texto-suave);
+}
+
+.marca {
+  font-weight: 700;
 }
 
 .tarjeta {
   background: var(--tarjeta);
   border-radius: 12px;
   padding: 16px 20px;
-  margin-top: 24px;
-  box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
-}
-
-.tarjeta h2 {
-  font-size: 1.1rem;
-  margin: 0 0 8px;
+  margin-top: 16px;
+  box-shadow: var(--sombra);
 }
 
 .ok {
@@ -71,40 +81,36 @@ h1 {
 .cargando {
   text-align: center;
   margin-top: 40vh;
-  opacity: 0.7;
+  color: var(--texto-suave);
 }
 
-/* Encabezado */
-.encabezado {
+.vacio {
+  color: var(--texto-suave);
+  text-align: center;
+  padding: 24px 0;
+}
+
+code {
+  font-size: 0.9em;
+  background: #efe8e1;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+/* Encabezado de cada página */
+.titulo-pagina {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  padding: 12px 16px;
-  background: var(--cafe);
-  color: #fff;
+  margin-bottom: 16px;
 }
 
-.marca {
-  font-weight: 700;
-}
-
-.encabezado-usuario {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-}
-
-.encabezado-usuario span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* Botones y formularios: tamaño cómodo para el dedo en celular */
+/* ---- Botones: mínimo 44px de alto para el dedo en celular ---- */
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -134,27 +140,39 @@ input {
   color: inherit;
 }
 
-/* Login */
-.login {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: 16px;
+.boton-secundario-oscuro {
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid #cbbfb4;
+  background: #fff;
+  color: var(--texto);
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
 }
 
-.login-formulario {
-  width: 100%;
-  max-width: 380px;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+.boton-enlace {
+  background: none;
+  border: none;
+  padding: 6px 0;
+  color: var(--cafe);
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 0.88rem;
 }
 
-.login-formulario .subtitulo {
-  margin: 0;
+.boton-icono {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px 8px;
+  color: inherit;
 }
 
+/* ---- Formularios ---- */
 label {
   display: flex;
   flex-direction: column;
@@ -163,7 +181,8 @@ label {
   font-size: 0.95rem;
 }
 
-input {
+input,
+select {
   min-height: 44px;
   padding: 0 12px;
   border: 1px solid #cbbfb4;
@@ -178,75 +197,76 @@ select:focus {
   outline-offset: 1px;
 }
 
-select {
-  font: inherit;
-  min-height: 44px;
-  padding: 0 10px;
-  border: 1px solid #cbbfb4;
-  border-radius: 8px;
-  background: #fff;
-  font-weight: 400;
-}
-
-code {
-  font-size: 0.9em;
-  background: #efe8e1;
-  padding: 1px 5px;
-  border-radius: 4px;
-}
-
-/* Menú de navegación: se desliza horizontalmente en celular */
-.menu {
+.formulario {
   display: flex;
-  gap: 4px;
-  overflow-x: auto;
-  padding: 0 12px;
-  background: #fff;
-  border-bottom: 1px solid #e6ddd5;
+  flex-direction: column;
+  gap: 14px;
 }
 
-.menu a {
-  padding: 12px 14px;
-  color: var(--texto);
-  text-decoration: none;
-  white-space: nowrap;
-  border-bottom: 3px solid transparent;
-}
-
-.menu a.active {
-  border-bottom-color: var(--cafe);
-  color: var(--cafe);
-  font-weight: 700;
-}
-
-/* Encabezado de cada página */
-.titulo-pagina {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
+.fila {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 12px;
-  margin-bottom: 16px;
 }
 
-.titulo-pagina h1 {
+@media (max-width: 420px) {
+  .fila {
+    grid-template-columns: 1fr;
+  }
+}
+
+fieldset {
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  padding: 8px 12px 12px;
   margin: 0;
 }
 
-.filtro {
+legend {
+  font-weight: 700;
+  padding: 0 4px;
+}
+
+.campo small {
+  font-weight: 400;
+}
+
+.campo-con-error input,
+.campo-con-error select {
+  border-color: var(--error);
+}
+
+.ayuda {
+  font-size: 0.85rem;
+  color: var(--texto-suave);
+  margin: 0;
+}
+
+.entrada-pesos {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.entrada-pesos input {
+  flex: 1;
+}
+
+.interruptor {
   flex-direction: row;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 10px;
+  min-height: 44px;
 }
 
-.vacio {
-  opacity: 0.7;
-  text-align: center;
-  padding: 24px 0;
+.interruptor input {
+  width: 22px;
+  height: 22px;
+  min-height: 0;
+  accent-color: var(--cafe);
 }
 
-/* Listas en tarjetas */
+/* ---- Listas en tarjetas ---- */
 .lista {
   list-style: none;
   padding: 0;
@@ -289,13 +309,13 @@ code {
 .detalle {
   margin: 2px 0;
   font-size: 0.92rem;
-  opacity: 0.85;
+  color: var(--texto-suave);
 }
 
 .etiqueta {
   font-size: 0.75rem;
   font-weight: 600;
-  background: #e6ddd5;
+  background: var(--borde);
   padding: 2px 8px;
   border-radius: 999px;
   vertical-align: middle;
@@ -312,7 +332,42 @@ code {
   }
 }
 
-/* Estado de documentos (alerta visual ≤ 30 días o vencido) */
+/* ---- Tablas ---- */
+.tabla-contenedor {
+  overflow-x: auto;
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.tabla th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--texto-suave);
+  border-bottom: 1px solid var(--borde);
+  padding: 8px 10px;
+  white-space: nowrap;
+}
+
+.tabla td {
+  padding: 10px;
+  border-bottom: 1px solid var(--borde);
+  vertical-align: middle;
+}
+
+.tabla tr:last-child td {
+  border-bottom: none;
+}
+
+.tabla .numero {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ---- Estado de documentos (icono + texto + color) ---- */
 .documentos {
   display: flex;
   flex-wrap: wrap;
@@ -325,9 +380,10 @@ code {
   align-items: center;
   gap: 4px;
   font-size: 0.85rem;
-  padding: 4px 10px;
+  padding: 3px 10px;
   border-radius: 999px;
   border: 1px solid transparent;
+  white-space: nowrap;
 }
 
 .documento-vencido {
@@ -352,81 +408,7 @@ code {
   color: #555;
 }
 
-/* Inicio admin */
-.resumen {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-}
-
-.cifra {
-  margin-top: 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-decoration: none;
-  color: inherit;
-}
-
-.cifra strong {
-  font-size: 1.8rem;
-  color: var(--cafe);
-}
-
-.lista-simple {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  gap: 8px;
-}
-
-.lista-simple li {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-
-.placa {
-  font-weight: 700;
-  min-width: 120px;
-}
-
-/* Botones extra */
-.boton-secundario-oscuro {
-  min-height: 40px;
-  padding: 0 14px;
-  border-radius: 8px;
-  border: 1px solid #cbbfb4;
-  background: #fff;
-  color: var(--texto);
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.boton-enlace {
-  background: none;
-  border: none;
-  padding: 6px 0;
-  color: var(--cafe);
-  text-decoration: underline;
-  cursor: pointer;
-  font-size: 0.88rem;
-}
-
-.boton-icono {
-  background: none;
-  border: none;
-  font-size: 1.6rem;
-  line-height: 1;
-  cursor: pointer;
-  padding: 4px 8px;
-  color: inherit;
-}
-
-/* Diálogo modal: pantalla completa en celular */
+/* ---- Diálogo modal: pantalla completa en celular ---- */
 .dialogo {
   width: min(560px, 100vw);
   max-height: 100dvh;
@@ -455,7 +437,7 @@ code {
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  border-bottom: 1px solid #e6ddd5;
+  border-bottom: 1px solid var(--borde);
   position: sticky;
   top: 0;
   background: #fff;
@@ -463,90 +445,18 @@ code {
 
 .dialogo-encabezado h2 {
   margin: 0;
-  font-size: 1.15rem;
 }
 
 .dialogo-cuerpo {
   padding: 16px;
 }
 
-/* Formularios */
-.formulario {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.fila {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-@media (max-width: 420px) {
-  .fila {
-    grid-template-columns: 1fr;
-  }
-}
-
-fieldset {
-  border: 1px solid #e6ddd5;
-  border-radius: 8px;
-  padding: 8px 12px 12px;
-  margin: 0;
-}
-
-legend {
-  font-weight: 700;
-  padding: 0 4px;
-}
-
-.campo small {
-  font-weight: 400;
-}
-
-.campo-con-error input,
-.campo-con-error select {
-  border-color: var(--error);
-}
-
-.ayuda {
-  font-size: 0.85rem;
-  opacity: 0.7;
-  margin: 0;
-}
-
-.entrada-pesos {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.entrada-pesos input {
-  flex: 1;
-}
-
-.interruptor {
-  flex-direction: row;
-  align-items: center;
-  gap: 10px;
-  min-height: 44px;
-  font-weight: 600;
-}
-
-.interruptor input {
-  width: 22px;
-  height: 22px;
-  min-height: 0;
-  accent-color: var(--cafe);
-}
-
-/* Contraseña mostrada una sola vez */
+/* ---- Contraseña mostrada una sola vez ---- */
 .password-una-vez dl {
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 6px 12px;
-  background: #f7f3ef;
+  background: var(--fondo);
   padding: 12px;
   border-radius: 8px;
 }
@@ -570,4 +480,21 @@ legend {
   justify-content: flex-end;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+/* ---- Login ---- */
+.login {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.login-formulario {
+  width: 100%;
+  max-width: 380px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }

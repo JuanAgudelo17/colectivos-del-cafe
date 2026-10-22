@@ -1,0 +1,80 @@
+.indicadores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.indicador {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--tarjeta);
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: var(--sombra);
+  border-top: 4px solid var(--borde);
+}
+
+.indicador-etiqueta {
+  font-size: 0.9rem;
+  color: var(--texto-suave);
+}
+
+.indicador-valor {
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.indicador-nota {
+  font-size: 0.85rem;
+  color: var(--texto-suave);
+}
+
+.indicador-critico {
+  border-top-color: var(--estado-critico);
+}
+
+.indicador-advertencia {
+  border-top-color: var(--estado-advertencia);
+}
+
+.indicador-bien {
+  border-top-color: var(--estado-bien);
+}
+
+.dashboard-columnas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.dashboard-columnas .tarjeta {
+  margin-top: 0;
+  min-width: 0;
+}
+
+@media (max-width: 520px) {
+  .dashboard-columnas {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tarjeta-encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.tarjeta-encabezado a {
+  color: var(--cafe);
+  font-size: 0.9rem;
+}
+
+.sin-asignar {
+  color: var(--texto-suave);
+  font-style: italic;
+}
