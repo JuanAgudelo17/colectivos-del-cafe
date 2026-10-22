@@ -1,0 +1,112 @@
+.acceso {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.acceso-barra {
+  height: var(--alto-barra);
+  display: flex;
+  align-items: center;
+  padding: 0 max(24px, calc((100vw - var(--ancho-max)) / 2 + 24px));
+  background: var(--negro);
+  color: var(--blanco);
+  font-size: 20px;
+}
+
+.acceso-cuerpo {
+  width: 100%;
+  max-width: var(--ancho-max);
+  margin: 0 auto;
+  padding: var(--separacion-seccion) 24px;
+  display: grid;
+  grid-template-columns: minmax(0, 440px) minmax(0, 480px);
+  justify-content: space-between;
+  align-items: center;
+  gap: 48px;
+}
+
+.acceso-formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Ubicación: punto negro + "Pereira, Risaralda" */
+.acceso-ubicacion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--texto-sub);
+  font-weight: 500;
+  margin: 0;
+}
+
+.acceso-ubicacion::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--negro);
+}
+
+.acceso-formulario h1 {
+  font-size: clamp(36px, 6vw, var(--display));
+  line-height: 1.22;
+}
+
+.acceso-formulario .subtitulo {
+  margin: 0;
+}
+
+.acceso-formulario form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.acceso-formulario .boton-principal {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.acceso-ilustracion {
+  border-radius: var(--radio);
+  overflow: hidden;
+  aspect-ratio: 1;
+}
+
+.ilustracion {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.acceso-pie {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 32px max(24px, calc((100vw - var(--ancho-max)) / 2 + 24px));
+  background: var(--negro);
+  color: var(--ceniza);
+  font-size: var(--texto-sm);
+}
+
+.acceso-pie .marca {
+  color: var(--blanco);
+}
+
+@media (max-width: 860px) {
+  .acceso-cuerpo {
+    grid-template-columns: 1fr;
+    padding: 32px 20px 48px;
+    gap: 32px;
+  }
+
+  /* En celular la ilustración va arriba, como franja, para no empujar el formulario */
+  .acceso-ilustracion {
+    order: -1;
+    aspect-ratio: 16 / 8;
+  }
+}

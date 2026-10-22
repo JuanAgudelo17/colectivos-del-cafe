@@ -1,162 +1,228 @@
-/* Estructura del panel: barra lateral + contenido */
 .panel {
-  display: grid;
-  grid-template-columns: 248px 1fr;
   min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
 }
 
-.panel-lateral {
+/* ---- Barra negra superior ---- */
+.barra {
   position: sticky;
   top: 0;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: var(--cafe-oscuro);
-  color: #f3ece6;
-  padding: 20px 12px;
-  gap: 20px;
+  z-index: 20;
+  background: var(--negro);
+  color: var(--blanco);
 }
 
-.panel-marca {
-  display: flex;
-  flex-direction: column;
-  padding: 0 10px;
-}
-
-.panel-marca .marca {
-  font-size: 1.1rem;
-}
-
-.panel-marca small {
-  opacity: 0.7;
-}
-
-.panel-menu {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex: 1;
-  overflow-y: auto;
-}
-
-.panel-menu a,
-.panel-pendiente {
+.barra-interior {
+  max-width: var(--ancho-max);
+  height: var(--alto-barra);
+  margin: 0 auto;
+  padding: 0 24px;
   display: flex;
   align-items: center;
-  gap: 10px;
-  min-height: 44px;
-  padding: 0 10px;
-  border-radius: 8px;
-  color: inherit;
+  gap: 32px;
+}
+
+.barra-marca {
+  color: var(--blanco);
   text-decoration: none;
-}
-
-.panel-menu a:hover {
-  background: rgb(255 255 255 / 0.08);
-}
-
-.panel-menu a.active {
-  background: rgb(255 255 255 / 0.16);
-  font-weight: 700;
-}
-
-.panel-pendiente {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.panel-pendiente small {
-  margin-left: auto;
-  font-size: 0.7rem;
-  border: 1px solid currentColor;
-  border-radius: 999px;
-  padding: 0 6px;
-}
-
-.panel-icono {
-  width: 24px;
-  text-align: center;
-}
-
-.panel-usuario {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 12px 10px 0;
-  border-top: 1px solid rgb(255 255 255 / 0.15);
-}
-
-.panel-usuario-datos {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.panel-usuario-datos span {
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 20px;
   white-space: nowrap;
 }
 
-.panel-usuario-datos a {
-  color: inherit;
-  opacity: 0.75;
-  font-size: 0.82rem;
-}
-
-.panel-contenido {
+.barra-menu {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 4px;
   min-width: 0;
-  padding: 28px 32px;
-  max-width: 1200px;
-  width: 100%;
 }
 
-.panel-barra-movil,
-.panel-velo {
+.barra-menu a,
+.barra-pendiente {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 6px 12px;
+  border-radius: var(--pildora);
+  color: var(--blanco);
+  text-decoration: none;
+  font-size: var(--texto-sm);
+  white-space: nowrap;
+}
+
+.barra-menu a:hover {
+  background: rgb(255 255 255 / 0.12);
+}
+
+.barra-menu a.active {
+  background: var(--carbon);
+  font-weight: 500;
+}
+
+.barra-pendiente {
+  color: var(--hierro);
+  cursor: not-allowed;
+}
+
+/* En la barra los módulos pendientes van solo atenuados; la fase sale en el menú de celular */
+.barra-menu .barra-pendiente small {
   display: none;
 }
 
-/* Celular y tablet: la barra lateral se vuelve un menú deslizable */
-@media (max-width: 900px) {
-  .panel {
-    grid-template-columns: 1fr;
+.cortina-menu .barra-pendiente small {
+  font-size: 10px;
+  border: 1px solid currentColor;
+  border-radius: var(--pildora);
+  padding: 0 6px;
+}
+
+.barra-usuario {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.barra-nombre {
+  color: var(--blanco);
+  font-size: var(--texto-sm);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.barra-nombre:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.barra-abrir,
+.cortina {
+  display: none;
+}
+
+/* ---- Contenido ---- */
+.panel-contenido {
+  width: 100%;
+  max-width: var(--ancho-max);
+  margin: 0 auto;
+  padding: 48px 24px var(--separacion-seccion);
+}
+
+/* ---- Pie negro ---- */
+.pie {
+  background: var(--negro);
+  color: var(--ceniza);
+  font-size: var(--texto-sm);
+}
+
+.pie-interior {
+  max-width: var(--ancho-max);
+  margin: 0 auto;
+  padding: 32px 24px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pie .marca {
+  color: var(--blanco);
+}
+
+/* ---- Celular y tablet: menú en cortina ---- */
+@media (max-width: 1100px) {
+  .barra-interior {
+    height: 56px;
+    padding: 0 8px 0 20px;
+    justify-content: space-between;
   }
 
-  .panel-barra-movil {
+  .barra-marca {
+    font-size: 18px;
+  }
+
+  .barra-menu,
+  .barra-usuario {
+    display: none;
+  }
+
+  .barra-abrir {
+    display: inline-flex;
+  }
+
+  .panel-menu-abierto .cortina {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 32px;
+    position: fixed;
+    inset: 56px 0 0 0;
+    padding: 16px 20px 32px;
+    background: var(--negro);
+    overflow-y: auto;
+  }
+
+  .cortina-menu {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .cortina-menu a,
+  .cortina-menu .barra-pendiente {
     display: flex;
     align-items: center;
-    gap: 8px;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    padding: 8px 12px;
-    background: var(--cafe-oscuro);
-    color: #fff;
+    justify-content: space-between;
+    min-height: 56px;
+    padding: 0;
+    border-radius: 0;
+    border-bottom: 1px solid var(--carbon);
+    color: var(--blanco);
+    font-size: var(--titulo-sm);
+    text-decoration: none;
   }
 
-  .panel-lateral {
-    position: fixed;
-    inset: 0 auto 0 0;
-    width: min(280px, 85vw);
-    z-index: 30;
-    transform: translateX(-100%);
-    transition: transform 0.2s ease;
+  .cortina-menu a.active {
+    font-weight: 500;
   }
 
-  .panel-menu-abierto .panel-lateral {
-    transform: none;
+  .cortina-menu a.active::after {
+    content: '●';
+    font-size: 12px;
   }
 
-  .panel-menu-abierto .panel-velo {
-    display: block;
-    position: fixed;
-    inset: 0;
-    z-index: 20;
-    background: rgb(0 0 0 / 0.4);
+  .cortina-menu .barra-pendiente {
+    color: var(--hierro);
+  }
+
+  .cortina-cuenta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+    color: var(--ceniza);
+    font-size: var(--texto-sm);
+  }
+
+  .cortina-cuenta span {
+    flex-basis: 100%;
+    color: var(--blanco);
+    font-size: var(--texto-sub);
+  }
+
+  .cortina-cuenta a {
+    color: var(--blanco);
+    text-underline-offset: 3px;
   }
 
   .panel-contenido {
-    padding: 20px 16px;
+    padding: 28px 20px 48px;
+  }
+}
+
+/* La barra fija de acción (base.css) no debe tapar el final de la página */
+@media (max-width: 640px) {
+  .panel:has(.accion-fija) .pie-interior {
+    padding-bottom: 88px;
   }
 }
