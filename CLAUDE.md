@@ -6,10 +6,13 @@ El documento de requerimientos original está en `docs/requerimientos.pdf`. Dond
 ## Qué es
 
 Dashboard web para llevar la contabilidad de busetas de transporte intermunicipal (Risaralda, Colombia).
-Proyecto personal que atiende a ~5 empresas/clientes desde **una sola instalación** (multi-empresa).
+Es **solo para Colectivos del Café** (una única empresa; el soporte multi-empresa se eliminó en la migración 004).
+Lo desarrollan dos personas, organizado **por módulos** (ver `docs/MODULOS.md`).
+
+Producción: https://el-producido.netlify.app
 
 Dos roles:
-- **admin**: yo. Ve y gestiona todas las empresas, conductores, busetas, producido, cierres y reportes.
+- **admin**: ve y gestiona conductores, busetas, producido, cierres y reportes.
 - **conductor**: solo ve y registra lo suyo (su buseta, su producido, sus facturas). Nunca datos de otros.
 
 Ciclo mensual: se registra día a día durante el mes y se cierra el consolidado al final del mes. Un mes cerrado no se edita.
@@ -30,35 +33,41 @@ No usar Vercel (su plan gratis prohíbe uso comercial).
 ```
 /
 ├── CLAUDE.md
-├── docs/requerimientos.pdf
-├── frontend/              # React + Vite
-├── server/                # App Express (rutas, middlewares, acceso a BD)
-│   ├── app.js
-│   ├── routes/
-│   ├── middleware/        # auth, rol, empresa
-│   └── db/
-├── netlify/functions/
-│   └── api.js             # envuelve server/app.js con serverless-http
+├── docs/MODULOS.md        # cómo está organizado y cómo trabajar en pareja
+├── frontend/src/
+│   ├── compartido/        # api, sesión, layout (Panel), ui, utilidades, estilos base
+│   └── modulos/           # login, dashboard, busetas, conductores, mi-buseta...
+│       └── index.js       # registro de módulos por rol (menú + rutas)
+├── server/
+│   ├── app.js             # monta los módulos registrados en /api
+│   ├── compartido/        # bd, http (errores, validación), seguridad, fecha, test/helpers
+│   ├── modulos/           # salud, auth, busetas, conductores...
+│   │   ├── <modulo>/      # index.js, rutas.js, repositorio.js, esquemas.js, *.test.js
+│   │   └── index.js       # registro de módulos
+│   └── scripts/           # migrar, crear-admin
+├── netlify/functions/api.js   # envuelve server/app.js con serverless-http
 ├── db/migrations/         # SQL numerado: 001_inicial.sql, 002_...
 ├── netlify.toml
-└── .github/workflows/     # backup.yml, keepalive
+└── .github/workflows/     # ci.yml (backup y keepalive en Fase 4)
 ```
+
+Un módulo solo usa otro a través de lo que este exporta en su `index.js` (nunca sus archivos internos).
 
 ## Modelo de datos (corregido respecto al PDF)
 
 Dinero en pesos colombianos: usar `BIGINT` (pesos enteros) o `NUMERIC(14,2)`. **Nunca float.**
-Todas las tablas de negocio llevan `empresa_id` (directo o a través de buseta).
 
-- **empresa**: id, nombre, nit, activo, creado_en
-- **usuario**: id, empresa_id (NULL para admin global), usuario (único, para login), nombre, cedula, telefono, password_hash, rol (`admin` | `conductor`), buseta_id (FK, nullable), activo, creado_en
-- **buseta**: id, empresa_id, numero_interno, placa (única), modelo, tiene_cupo (bool), valor_arriendo (si no tiene cupo), activo
+- **usuario**: id, usuario (único sin distinguir mayúsculas, para login), nombre, cedula, telefono, password_hash, rol (`admin` | `conductor`), buseta_id (FK única, nullable; solo conductores), activo, creado_en
+- **buseta**: id, numero_interno (único), placa (única, mayúsculas), modelo, tiene_cupo (bool), valor_arriendo (obligatorio si no tiene cupo), activo
 - **documento_buseta**: id, buseta_id (único), fecha_soat, fecha_tecnomecanica
 - **producido_diario**: id, buseta_id, conductor_id, fecha, ingreso, peajes, salidas, acpm, mantenimiento, otros, observacion, creado_por, creado_en — único (buseta_id, fecha)
 - **factura**: id, conductor_id, buseta_id, fecha, categoria (`peaje` | `mantenimiento` | `acpm` | `salida` | `otro`), descripcion, precio, imagen_path (opcional), creado_en
-- **parametro**: id, empresa_id (NULL = global), clave, valor, vigente_desde. Claves: `porcentaje_empresa` (0.20), `porcentaje_reposicion` (0.01), `sueldo_conductor` (3066000)
+- **parametro**: id, clave, valor, vigente_desde — único (clave, vigente_desde). Claves: `porcentaje_empresa` (0.20, lo que se lleva Colectivos), `porcentaje_reposicion` (0.01), `sueldo_conductor` (3066000)
 - **cierre_mensual**: id, buseta_id, anio, mes, bruto, reposicion, empresa, conductor, peajes, salidas, mantenimiento, arriendo, acpm, neto, estado (`abierto` | `cerrado`), cerrado_por, cerrado_en — único (buseta_id, anio, mes)
+- **intento_login**: usuario, ip, creado_en — bloqueo tras 5 fallos por usuario (o 20 por IP) en 15 min.
 
 Relación conductor–buseta: 1 a 1 en esta versión (`usuario.buseta_id`).
+No se borran busetas ni conductores: se desactivan (`activo = false`) para no romper el histórico.
 
 ## Fórmula oficial del cierre mensual
 
@@ -80,8 +89,8 @@ neto         = bruto − costos
 
 ## Reglas que el código debe respetar
 
-- Validar rol **y** empresa en cada endpoint del backend (no confiar en el frontend).
-- Un conductor solo accede a registros donde `conductor_id` o `buseta_id` sean los suyos.
+- Validar sesión y rol en cada endpoint del backend (`autenticar` + `requiereRol`); no confiar en el frontend.
+- Un conductor solo accede a registros donde `conductor_id` o `buseta_id` sean los suyos (usar `alcance(req.usuario)`).
 - No se crea, edita ni borra producido/facturas de un mes con `cierre_mensual.estado = 'cerrado'`.
 - Las fechas de SOAT y tecnomecánica las edita solo el admin; el conductor solo las consulta.
 - Mostrar alerta visual si un documento vence en ≤ 30 días o ya venció.
@@ -99,12 +108,12 @@ neto         = bruto − costos
 ## Fases
 
 **Fase 1 (actual): base funcionando y desplegada**
-1. Estructura del repo, Vite + Express + `netlify.toml`, correr local con `netlify dev`.
-2. Migración SQL inicial con todas las tablas y datos semilla (1 admin, 1 empresa, parámetros).
-3. Login, logout, sesión, middleware de rol y empresa.
-4. Admin: CRUD de empresas, busetas, conductores y fechas de documentos.
-5. Conductor: ver su buseta y estado de documentos.
-6. Despliegue en Netlify conectado a Supabase.
+1. ✅ Estructura del repo, Vite + Express + `netlify.toml`, correr local con `netlify dev`.
+2. ✅ Migración SQL inicial con todas las tablas y datos semilla (admin con `npm run crear-admin`, parámetros).
+3. ✅ Login, logout, sesión, middleware de rol, bloqueo por intentos.
+4. ✅ Admin: dashboard, CRUD de busetas, conductores y fechas de documentos.
+5. Conductor: ver su buseta y estado de documentos (módulo `mi-buseta`).
+6. ✅ Despliegue en Netlify conectado a Supabase.
 
 **Fase 2:** registro de producido diario y facturas con foto; consultas por día/mes.
 **Fase 3:** cierre mensual, resumen financiero, exportar PDF/imagen (generado en el navegador).
@@ -123,5 +132,8 @@ neto         = bruto − costos
 - Migraciones SQL numeradas; nunca editar una migración ya aplicada.
 - `frontend/` y `server/` tienen `package.json` propio; **no usar npm workspaces** (Netlify CLI los detecta como monorepo y `netlify dev` se bloquea pidiendo elegir proyecto). Dependencias con `npm install <pkg> --prefix server|frontend`. `serverless-http` vive en la raíz porque lo importa `netlify/functions/api.js`.
 - `docs/requerimientos.pdf` está en `.gitignore` (tiene cédulas); existe solo en local.
+- Vite escucha en `127.0.0.1` (si queda en IPv6, `netlify dev` responde "Could not proxy request").
+- Las pruebas del backend van junto al módulo (`modulos/<m>/<m>.test.js`) y usan PGlite (`compartido/test/helpers.js`).
+- Trabajo en pareja: una rama por cambio (`modulo/descripcion`), Pull Request a `main`, el CI debe pasar. Ver `docs/MODULOS.md`.
 - Commits pequeños y descriptivos en español.
 - Antes de dar algo por terminado: correrlo localmente y probar el flujo con ambos roles.

@@ -1,9 +1,10 @@
 # Colectivos del Café
 
 Registro contable de busetas de transporte intermunicipal (Risaralda, Colombia).
-Dashboard web multi-empresa con dos roles: **admin** y **conductor**.
+Dashboard web de Colectivos del Café con dos roles: **admin** y **conductor**.
 
-Contexto completo, modelo de datos y reglas de negocio: [CLAUDE.md](CLAUDE.md).
+- Contexto completo, modelo de datos y reglas de negocio: [CLAUDE.md](CLAUDE.md).
+- Organización por módulos y cómo trabajar en pareja: [docs/MODULOS.md](docs/MODULOS.md).
 
 ## Stack
 
@@ -43,11 +44,13 @@ Comprobar: `http://localhost:8888/api/salud` → `{ "ok": true, ... }`.
 ## Estructura
 
 ```
-frontend/             React + Vite
-server/               App Express (app.js, routes/, middleware/, db/, lib/, test/)
-netlify/functions/    api.js envuelve server/app.js con serverless-http
-db/migrations/        SQL numerado (001_inicial.sql, ...)
-.github/workflows/    CI (y respaldos/keep-alive en Fase 4)
+frontend/src/compartido/   api, sesión, layout, ui, utilidades, estilos
+frontend/src/modulos/      un módulo por carpeta + index.js (registro)
+server/compartido/         bd, http, seguridad, fecha, helpers de pruebas
+server/modulos/            un módulo por carpeta + index.js (registro)
+netlify/functions/         api.js envuelve server/app.js con serverless-http
+db/migrations/             SQL numerado (001_inicial.sql, ...)
+.github/workflows/         CI (y respaldos/keep-alive en Fase 4)
 ```
 
 Las carpetas `frontend/` y `server/` tienen cada una su `package.json`.
