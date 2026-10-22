@@ -1,30 +1,40 @@
-import { useEffect, useState } from 'react';
-import { api } from './api.js';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
+import { Plantilla } from './componentes/Plantilla.jsx';
+import { RutaProtegida } from './componentes/RutaProtegida.jsx';
+import { InicioAdmin } from './paginas/InicioAdmin.jsx';
+import { InicioConductor } from './paginas/InicioConductor.jsx';
+import { Login } from './paginas/Login.jsx';
+import { ProveedorSesion } from './sesion/ProveedorSesion.jsx';
+import { rutaInicio, useSesion } from './sesion/contexto.js';
+
+function RedirigirInicio() {
+  const { usuario, cargando } = useSesion();
+  if (cargando) return <p className="cargando">Cargando…</p>;
+  return <Navigate to={usuario ? rutaInicio(usuario) : '/login'} replace />;
+}
 
 export default function App() {
-  const [estado, setEstado] = useState({ cargando: true });
-
-  useEffect(() => {
-    api('/salud')
-      .then((datos) => setEstado({ ok: true, hora: datos.hora }))
-      .catch((err) => setEstado({ ok: false, error: err.message }));
-  }, []);
-
   return (
-    <main className="contenedor">
-      <h1>Colectivos del Café</h1>
-      <p className="subtitulo">Registro contable de busetas</p>
+    <ProveedorSesion>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<Login />} />
 
-      <section className="tarjeta">
-        <h2>Estado del sistema</h2>
-        {estado.cargando && <p>Verificando conexión…</p>}
-        {estado.ok === true && (
-          <p className="ok">
-            Backend OK · {estado.hora} (hora Bogotá)
-          </p>
-        )}
-        {estado.ok === false && <p className="error">{estado.error}</p>}
-      </section>
-    </main>
+          <Route element={<RutaProtegida rol="admin" />}>
+            <Route element={<Plantilla />}>
+              <Route path="/admin" element={<InicioAdmin />} />
+            </Route>
+          </Route>
+
+          <Route element={<RutaProtegida rol="conductor" />}>
+            <Route element={<Plantilla />}>
+              <Route path="/conductor" element={<InicioConductor />} />
+            </Route>
+          </Route>
+
+          <Route path="*" element={<RedirigirInicio />} />
+        </Routes>
+      </BrowserRouter>
+    </ProveedorSesion>
   );
 }
