@@ -1,0 +1,23 @@
+{
+  "name": "colectivos-del-cafe",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Registro contable de busetas de transporte intermunicipal",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "postinstall": "npm install --prefix server && npm install --prefix frontend",
+    "dev": "netlify dev",
+    "build": "npm run build --prefix frontend",
+    "test": "npm test --prefix server",
+    "lint": "npm run lint --prefix frontend"
+  },
+  "dependencies": {
+    "serverless-http": "^4.0.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^27.14.1"
+  }
+}
