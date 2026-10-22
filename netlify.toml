@@ -2,6 +2,8 @@
   command   = "npm run build"
   publish   = "frontend/dist"
   functions = "netlify/functions"
+  # Solo construye si cambió la app (no docs, pruebas, CI ni migraciones): ahorra créditos.
+  ignore    = "bash netlify/ignorar-build.sh"
 
 [build.environment]
   NODE_VERSION = "22"

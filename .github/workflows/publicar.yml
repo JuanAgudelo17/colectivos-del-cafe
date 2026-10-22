@@ -1,0 +1,98 @@
+name: Publicar a producción
+
+# Producción (https://el-producido.netlify.app) se despliega desde la rama
+# `produccion`. Este workflow la pone al día con `main`:
+#   - automático los viernes a las 6:00 p. m. (hora Bogotá), y
+#   - manual con el botón "Run workflow" en Actions → Publicar a producción.
+# Solo publica si el CI de ese commit de main pasó. Netlify además salta el
+# build si no cambió nada de la app (netlify/ignorar-build.sh), así que
+# publicar cambios de solo documentación no gasta créditos.
+
+on:
+  schedule:
+    - cron: '0 23 * * 5' # viernes 23:00 UTC = 18:00 Bogotá
+  workflow_dispatch:
+    inputs:
+      motivo:
+        description: '¿Por qué publicas ahora? (opcional)'
+        required: false
+      simular:
+        description: 'Solo simular: mostrar qué se publicaría, sin publicar'
+        type: boolean
+        default: false
+
+concurrency:
+  group: publicar
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  publicar:
+    name: Pasar main a producción
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Comparar main con producción
+        id: comparar
+        env:
+          MOTIVO: ${{ inputs.motivo }}
+        run: |
+          git fetch origin produccion
+          {
+            echo "## Publicar a producción"
+            [ -n "$MOTIVO" ] && echo "> $MOTIVO"
+            echo
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$(git rev-parse HEAD)" = "$(git rev-parse origin/produccion)" ]; then
+            echo "✅ Producción ya está al día con main. Nada que publicar." >> "$GITHUB_STEP_SUMMARY"
+            echo "pendiente=no" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          {
+            echo "### Commits que se publican"
+            git log --format='- `%h` %s (%an)' origin/produccion..HEAD
+            echo
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "pendiente=si" >> "$GITHUB_OUTPUT"
+
+      - name: Verificar que el CI de main pasó
+        if: steps.comparar.outputs.pendiente == 'si'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sha=$(git rev-parse HEAD)
+          estado=$(gh run list --workflow ci.yml --branch main --commit "$sha" --limit 1 \
+            --json status,conclusion -q '.[0] | "\(.status) \(.conclusion)"')
+          if [ "$estado" != "completed success" ]; then
+            echo "❌ El CI del commit \`${sha:0:7}\` no está en verde (${estado:-sin ejecución}). No se publica." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+      - name: Publicar
+        if: steps.comparar.outputs.pendiente == 'si'
+        run: |
+          if bash netlify/ignorar-build.sh origin/produccion HEAD > cambios.txt; then
+            echo "ℹ️ Solo cambió documentación, pruebas o CI: la rama se sincroniza y Netlify **no** despliega (0 créditos)." >> "$GITHUB_STEP_SUMMARY"
+          else
+            {
+              echo "🚀 Hay cambios en la app: Netlify despliega producción (~15 créditos)."
+              echo '```'
+              cat cambios.txt
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ "${{ inputs.simular }}" = "true" ]; then
+            echo "🧪 **Simulación:** no se publicó nada." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          # Solo avance rápido: si alguien escribió directo en `produccion`, falla en vez de pisarlo.
+          git push origin HEAD:refs/heads/produccion

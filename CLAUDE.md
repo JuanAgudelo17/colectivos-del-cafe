@@ -23,7 +23,7 @@ Ciclo mensual: se registra día a día durante el mes y se cierra el consolidado
 - **Backend:** Node.js + Express, desplegado como **Netlify Functions** con `serverless-http`.
 - **Base de datos:** PostgreSQL en **Supabase** (plan gratis). Conectar con la cadena del **pooler en modo transacción**, no la directa.
 - **Archivos:** Supabase Storage, bucket **privado** `facturas`. Mostrar imágenes solo con URLs firmadas.
-- **Hosting:** Netlify (plan gratis; permite uso comercial). Despliegue automático con cada push a `main`.
+- **Hosting:** Netlify (plan gratis por créditos: 300/mes, ~15 por despliegue a producción; si se acaban se pausa el sitio). Producción se despliega desde la rama `produccion`, que solo avanza con el workflow "Publicar a producción" (viernes 6 p. m. o manual). `main` = ambiente de pruebas gratis (main--el-producido.netlify.app). Netlify salta el build si no cambió la app (`netlify/ignorar-build.sh`).
 - **Respaldos:** GitHub Action semanal con `pg_dump` + consulta diaria para que Supabase no pause el proyecto.
 
 No usar Vercel (su plan gratis prohíbe uso comercial).
@@ -137,6 +137,7 @@ neto         = bruto − costos
 - `docs/requerimientos.pdf` está en `.gitignore` (tiene cédulas); existe solo en local.
 - Vite escucha en `127.0.0.1` (si queda en IPv6, `netlify dev` responde "Could not proxy request").
 - Las pruebas del backend van junto al módulo (`modulos/<m>/<m>.test.js`) y usan PGlite (`compartido/test/helpers.js`).
-- Trabajo en pareja: una rama por cambio (`modulo/descripcion`), Pull Request a `main`, el CI debe pasar. Ver `docs/MODULOS.md`.
+- Trabajo en pareja: una rama por cambio (`modulo/descripcion`), Pull Request a `main`, el CI debe pasar (el bot comenta el resultado en el PR). Ver `docs/MODULOS.md`.
+- Nunca hacer commits ni push directo a `produccion`. Para no gastar créditos: no publicar por cambios pequeños; juntar y publicar.
 - Commits pequeños y descriptivos en español.
 - Antes de dar algo por terminado: correrlo localmente y probar el flujo con ambos roles.

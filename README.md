@@ -60,7 +60,10 @@ Para agregar una dependencia: `npm install <paquete> --prefix server` (o `--pref
 
 Producción: **https://el-producido.netlify.app** · diagnóstico: `/api/salud` (debe decir `"ok": true`).
 
-Netlify despliega automáticamente cada push a `main`. Las variables de entorno (`DATABASE_URL`,
+- **Pruebas** (gratis): cada push a `main` → https://main--el-producido.netlify.app
+- **Producción**: rama `produccion`, se actualiza con el workflow *Publicar a producción* (viernes 6 p. m. o botón manual en Actions). Detalles en [docs/MODULOS.md](docs/MODULOS.md#ramas-ambientes-y-créditos-de-netlify).
+
+Las variables de entorno (`DATABASE_URL`,
 `JWT_SECRET`) se configuran como secretas en Netlify, nunca en el repositorio:
 
 ```bash

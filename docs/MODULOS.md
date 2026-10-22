@@ -106,12 +106,32 @@ romper a nadie.
      comentario con el resultado: qué pruebas fallaron y por qué, y los problemas de lint (que además
      salen marcados en la línea exacta en **Files changed**). Cada push a la rama actualiza ese mismo
      comentario.
-   - Netlify publica un **Deploy Preview** con su propia URL para revisarlo. Ojo: usa la misma
-     base de datos que producción.
+   - Netlify publica un **Deploy Preview** con su propia URL para revisarlo (gratis). Ojo: usa la
+     misma base de datos que producción.
    - El otro revisa y aprueba.
-6. **Merge** a `main` → Netlify despliega a producción en 2-3 minutos.
+6. **Merge** a `main` → se publica en **pruebas**: https://main--el-producido.netlify.app (gratis).
+7. **Producción** se actualiza sola los **viernes a las 6 p. m.** con lo que haya en `main`, si el CI
+   pasó. Si algo no puede esperar: GitHub → **Actions → Publicar a producción → Run workflow**
+   (marca "Solo simular" para ver antes qué se publicaría).
 
 Si `main` cambió mientras trabajabas: `git pull origin main` en tu rama y resuelve conflictos.
+
+## Ramas, ambientes y créditos de Netlify
+
+| Rama | Ambiente | URL | Créditos |
+|---|---|---|---|
+| tu rama + PR | Deploy Preview | la que comenta Netlify en el PR | 0 |
+| `main` | Pruebas | https://main--el-producido.netlify.app | 0 |
+| `produccion` | Producción | https://el-producido.netlify.app | ~15 por despliegue |
+
+- El plan gratis da **300 créditos al mes** (~20 despliegues a producción). Si se acaban, Netlify
+  **pausa el sitio** hasta el mes siguiente. Por eso producción solo avanza con "Publicar".
+- **Nunca hagas commits directo en `produccion`**: el workflow solo avanza esa rama copiando `main`,
+  y fallará si alguien la modificó a mano.
+- Netlify **no construye** si el cambio no toca la app: docs (`*.md`), pruebas (`*.test.js`),
+  `.github/`, migraciones (`db/`) o `server/scripts/`. La regla está en `netlify/ignorar-build.sh`.
+- Las migraciones (`db/migrations/`) no se aplican al desplegar: se corren con `npm run migrar`
+  **antes** de publicar el código que las necesita.
 
 ## Preparar el entorno (compañero nuevo)
 
