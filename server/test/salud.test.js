@@ -22,12 +22,13 @@ test('GET /api/salud responde ok con JWT y base de datos bien configurados', asy
 });
 
 test('GET /api/salud avisa si la base de datos falla, sin detalles', async () => {
-  const dbRota = { query: () => Promise.reject(new Error('password authentication failed')) };
+  const fallo = Object.assign(new Error('password authentication failed for user postgres'), { code: '28P01' });
+  const dbRota = { query: () => Promise.reject(fallo) };
   const otro = await iniciarServidor(crearApp({ db: dbRota }));
   try {
     const cuerpo = await (await fetch(`${otro.base}/api/salud`)).json();
     assert.equal(cuerpo.ok, false);
-    assert.match(cuerpo.baseDatos, /error de conexión/);
+    assert.match(cuerpo.baseDatos, /error de conexión: 28P01/);
     assert.equal(JSON.stringify(cuerpo).includes('password'), false);
   } finally {
     await otro.cerrar();

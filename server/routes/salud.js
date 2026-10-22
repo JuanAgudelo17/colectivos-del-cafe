@@ -16,7 +16,8 @@ router.get('/', async (req, res) => {
       baseDatos = 'ok';
     } catch (err) {
       console.error('Salud: no se pudo conectar a la base de datos', err);
-      baseDatos = 'error de conexión (ver Logs → Functions)';
+      // Solo el código (ej. 28P01 = contraseña incorrecta, ENOTFOUND = host mal escrito).
+      baseDatos = `error de conexión: ${err.code ?? err.name} (ver Logs → Functions)`;
     }
   }
 
