@@ -55,5 +55,14 @@ Para agregar una dependencia: `npm install <paquete> --prefix server` (o `--pref
 
 ## Despliegue
 
-Netlify despliega automáticamente cada push a `main`. Las variables de entorno se configuran en
-Netlify → Site settings → Environment variables (nunca en el repositorio).
+Producción: **https://el-producido.netlify.app** · diagnóstico: `/api/salud` (debe decir `"ok": true`).
+
+Netlify despliega automáticamente cada push a `main`. Las variables de entorno (`DATABASE_URL`,
+`JWT_SECRET`) se configuran como secretas en Netlify, nunca en el repositorio:
+
+```bash
+npx netlify env:set NOMBRE "valor" --secret --context production deploy-preview branch-deploy
+npx netlify api createSiteBuild --data '{"site_id":"<id en .netlify/state.json>"}'  # redeploy
+```
+
+Netlify no aplica cambios de variables hasta el siguiente despliegue.
