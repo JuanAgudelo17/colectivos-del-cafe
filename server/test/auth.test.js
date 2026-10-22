@@ -115,6 +115,29 @@ test('desactivar al usuario corta su sesión de inmediato', async () => {
   }
 });
 
+test('5 intentos fallidos bloquean el usuario aunque luego acierte', async () => {
+  await db.query(
+    `INSERT INTO usuario (usuario, nombre, password_hash, rol) VALUES ('victima', 'V', $1, 'admin')`,
+    [await hashPrueba('clave-correcta')],
+  );
+  for (let i = 0; i < 5; i++) assert.equal((await login('victima', 'mala')).status, 401);
+
+  const res = await login('VICTIMA', 'clave-correcta');
+  assert.equal(res.status, 429);
+  assert.match((await res.json()).error, /Demasiados intentos/);
+
+  // Otros usuarios no se ven afectados.
+  assert.equal((await login('pedro', 'clave-correcta')).status, 200);
+});
+
+test('login exitoso reinicia el contador de fallos', async () => {
+  for (let i = 0; i < 4; i++) await login('Admin', 'mala');
+  assert.equal((await login('Admin', 'clave-correcta')).status, 200);
+  assert.equal((await login('Admin', 'mala')).status, 401); // no 429
+  const { rows } = await db.query(`SELECT count(*)::int AS n FROM intento_login WHERE lower(usuario) = 'admin'`);
+  assert.equal(rows[0].n, 1);
+});
+
 test('logout borra la cookie', async () => {
   const res = await fetch(`${servidor.base}/api/auth/logout`, { method: 'POST' });
   assert.equal(res.status, 204);
