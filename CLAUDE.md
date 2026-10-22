@@ -23,7 +23,7 @@ Ciclo mensual: se registra día a día durante el mes y se cierra el consolidado
 - **Backend:** Node.js + Express, desplegado como **Netlify Functions** con `serverless-http`.
 - **Base de datos:** PostgreSQL en **Supabase** (plan gratis). Conectar con la cadena del **pooler en modo transacción**, no la directa.
 - **Archivos:** Supabase Storage, bucket **privado** `facturas`. Mostrar imágenes solo con URLs firmadas.
-- **Hosting:** Netlify (plan gratis por créditos: 300/mes, ~15 por despliegue a producción; si se acaban se pausa el sitio). Producción se despliega desde la rama `produccion`, que solo avanza con el workflow "Publicar a producción" (viernes 6 p. m. o manual). `main` = ambiente de pruebas gratis (main--el-producido.netlify.app). Netlify salta el build si no cambió la app (`netlify/ignorar-build.sh`).
+- **Hosting:** Netlify (plan gratis por créditos: 300/mes, ~15 por despliegue a producción; si se acaban se pausa el sitio). Producción se despliega desde la rama `produccion`, que solo avanza con el workflow manual "Publicar a producción", que exige la aprobación de JuanAgudelo17 (ambiente `produccion` de GitHub). `main` = ambiente de pruebas gratis (main--el-producido.netlify.app). Netlify salta el build si no cambió la app (`netlify/ignorar-build.sh`).
 - **Respaldos:** GitHub Action semanal con `pg_dump` + consulta diaria para que Supabase no pause el proyecto.
 
 No usar Vercel (su plan gratis prohíbe uso comercial).

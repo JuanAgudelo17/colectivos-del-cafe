@@ -110,9 +110,9 @@ romper a nadie.
      misma base de datos que producción.
    - El otro revisa y aprueba.
 6. **Merge** a `main` → se publica en **pruebas**: https://main--el-producido.netlify.app (gratis).
-7. **Producción** se actualiza sola los **viernes a las 6 p. m.** con lo que haya en `main`, si el CI
-   pasó. Si algo no puede esperar: GitHub → **Actions → Publicar a producción → Run workflow**
-   (marca "Solo simular" para ver antes qué se publicaría).
+7. **Producción** solo cambia cuando **Juan lo autoriza**: GitHub → **Actions → Publicar a producción →
+   Run workflow**. Cualquiera de los dos puede pedirlo (con "Solo simular" ves qué saldría), pero el
+   paso que publica queda **esperando la aprobación de Juan** (ambiente `produccion` de GitHub).
 
 Si `main` cambió mientras trabajabas: `git pull origin main` en tu rama y resuelve conflictos.
 
@@ -125,7 +125,8 @@ Si `main` cambió mientras trabajabas: `git pull origin main` en tu rama y resue
 | `produccion` | Producción | https://el-producido.netlify.app | ~15 por despliegue |
 
 - El plan gratis da **300 créditos al mes** (~20 despliegues a producción). Si se acaban, Netlify
-  **pausa el sitio** hasta el mes siguiente. Por eso producción solo avanza con "Publicar".
+  **pausa el sitio** hasta el mes siguiente. Por eso producción solo avanza con "Publicar" y la
+  aprobación de Juan. Junten varios cambios y publíquenlos de una vez.
 - **Nunca hagas commits directo en `produccion`**: el workflow solo avanza esa rama copiando `main`,
   y fallará si alguien la modificó a mano.
 - Netlify **no construye** si el cambio no toca la app: docs (`*.md`), pruebas (`*.test.js`),

@@ -1,16 +1,18 @@
 name: Publicar a producción
 
 # Producción (https://el-producido.netlify.app) se despliega desde la rama
-# `produccion`. Este workflow la pone al día con `main`:
-#   - automático los viernes a las 6:00 p. m. (hora Bogotá), y
-#   - manual con el botón "Run workflow" en Actions → Publicar a producción.
-# Solo publica si el CI de ese commit de main pasó. Netlify además salta el
-# build si no cambió nada de la app (netlify/ignorar-build.sh), así que
-# publicar cambios de solo documentación no gasta créditos.
+# `produccion`. Este workflow la pone al día con `main`, y SOLO se ejecuta a mano:
+#   Actions → Publicar a producción → Run workflow.
+#
+# 1. "Revisar": compara main con producción y verifica que el CI de main pasó.
+#    No necesita aprobación (con "Solo simular" se queda aquí).
+# 2. "Publicar": usa el ambiente `produccion` de GitHub, que exige la aprobación
+#    de JuanAgudelo17. Hasta que él apruebe, nada se publica.
+#
+# Netlify además salta el build si no cambió nada de la app
+# (netlify/ignorar-build.sh), así que publicar solo documentación no gasta créditos.
 
 on:
-  schedule:
-    - cron: '0 23 * * 5' # viernes 23:00 UTC = 18:00 Bogotá
   workflow_dispatch:
     inputs:
       motivo:
@@ -26,13 +28,16 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: write
+  contents: read
   actions: read
 
 jobs:
-  publicar:
-    name: Pasar main a producción
+  revisar:
+    name: Revisar qué se publicaría
     runs-on: ubuntu-latest
+    outputs:
+      pendiente: ${{ steps.comparar.outputs.pendiente }}
+      sha: ${{ steps.comparar.outputs.sha }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -45,6 +50,7 @@ jobs:
           MOTIVO: ${{ inputs.motivo }}
         run: |
           git fetch origin produccion
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           {
             echo "## Publicar a producción"
             [ -n "$MOTIVO" ] && echo "> $MOTIVO"
@@ -58,9 +64,17 @@ jobs:
           fi
 
           {
-            echo "### Commits que se publican"
+            echo "### Commits que se publicarían"
             git log --format='- `%h` %s (%an)' origin/produccion..HEAD
             echo
+            if bash netlify/ignorar-build.sh origin/produccion HEAD > cambios.txt; then
+              echo "ℹ️ Solo cambió documentación, pruebas o CI: Netlify **no** desplegará (0 créditos)."
+            else
+              echo "🚀 Hay cambios en la app: Netlify desplegará producción (~15 créditos)."
+              echo '```'
+              cat cambios.txt
+              echo '```'
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
           echo "pendiente=si" >> "$GITHUB_OUTPUT"
 
@@ -68,31 +82,40 @@ jobs:
         if: steps.comparar.outputs.pendiente == 'si'
         env:
           GH_TOKEN: ${{ github.token }}
+          SHA: ${{ steps.comparar.outputs.sha }}
         run: |
-          sha=$(git rev-parse HEAD)
-          estado=$(gh run list --workflow ci.yml --branch main --commit "$sha" --limit 1 \
+          estado=$(gh run list --workflow ci.yml --branch main --commit "$SHA" --limit 1 \
             --json status,conclusion -q '.[0] | "\(.status) \(.conclusion)"')
           if [ "$estado" != "completed success" ]; then
-            echo "❌ El CI del commit \`${sha:0:7}\` no está en verde (${estado:-sin ejecución}). No se publica." >> "$GITHUB_STEP_SUMMARY"
+            echo "❌ El CI del commit \`${SHA:0:7}\` no está en verde (${estado:-sin ejecución}). No se publica." >> "$GITHUB_STEP_SUMMARY"
             exit 1
-          fi
-
-      - name: Publicar
-        if: steps.comparar.outputs.pendiente == 'si'
-        run: |
-          if bash netlify/ignorar-build.sh origin/produccion HEAD > cambios.txt; then
-            echo "ℹ️ Solo cambió documentación, pruebas o CI: la rama se sincroniza y Netlify **no** despliega (0 créditos)." >> "$GITHUB_STEP_SUMMARY"
-          else
-            {
-              echo "🚀 Hay cambios en la app: Netlify despliega producción (~15 créditos)."
-              echo '```'
-              cat cambios.txt
-              echo '```'
-            } >> "$GITHUB_STEP_SUMMARY"
           fi
           if [ "${{ inputs.simular }}" = "true" ]; then
             echo "🧪 **Simulación:** no se publicó nada." >> "$GITHUB_STEP_SUMMARY"
-            exit 0
+          else
+            echo "⏳ Esperando la aprobación de @JuanAgudelo17 para publicar." >> "$GITHUB_STEP_SUMMARY"
           fi
+
+  publicar:
+    name: Publicar (requiere aprobación)
+    needs: revisar
+    if: needs.revisar.outputs.pendiente == 'si' && !inputs.simular
+    runs-on: ubuntu-latest
+    environment:
+      name: produccion
+      url: https://el-producido.netlify.app
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Avanzar la rama produccion
+        env:
+          SHA: ${{ needs.revisar.outputs.sha }}
+        run: |
+          # Se publica exactamente el commit revisado, aunque main haya avanzado mientras tanto.
           # Solo avance rápido: si alguien escribió directo en `produccion`, falla en vez de pisarlo.
-          git push origin HEAD:refs/heads/produccion
+          git push origin "$SHA:refs/heads/produccion"
+          echo "🚀 Publicado \`${SHA:0:7}\` en producción. Netlify despliega en 2-3 minutos." >> "$GITHUB_STEP_SUMMARY"
