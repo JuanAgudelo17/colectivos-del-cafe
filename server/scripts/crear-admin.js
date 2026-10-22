@@ -2,10 +2,9 @@
 // muestra una sola vez. Así ninguna contraseña queda escrita en git ni en el
 // historial de la terminal.
 // Uso: npm run crear-admin -- --usuario juan --nombre "Juan Agudelo"
-import { randomBytes } from 'node:crypto';
 import { parseArgs } from 'node:util';
-import bcrypt from 'bcryptjs';
 import { conCliente } from '../db/conexion.js';
+import { generarPassword, hashPassword } from '../lib/passwords.js';
 
 const { values } = parseArgs({
   options: {
@@ -20,8 +19,9 @@ if (!values.usuario || !values.nombre) {
 }
 
 await conCliente(async (db) => {
-  const password = randomBytes(12).toString('base64url');
-  const passwordHash = await bcrypt.hash(password, 12);
+  // El admin lo ve todo: contraseña más larga que la de los conductores.
+  const password = generarPassword(16);
+  const passwordHash = await hashPassword(password);
 
   try {
     await db.query(
