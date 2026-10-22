@@ -10,6 +10,8 @@ const NUEVO = { usuario: '', nombre: '', cedula: '', telefono: '', busetaId: nul
 
 export function PaginaConductores() {
   const { datos, error, cargando, recargar } = useDatos('/conductores');
+  const solicitudes = useDatos('/auth/solicitudes');
+  const pidieronRecuperar = new Set(solicitudes.datos?.solicitudes.map((s) => s.usuarioId));
   const [editando, setEditando] = useState(null);
   // { usuario, password } recién generados, para mostrarlos una sola vez.
   const [credenciales, setCredenciales] = useState(null);
@@ -22,7 +24,11 @@ export function PaginaConductores() {
     const r = await restablecer.enviar(() =>
       api(`/conductores/${conductor.id}/restablecer-password`, { method: 'POST' }),
     );
-    if (r) setCredenciales({ usuario: conductor.usuario, password: r.password });
+    if (r) {
+      setCredenciales({ usuario: conductor.usuario, password: r.password });
+      recargar();
+      solicitudes.recargar();
+    }
   }
 
   return (
@@ -43,7 +49,9 @@ export function PaginaConductores() {
           <li key={c.id} className={c.activo ? 'tarjeta item' : 'tarjeta item inactivo'}>
             <div className="item-principal">
               <h3>
-                {c.nombre} {!c.activo && <span className="etiqueta">Inactivo</span>}
+                {c.nombre} {!c.activo && <span className="etiqueta">Inactivo</span>}{' '}
+                {pidieronRecuperar.has(c.id) && <span className="etiqueta etiqueta-alerta">🔑 Pidió recuperar</span>}{' '}
+                {c.debeCambiarPassword && <span className="etiqueta">Contraseña temporal</span>}
               </h3>
               <p className="detalle">
                 Usuario: <code>{c.usuario}</code>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Navigate, useNavigate } from 'react-router';
+import { Link, Navigate, useNavigate } from 'react-router';
 import { rutaInicio, useSesion } from '../../compartido/sesion/contexto.js';
 
 export function Login() {
@@ -50,6 +50,10 @@ export function Login() {
         <button type="submit" className="boton-principal" disabled={enviando}>
           {enviando ? 'Ingresando…' : 'Ingresar'}
         </button>
+
+        <Link to="/recuperar" className="enlace-centrado">
+          ¿Olvidaste tu contraseña?
+        </Link>
       </form>
     </main>
   );

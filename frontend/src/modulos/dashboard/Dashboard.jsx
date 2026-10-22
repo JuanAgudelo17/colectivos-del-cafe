@@ -3,6 +3,7 @@ import { EstadoDocumento } from '../../compartido/ui/EstadoDocumento.jsx';
 import { Indicador } from '../../compartido/ui/Indicador.jsx';
 import { fecha, fechaLargaHoy } from '../../compartido/utilidades/formato.js';
 import { useDatos } from '../../compartido/utilidades/useDatos.js';
+import { SolicitudesRecuperacion } from './SolicitudesRecuperacion.jsx';
 import './dashboard.css';
 
 const DOCUMENTOS = [
@@ -40,6 +41,8 @@ export function Dashboard() {
       </div>
 
       {error && <p className="error">{error}</p>}
+
+      <SolicitudesRecuperacion />
 
       <section className="indicadores" aria-label="Indicadores">
         <Indicador

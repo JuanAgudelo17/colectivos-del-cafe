@@ -498,3 +498,13 @@ legend {
   flex-direction: column;
   gap: 14px;
 }
+
+.enlace-centrado {
+  text-align: center;
+  color: var(--cafe);
+}
+
+.etiqueta-alerta {
+  background: #fff4dc;
+  color: #7a4f00;
+}

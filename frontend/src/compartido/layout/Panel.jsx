@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router';
+import { Link, NavLink, Outlet, useNavigate } from 'react-router';
 import { useSesion } from '../sesion/contexto.js';
 import './panel.css';
 
@@ -59,7 +59,10 @@ export function Panel({ modulos, base }) {
         </nav>
 
         <div className="panel-usuario">
-          <span>{usuario.nombre}</span>
+          <div className="panel-usuario-datos">
+            <span>{usuario.nombre}</span>
+            <Link to="/cambiar-password">Cambiar contraseña</Link>
+          </div>
           <button type="button" className="boton-secundario" onClick={salir}>
             Salir
           </button>

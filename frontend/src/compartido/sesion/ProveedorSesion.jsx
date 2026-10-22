@@ -41,7 +41,7 @@ export function ProveedorSesion({ children }) {
   }, []);
 
   const valor = useMemo(
-    () => ({ usuario, cargando, aviso, iniciarSesion, cerrarSesion }),
+    () => ({ usuario, cargando, aviso, iniciarSesion, cerrarSesion, actualizarUsuario: setUsuario }),
     [usuario, cargando, aviso, iniciarSesion, cerrarSesion],
   );
 
