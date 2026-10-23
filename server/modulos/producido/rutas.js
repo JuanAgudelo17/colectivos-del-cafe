@@ -24,9 +24,9 @@ import {
 const router = Router();
 
 // ---- Conductor: solo consulta lo suyo -----------------------------------------
-// Producido, peajes, salidas y ACPM (el suyo y el de La Guaca) de cada día y sus
-// totales. Nunca el 20 %,
-// el fondo, los préstamos ni el neto.
+// Sus días (producido, peajes, salidas, ACPM propio y de La Guaca), los totales y
+// el resumen del mes de su buseta (en qué se gastó: 20 %, fondo, arriendo,
+// mantenimiento, préstamos, neto…). Todo de solo lectura.
 router.get('/mio', autenticar, requiereRol('conductor'), async (req, res) => {
   const db = req.app.locals.db;
   const { anio, mes } = validar(mesConsulta, req.query);
@@ -34,6 +34,7 @@ router.get('/mio', autenticar, requiereRol('conductor'), async (req, res) => {
   const buseta = busetaId && (await obtenerBuseta(db, busetaId));
   if (!buseta) return res.json({ buseta: null, anio, mes, dias: [], totales: null });
 
+  const completo = await armarMes(db, buseta, anio, mes);
   const { desde, hasta } = rangoDelMes(anio, mes);
   const dias = (await listarDias(db, busetaId, desde, hasta, conductorId)).map(
     ({ fecha, ingreso, peajes, salidas, acpm, acpmCredito, relevo }) => ({
@@ -49,10 +50,17 @@ router.get('/mio', autenticar, requiereRol('conductor'), async (req, res) => {
   const sumar = (campo) => dias.reduce((t, d) => t + d[campo], 0);
 
   res.json({
-    buseta: { numeroInterno: buseta.numeroInterno, placa: buseta.placa },
+    buseta: { numeroInterno: buseta.numeroInterno, placa: buseta.placa, tieneCupo: buseta.tieneCupo },
     anio,
     mes,
+    cerrado: completo.cerrado,
     dias,
+    // Mismo resumen que ve el admin (el componente del frontend lo muestra sin botones).
+    resumen: completo.resumen,
+    ajustes: completo.ajustes.map(({ id, tipo, descripcion, valor }) => ({ id, tipo, descripcion, valor })),
+    porcentajeEmpresa: completo.porcentajeEmpresa,
+    porcentajeReposicion: completo.porcentajeReposicion,
+    valorRelevo: completo.valorRelevo,
     totales: {
       ingreso: sumar('ingreso'),
       peajes: sumar('peajes'),

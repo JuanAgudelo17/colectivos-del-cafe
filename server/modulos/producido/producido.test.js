@@ -173,8 +173,21 @@ describe('conductor', () => {
     assert.deepEqual(Object.keys(cuerpo.dias[0]).sort(), ['acpm', 'acpmCredito', 'fecha', 'ingreso', 'peajes', 'relevo', 'salidas']);
     assert.equal(cuerpo.totales.ingreso, 700000 + 630000);
     assert.equal(cuerpo.totales.acpmCredito, 80000 + 10000);
-    // Nada del resumen financiero
-    for (const prohibido of ['resumen', 'ajustes', 'neto', 'empresa']) assert.equal(prohibido in cuerpo, false);
+  });
+
+  test('ve el mismo resumen del mes que el admin (en qué se gastó)', async () => {
+    const delConductor = (await pedir('GET', `/mio?anio=${ANIO}&mes=${MES}`, pedro)).cuerpo;
+    const delAdmin = (await pedir('GET', `?busetaId=1&anio=${ANIO}&mes=${MES}`, admin)).cuerpo;
+    assert.deepEqual(delConductor.resumen, delAdmin.resumen);
+    assert.equal(delConductor.porcentajeEmpresa, 0.2);
+    assert.equal(delConductor.ajustes.length, delAdmin.ajustes.length);
+    assert.deepEqual(Object.keys(delConductor.ajustes[0]).sort(), ['descripcion', 'id', 'tipo', 'valor']);
+  });
+
+  test('el resumen del conductor es solo de su buseta', async () => {
+    const delOtro = (await pedir('GET', `/mio?anio=${ANIO}&mes=${MES}`, otro)).cuerpo;
+    assert.equal(delOtro.buseta.numeroInterno, '2055');
+    assert.equal(delOtro.resumen.bruto, 999000);
   });
 
   test('no puede usar las rutas del admin', async () => {
