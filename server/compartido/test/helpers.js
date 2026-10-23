@@ -43,9 +43,22 @@ export async function iniciarServidor(app) {
     return { status: res.status, cuerpo: await res.json().catch(() => null), res };
   }
 
+  // Envía un archivo tal cual (ej. una foto) y no sigue redirecciones, para
+  // poder revisar a dónde manda el servidor.
+  async function pedirArchivo(metodo, ruta, cookie, { contenido, tipo } = {}) {
+    const res = await fetch(`${base}${ruta}`, {
+      method: metodo,
+      redirect: 'manual',
+      headers: { ...(tipo && { 'Content-Type': tipo }), ...(cookie && { Cookie: cookie }) },
+      body: contenido,
+    });
+    return { status: res.status, cuerpo: await res.json().catch(() => null), res };
+  }
+
   return {
     base,
     pedir,
+    pedirArchivo,
     cerrar: () => new Promise((resolve) => servidor.close(resolve)),
   };
 }
@@ -62,3 +75,23 @@ export function enDias(n, hoy) {
   d.setUTCDate(d.getUTCDate() + n);
   return d.toISOString().slice(0, 10);
 }
+
+// Almacén de archivos en memoria con la misma interfaz que el de Supabase.
+export function crearAlmacenMemoria() {
+  const archivos = new Map();
+  return {
+    archivos,
+    async subir(bucket, ruta, contenido, tipo) {
+      archivos.set(`${bucket}/${ruta}`, { contenido, tipo });
+    },
+    async borrar(bucket, ruta) {
+      archivos.delete(`${bucket}/${ruta}`);
+    },
+    async urlFirmada(bucket, ruta, segundos) {
+      return `https://almacen.prueba/${bucket}/${ruta}?expira=${segundos}`;
+    },
+  };
+}
+
+// Bytes mínimos que pasan por una imagen de cada tipo.
+export const IMAGEN_JPG = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46]);

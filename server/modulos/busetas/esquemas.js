@@ -12,6 +12,10 @@ const camposBuseta = {
   valorArriendo: pesos.nullish().transform((v) => v ?? null),
   fechaSoat: fechaOpcional,
   fechaTecnomecanica: fechaOpcional,
+  fechaTarjetaOperacion: fechaOpcional,
+  fechaPolizaRcc: fechaOpcional,
+  fechaPolizaRce: fechaOpcional,
+  fechaExtintor: fechaOpcional,
 };
 
 // Sin cupo → arriendo obligatorio. Con cupo → el arriendo no aplica y se guarda null.

@@ -83,6 +83,26 @@ test('editar actualiza datos y fechas de documentos', async () => {
   assert.equal(cuerpo.buseta.documentos.tecnomecanica.estado, 'sin_fecha');
 });
 
+test('documentos legales: tarjeta de operación, pólizas y extintor', async () => {
+  const { status, cuerpo } = await pedir('PUT', `/${busetaId}`, admin, {
+    numeroInterno: '101', placa: 'ABC123', modelo: null, tieneCupo: false, valorArriendo: 1200000,
+    fechaSoat: enDias(200, hoy), fechaTecnomecanica: '', activo: true,
+    fechaTarjetaOperacion: enDias(400, hoy), fechaPolizaRcc: enDias(20, hoy), fechaPolizaRce: enDias(-3, hoy), fechaExtintor: '',
+  });
+  assert.equal(status, 200);
+  const d = cuerpo.buseta.documentos;
+  assert.deepEqual(Object.keys(d), ['soat', 'tecnomecanica', 'tarjetaOperacion', 'polizaRcc', 'polizaRce', 'extintor']);
+  assert.equal(d.tarjetaOperacion.estado, 'vigente');
+  assert.equal(d.polizaRcc.estado, 'por_vencer');
+  assert.equal(d.polizaRce.estado, 'vencido');
+  assert.equal(d.extintor.estado, 'sin_fecha');
+  assert.equal(cuerpo.buseta.fechaPolizaRcc, enDias(20, hoy));
+
+  const mala = await pedir('PUT', `/${busetaId}`, admin, { ...NUEVA, activo: true, fechaExtintor: 'mañana' });
+  assert.equal(mala.status, 400);
+  assert.ok(mala.cuerpo.campos.fechaExtintor);
+});
+
 test('listar devuelve la flota', async () => {
   const { cuerpo } = await pedir('GET', '', admin);
   assert.deepEqual(cuerpo.busetas.map((b) => b.placa), ['ABC123']);
