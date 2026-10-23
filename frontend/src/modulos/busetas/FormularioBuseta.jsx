@@ -51,6 +51,11 @@ export function FormularioBuseta({ inicial, alGuardar }) {
       <CampoTexto etiqueta="Modelo" valor={buseta.modelo} alCambiar={cambiar('modelo')} error={campos.modelo} />
 
       <Interruptor etiqueta="Tiene cupo" valor={buseta.tieneCupo} alCambiar={cambiar('tieneCupo')} />
+      <p className="ayuda">
+        {buseta.tieneCupo
+          ? 'Con cupo: no paga arriendo y el fondo de reposición es el 1 % del producido.'
+          : 'Sin cupo: paga arriendo cada mes y el fondo de reposición es un valor fijo.'}
+      </p>
       {!buseta.tieneCupo && (
         <CampoPesos
           etiqueta="Valor del arriendo mensual"

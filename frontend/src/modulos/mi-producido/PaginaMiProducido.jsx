@@ -55,6 +55,7 @@ export function PaginaMiProducido() {
               ['Peajes', vigente.totales.peajes],
               ['Salidas', vigente.totales.salidas],
               ['ACPM', vigente.totales.acpm],
+              ['ACPM La Guaca', vigente.totales.acpmCredito],
             ].map(([texto, valor]) => (
               <div key={texto} className="mi-producido-total">
                 <span>{texto}</span>
@@ -75,6 +76,7 @@ export function PaginaMiProducido() {
                     <th className="numero">Peajes</th>
                     <th className="numero">Salidas</th>
                     <th className="numero">ACPM</th>
+                    <th className="numero">ACPM Guaca</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -95,6 +97,9 @@ export function PaginaMiProducido() {
                       </td>
                       <td className="numero" data-etiqueta="ACPM">
                         {numero(d.acpm)}
+                      </td>
+                      <td className="numero" data-etiqueta="ACPM Guaca">
+                        {numero(d.acpmCredito)}
                       </td>
                     </tr>
                   ))}

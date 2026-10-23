@@ -33,6 +33,8 @@ export function PegarExcel({ mes, alActualizar, alTerminar }) {
             peajes: leidos[dia].peajes ?? 0,
             salidas: leidos[dia].salidas ?? 0,
             acpm: leidos[dia].acpm ?? 0,
+            // Si la planilla no trae La Guaca, se conserva lo que ya tenía el día.
+            acpmCredito: leidos[dia].acpmCredito ?? actual?.acpmCredito ?? 0,
             mantenimiento: leidos[dia].mantenimiento ?? actual?.mantenimiento ?? 0,
             relevo: actual?.relevo ?? false,
             observacion: actual?.observacion ?? null,
