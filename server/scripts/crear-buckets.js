@@ -13,6 +13,19 @@ if (!url || !clave) {
   process.exit(1);
 }
 
+// La clave anon y la service_role se parecen (ambas son JWT): la anon no puede crear buckets.
+const rol = (() => {
+  try {
+    return JSON.parse(Buffer.from(clave.trim().split('.')[1], 'base64url').toString()).role;
+  } catch {
+    return null;
+  }
+})();
+if (rol && rol !== 'service_role') {
+  console.error(`✘ SUPABASE_SERVICE_ROLE_KEY tiene la clave "${rol}". Copia la "service_role" (Project Settings → API Keys → Legacy).`);
+  process.exit(1);
+}
+
 const almacen = crearAlmacenSupabase({ url, clave });
 
 try {
