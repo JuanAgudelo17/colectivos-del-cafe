@@ -31,12 +31,16 @@ export function ResumenMes({ mes, alActualizar, soloLectura = false }) {
     ['Conductor', r.conductor],
     ['Peajes', r.peajes],
     ['Salidas', r.salidas],
-    ['ACPM conductor', r.acpmConductor],
-    r.acpmCredito > 0 && ['ACPM La Guaca (crédito)', r.acpmCredito],
     mantenimientoDias > 0 && ['Mantenimiento (días)', mantenimientoDias],
     !buseta.tieneCupo && ['Arriendo', r.arriendo],
     r.diasRelevo > 0 && [`Relevo (${r.diasRelevo} × ${numero(mes.valorRelevo)})`, r.relevo],
     r.seguroContractual > 0 && ['Seguro contractual', r.seguroContractual],
+  ].filter(Boolean);
+
+  // Como en la planilla: total bruto (antes de combustible) − ACPM = total neto.
+  const lineasAcpm = [
+    ['ACPM conductor', r.acpmConductor],
+    r.acpmCredito > 0 && ['ACPM La Guaca (crédito)', r.acpmCredito],
   ].filter(Boolean);
 
   return (
@@ -65,30 +69,42 @@ export function ResumenMes({ mes, alActualizar, soloLectura = false }) {
         </tbody>
       </table>
 
-      <div className={r.neto < 0 ? 'resumen-neto resumen-neto-negativo' : 'resumen-neto'}>
-        <span>Neto</span>
-        <strong>$ {numero(r.neto)}</strong>
-      </div>
+      <Total texto="Total bruto" valor={r.netoAntesAcpm} />
 
-      <dl className="resumen-info">
-        <div>
-          <dt>Antes de ACPM</dt>
-          <dd>$ {numero(r.netoAntesAcpm)}</dd>
-        </div>
-        <div>
-          <dt>ACPM total</dt>
-          <dd>$ {numero(r.acpm)}</dd>
-        </div>
-        {r.acpmCredito > 0 && (
+      <table className="resumen-tabla">
+        <tbody>
+          {lineasAcpm.map(([texto, valor]) => (
+            <tr key={texto}>
+              <th scope="row">{texto}</th>
+              <td>− {numero(valor)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <Total texto="Total neto" valor={r.neto} />
+
+      {r.acpmCredito > 0 && (
+        <dl className="resumen-info">
           <div className="resumen-info-destacado">
             <dt>Por pagar a La Guaca</dt>
             <dd>$ {numero(r.acpmCredito)}</dd>
           </div>
-        )}
-      </dl>
+        </dl>
+      )}
 
       {editable && <NuevoAjuste mes={mes} alActualizar={alActualizar} />}
     </aside>
+  );
+}
+
+// Barra negra de total (bruto o neto); si es negativo se marca como pérdida.
+function Total({ texto, valor }) {
+  return (
+    <div className={valor < 0 ? 'resumen-neto resumen-neto-negativo' : 'resumen-neto'}>
+      <span>{texto}</span>
+      <strong>$ {numero(valor)}</strong>
+    </div>
   );
 }
 

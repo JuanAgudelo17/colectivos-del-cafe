@@ -97,7 +97,7 @@ neto         = bruto − costos
 - Al cerrar, se guardan todos los valores calculados en `cierre_mensual` y el mes queda inmutable.
 - El cálculo vive en una sola función pura: `server/modulos/producido/calculo.js` (`calcularResumen`), con pruebas. Porcentajes en puntos básicos (enteros) y redondeo al peso.
 - Las pruebas incluyen planillas reales: buseta 2033 (bruto 11.459.500 → neto 1.811.404) y 2007 de octubre (sin cupo, ACPM La Guaca 585.506; neto 1.218.294 con fondo fijo 70.000). Si el cálculo cambia, deben seguir cuadrando.
-- El resumen muestra además "Antes de ACPM" (el "Total bruto" de la planilla) y "Por pagar a La Guaca" (Σacpm_credito del mes).
+- El resumen se muestra como en la planilla: descuentos sin combustible → **Total bruto** (`netoAntesAcpm`) → ACPM conductor y ACPM La Guaca → **Total neto**. Debajo, "Por pagar a La Guaca" (Σacpm_credito del mes). "Producido del mes" es la suma de lo producido (`bruto` en el código).
 - El 20 % y el fondo se calculan sobre el bruto completo; bono y préstamos restan al final.
 
 ## Reglas que el código debe respetar
