@@ -1,7 +1,9 @@
-// Módulo busetas: flota, cupo/arriendo y vencimiento de SOAT y tecnomecánica.
+// Módulo busetas: flota, cupo/arriendo, foto y vencimiento de documentos
+// (SOAT, tecnomecánica, tarjeta de operación, pólizas y extintor).
 import router from './rutas.js';
 
-export { obtenerBuseta } from './repositorio.js';
+export { listarBusetas, obtenerBuseta } from './repositorio.js';
+export { redirigirAFoto } from './foto.js';
 
 export default {
   ruta: '/busetas',

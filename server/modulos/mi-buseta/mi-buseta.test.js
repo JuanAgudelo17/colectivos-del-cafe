@@ -2,7 +2,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { crearApp } from '../../app.js';
 import { hoyBogota } from '../../compartido/fecha.js';
-import { crearBdPrueba, crearUsuario, enDias, iniciarServidor } from '../../compartido/test/helpers.js';
+import { crearAlmacenMemoria, crearBdPrueba, crearUsuario, enDias, iniciarServidor } from '../../compartido/test/helpers.js';
 
 let servidor;
 let conBuseta;
@@ -25,7 +25,8 @@ before(async () => {
   await crearUsuario(db, { usuario: 'otro', rol: 'conductor', busetaId: 2 });
   sinBuseta = await crearUsuario(db, { usuario: 'nuevo', rol: 'conductor' });
   admin = await crearUsuario(db, { usuario: 'admin' });
-  servidor = await iniciarServidor(crearApp({ db }));
+  await db.query(`UPDATE buseta SET foto_path = '1/1700000000000.jpg' WHERE id = 1`);
+  servidor = await iniciarServidor(crearApp({ db, almacen: crearAlmacenMemoria() }));
 });
 
 after(() => servidor.cerrar());
@@ -55,4 +56,26 @@ test('sin buseta asignada devuelve null', async () => {
 test('sin sesión 401; el admin no usa este módulo (403)', async () => {
   assert.equal((await pedir()).status, 401);
   assert.equal((await pedir(admin)).status, 403);
+});
+
+test('trae todos los documentos, también los legales', async () => {
+  const { cuerpo } = await pedir(conBuseta);
+  assert.deepEqual(Object.keys(cuerpo.buseta.documentos), [
+    'soat', 'tecnomecanica', 'tarjetaOperacion', 'polizaRcc', 'polizaRce', 'extintor',
+  ]);
+  assert.equal(cuerpo.buseta.documentos.extintor.estado, 'sin_fecha');
+});
+
+test('foto: el conductor ve la de su buseta; sin foto o sin buseta 404', async () => {
+  const verFoto = (quien) => servidor.pedirArchivo('GET', '/api/mi-buseta/foto', quien?.cookie);
+  const { cuerpo } = await pedir(conBuseta);
+  assert.equal(cuerpo.buseta.foto, '1/1700000000000.jpg');
+
+  const foto = await verFoto(conBuseta);
+  assert.equal(foto.status, 302);
+  assert.equal(foto.res.headers.get('location'), 'https://almacen.prueba/busetas/1/1700000000000.jpg?expira=600');
+
+  assert.equal((await verFoto(sinBuseta)).status, 404);
+  assert.equal((await verFoto(admin)).status, 403);
+  assert.equal((await verFoto()).status, 401);
 });

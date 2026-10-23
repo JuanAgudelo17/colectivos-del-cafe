@@ -120,3 +120,13 @@
     font-size: var(--titulo-sm);
   }
 }
+
+/* Segundo bloque dentro de la misma columna (mantenimiento bajo documentos) */
+.dashboard-subtitulo {
+  margin-top: 48px;
+}
+
+.tabla td a {
+  color: inherit;
+  text-underline-offset: 3px;
+}

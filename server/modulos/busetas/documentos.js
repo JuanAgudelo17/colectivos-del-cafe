@@ -2,7 +2,18 @@ import { diasEntre, hoyBogota } from '../../compartido/fecha.js';
 
 export const DIAS_ALERTA = 30;
 
-// Estado de un documento (SOAT o tecnomecánica) según su fecha de vencimiento:
+// Documentos con vencimiento de cada buseta: clave en la API → campo de la fecha.
+// Todos con la misma alerta; solo el admin los edita.
+export const DOCUMENTOS = {
+  soat: 'fechaSoat',
+  tecnomecanica: 'fechaTecnomecanica',
+  tarjetaOperacion: 'fechaTarjetaOperacion',
+  polizaRcc: 'fechaPolizaRcc',
+  polizaRce: 'fechaPolizaRce',
+  extintor: 'fechaExtintor',
+};
+
+// Estado de un documento según su fecha de vencimiento:
 //   sin_fecha | vencido | por_vencer (≤ 30 días) | vigente
 // `dias` = días que faltan (negativo si ya venció).
 export function estadoDocumento(fechaVencimiento, hoy = hoyBogota()) {

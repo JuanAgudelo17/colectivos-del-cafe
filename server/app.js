@@ -1,14 +1,17 @@
 import express from 'express';
+import { almacenDesdeEntorno } from './compartido/almacen.js';
 import { ErrorHttp, traducirErrorBd } from './compartido/http/errores.js';
 import { modulos as modulosRegistrados } from './modulos/index.js';
 
 // `db` es cualquier objeto con query(sql, params) → { rows }:
 // un pg.Pool en producción o PGlite en las pruebas.
-export function crearApp({ db, modulos = modulosRegistrados }) {
+// `almacen` guarda los archivos (Supabase Storage; en las pruebas, en memoria).
+export function crearApp({ db, almacen = almacenDesdeEntorno(), modulos = modulosRegistrados }) {
   const app = express();
 
   app.disable('x-powered-by');
   app.locals.db = db;
+  app.locals.almacen = almacen;
   app.use(express.json({ limit: '1mb' }));
 
   // Las rutas se montan en un router propio para poder servirlas tanto en /api

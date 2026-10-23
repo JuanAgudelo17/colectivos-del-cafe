@@ -15,12 +15,14 @@ function RedirigirInicio() {
 }
 
 // Rutas de un rol a partir de sus módulos registrados (solo los que ya tienen página).
+// `subrutas` (opcional): páginas internas del módulo, ej. busetas/:id.
 function rutasDe(modulos) {
   return modulos
     .filter((m) => m.Pagina)
-    .map(({ id, ruta, Pagina }) =>
+    .flatMap(({ id, ruta, Pagina, subrutas = [] }) => [
       ruta ? <Route key={id} path={ruta} element={<Pagina />} /> : <Route key={id} index element={<Pagina />} />,
-    );
+      ...subrutas.map((s) => <Route key={`${id}/${s.ruta}`} path={`${ruta}/${s.ruta}`} element={<s.Pagina />} />),
+    ]);
 }
 
 export default function App() {

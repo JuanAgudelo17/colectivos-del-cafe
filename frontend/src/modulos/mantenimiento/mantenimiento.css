@@ -1,0 +1,192 @@
+/* Kilometraje actual: número grande a la izquierda, acciones a la derecha */
+.mantenimiento-km {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px 24px;
+  margin-bottom: var(--separacion);
+}
+
+.mantenimiento-rotulo {
+  font-size: var(--texto-sm);
+  color: var(--pizarra);
+}
+
+.mantenimiento-km-valor {
+  margin: 4px 0;
+  font-size: var(--titulo);
+  line-height: 1.22;
+  font-variant-numeric: tabular-nums;
+}
+
+.mantenimiento-km-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.mantenimiento-alerta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: var(--separacion);
+}
+
+.mantenimiento-alerta p {
+  margin: 0;
+}
+
+/* Una tarjeta por tipo de mantenimiento */
+.mantenimiento-estados {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  gap: var(--separacion);
+}
+
+.mantenimiento-estado {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mantenimiento-estado h3 {
+  margin-bottom: 4px;
+}
+
+.mantenimiento-estado-pie {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 12px;
+}
+
+.mantenimiento-estado-pie .documento {
+  white-space: normal;
+}
+
+/* Historial */
+.mantenimiento-observacion {
+  display: block;
+  color: var(--pizarra);
+  font-size: var(--texto-caption);
+}
+
+.mantenimiento-acciones {
+  display: inline-flex;
+  gap: 16px;
+}
+
+.mantenimiento-lecturas {
+  margin-top: 24px;
+  font-size: var(--texto-sm);
+}
+
+.mantenimiento-lecturas summary {
+  cursor: pointer;
+  font-weight: 500;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+.mantenimiento-lecturas ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.mantenimiento-lecturas li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--linea);
+}
+
+.mantenimiento-lecturas li:last-child {
+  border-bottom: none;
+}
+
+.mantenimiento-lecturas .numero {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Formulario: casillas de "también cambié" y entrada con "km" a la derecha */
+.mantenimiento-tambien {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.casilla {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  font-size: var(--texto-base);
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.casilla input {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  min-height: 0;
+  padding: 0;
+  accent-color: var(--negro);
+}
+
+.entrada-km {
+  position: relative;
+  display: flex;
+}
+
+.entrada-km input {
+  flex: 1;
+  min-width: 0;
+  padding-right: 44px;
+}
+
+.entrada-km span {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--pizarra);
+}
+
+@media (max-width: 640px) {
+  .mantenimiento-km-valor {
+    font-size: var(--titulo-sm);
+  }
+
+  .mantenimiento-km-acciones {
+    width: 100%;
+  }
+
+  /* Tarjetas más compactas: en celular son muchas una debajo de otra */
+  .mantenimiento-estados {
+    gap: 8px;
+  }
+
+  .mantenimiento-estado {
+    padding: 16px;
+    gap: 2px;
+  }
+
+  .mantenimiento-estado h3 {
+    font-size: var(--texto-base);
+    margin-bottom: 2px;
+  }
+
+  .mantenimiento-estado-pie {
+    padding-top: 8px;
+  }
+}

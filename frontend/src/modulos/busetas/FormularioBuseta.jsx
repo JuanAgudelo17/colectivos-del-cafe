@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { api } from '../../compartido/api.js';
 import { CampoPesos, CampoTexto, Interruptor } from '../../compartido/ui/Campos.jsx';
+import { DOCUMENTOS } from '../../compartido/utilidades/documentos.js';
 import { useEnvio } from '../../compartido/utilidades/useEnvio.js';
 
 export function FormularioBuseta({ inicial, alGuardar }) {
   const [buseta, setBuseta] = useState({
     ...inicial,
     modelo: inicial.modelo ?? '',
-    fechaSoat: inicial.fechaSoat ?? '',
-    fechaTecnomecanica: inicial.fechaTecnomecanica ?? '',
+    ...Object.fromEntries(DOCUMENTOS.map(({ campo }) => [campo, inicial[campo] ?? ''])),
   });
   const { enviando, error, campos, enviar } = useEnvio();
   const cambiar = (campo) => (valor) => setBuseta((b) => ({ ...b, [campo]: valor }));
@@ -16,8 +16,9 @@ export function FormularioBuseta({ inicial, alGuardar }) {
 
   async function guardar(evento) {
     evento.preventDefault();
-    const { numeroInterno, placa, modelo, tieneCupo, valorArriendo, fechaSoat, fechaTecnomecanica, activo } = buseta;
-    const cuerpo = { numeroInterno, placa, modelo, tieneCupo, valorArriendo, fechaSoat, fechaTecnomecanica };
+    const { numeroInterno, placa, modelo, tieneCupo, valorArriendo, activo } = buseta;
+    const fechas = Object.fromEntries(DOCUMENTOS.map(({ campo }) => [campo, buseta[campo]]));
+    const cuerpo = { numeroInterno, placa, modelo, tieneCupo, valorArriendo, ...fechas };
     const ok = await enviar(() =>
       esNueva
         ? api('/busetas', { method: 'POST', cuerpo })
@@ -69,21 +70,18 @@ export function FormularioBuseta({ inicial, alGuardar }) {
       <fieldset>
         <legend>Vencimiento de documentos</legend>
         <div className="fila">
-          <CampoTexto
-            etiqueta="SOAT"
-            type="date"
-            valor={buseta.fechaSoat}
-            alCambiar={cambiar('fechaSoat')}
-            error={campos.fechaSoat}
-          />
-          <CampoTexto
-            etiqueta="Tecnomecánica"
-            type="date"
-            valor={buseta.fechaTecnomecanica}
-            alCambiar={cambiar('fechaTecnomecanica')}
-            error={campos.fechaTecnomecanica}
-          />
+          {DOCUMENTOS.map(({ campo, nombre }) => (
+            <CampoTexto
+              key={campo}
+              etiqueta={nombre}
+              type="date"
+              valor={buseta[campo]}
+              alCambiar={cambiar(campo)}
+              error={campos[campo]}
+            />
+          ))}
         </div>
+        <p className="ayuda">Para el extintor, la fecha en que vence la recarga.</p>
       </fieldset>
 
       {!esNueva && <Interruptor etiqueta="Activa" valor={buseta.activo} alCambiar={cambiar('activo')} />}

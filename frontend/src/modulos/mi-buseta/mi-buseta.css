@@ -118,3 +118,28 @@
 .mi-buseta-enlace:hover {
   background: var(--niebla-oscura);
 }
+
+/* En celular los seis documentos van de a dos, en tarjetas compactas */
+@media (max-width: 640px) {
+  .mi-buseta-documentos-vencen {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .mi-buseta-documentos-vencen .mi-buseta-documento {
+    padding: 14px;
+    gap: 6px;
+  }
+
+  .mi-buseta-documentos-vencen h3 {
+    font-size: var(--texto-sm);
+  }
+
+  .mi-buseta-documentos-vencen .mi-buseta-vence {
+    font-size: var(--texto-sm);
+  }
+
+  .mi-buseta-documentos-vencen .documento {
+    white-space: normal;
+  }
+}
