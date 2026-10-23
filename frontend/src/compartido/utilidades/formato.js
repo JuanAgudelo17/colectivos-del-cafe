@@ -21,6 +21,40 @@ export function fechaLargaHoy() {
   return new Intl.DateTimeFormat('es-CO', { timeZone: 'America/Bogota', dateStyle: 'full' }).format(new Date());
 }
 
+// 1200000 → "1.200.000" (sin signo de pesos, para tablas y celdas).
+const formatoNumero = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 0 });
+export function numero(valor) {
+  return valor == null || valor === '' ? '' : formatoNumero.format(valor);
+}
+
+// Hoy en Bogotá como 'YYYY-MM-DD'.
+export function hoyBogota() {
+  return new Intl.DateTimeFormat('sv-SE', { timeZone: 'America/Bogota' }).format(new Date());
+}
+
+// Mes actual en Bogotá: { anio, mes } (mes 1-12).
+export function mesActual() {
+  const [anio, mes] = hoyBogota().split('-').map(Number);
+  return { anio, mes };
+}
+
+// (2026, 10) → "octubre de 2026"
+export function nombreMes(anio, mes) {
+  return new Intl.DateTimeFormat('es-CO', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(
+    new Date(Date.UTC(anio, mes - 1, 1)),
+  );
+}
+
+// Días del mes como 'YYYY-MM-DD', con el nombre corto del día ("lun").
+export function diasDelMes(anio, mes) {
+  const total = new Date(Date.UTC(anio, mes, 0)).getUTCDate();
+  const semana = new Intl.DateTimeFormat('es-CO', { weekday: 'short', timeZone: 'UTC' });
+  return Array.from({ length: total }, (_, i) => {
+    const fecha = new Date(Date.UTC(anio, mes - 1, i + 1));
+    return { dia: i + 1, fecha: fecha.toISOString().slice(0, 10), semana: semana.format(fecha).replace('.', '') };
+  });
+}
+
 // Texto de un documento según el estado que calcula el backend.
 export function textoDocumento({ estado, dias, fecha: vence }) {
   if (estado === 'sin_fecha') return 'Sin fecha registrada';

@@ -101,3 +101,20 @@
     font-size: var(--titulo-sm);
   }
 }
+
+.mi-buseta-enlace {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--negro);
+  text-decoration: none;
+}
+
+.mi-buseta-enlace .mi-buseta-documento-titulo span {
+  margin-left: auto;
+  font-size: var(--texto-sub);
+}
+
+.mi-buseta-enlace:hover {
+  background: var(--niebla-oscura);
+}

@@ -1,3 +1,4 @@
+import { Link } from 'react-router';
 import { useSesion } from '../../compartido/sesion/contexto.js';
 import { EstadoDocumento } from '../../compartido/ui/EstadoDocumento.jsx';
 import { Icono } from '../../compartido/ui/Iconos.jsx';
@@ -106,16 +107,16 @@ export function MiBuseta() {
 
       {datos && (
         <section className="seccion">
-          <h2>Próximamente</h2>
+          <h2>Más opciones</h2>
           <div className="mi-buseta-documentos">
-            <article className="tarjeta mi-buseta-pronto">
+            <Link to="/conductor/mi-producido" className="tarjeta mi-buseta-enlace">
               <div className="mi-buseta-documento-titulo">
                 <Icono nombre="dinero" />
                 <h3>Mi producido</h3>
-                <span className="etiqueta">Fase 2</span>
+                <span aria-hidden="true">→</span>
               </div>
-              <p className="detalle">Registra el producido de cada día y consulta el resumen del mes.</p>
-            </article>
+              <p className="detalle">Consulta lo que hiciste cada día: producido, peajes, salidas y ACPM.</p>
+            </Link>
             <article className="tarjeta mi-buseta-pronto">
               <div className="mi-buseta-documento-titulo">
                 <Icono nombre="factura" />

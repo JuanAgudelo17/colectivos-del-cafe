@@ -6,15 +6,17 @@ import busetas from './busetas/index.js';
 import conductores from './conductores/index.js';
 import dashboard from './dashboard/index.js';
 import miBuseta from './mi-buseta/index.js';
+import miProducido from './mi-producido/index.js';
+import producido from './producido/index.js';
 
 // Menú lateral de cada rol, agrupado por secciones.
 export const menuAdmin = [
   { grupo: 'General', modulos: [dashboard] },
+  { grupo: 'Contabilidad', modulos: [producido] },
   { grupo: 'Flota', modulos: [busetas, conductores] },
   {
     grupo: 'Próximamente',
     modulos: [
-      { id: 'producido', titulo: 'Producido', icono: 'dinero', fase: 2 },
       { id: 'facturas', titulo: 'Facturas', icono: 'factura', fase: 2 },
       { id: 'cierre', titulo: 'Cierre mensual', icono: 'cierre', fase: 3 },
     ],
@@ -22,11 +24,10 @@ export const menuAdmin = [
 ];
 
 export const menuConductor = [
-  { grupo: 'Mi trabajo', modulos: [miBuseta] },
+  { grupo: 'Mi trabajo', modulos: [miBuseta, miProducido] },
   {
     grupo: 'Próximamente',
     modulos: [
-      { id: 'mi-producido', titulo: 'Mi producido', icono: 'dinero', fase: 2 },
       { id: 'mis-facturas', titulo: 'Mis facturas', icono: 'factura', fase: 2 },
     ],
   },

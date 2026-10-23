@@ -1,0 +1,82 @@
+.mi-producido-filtros {
+  margin-bottom: 32px;
+}
+
+.mi-producido-filtros .selector-mes {
+  max-width: 260px;
+}
+
+.mi-producido-mes::first-letter {
+  text-transform: uppercase;
+}
+
+.mi-producido-mes span {
+  color: var(--pizarra);
+}
+
+.mi-producido-totales {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+  gap: var(--separacion);
+  margin-bottom: 40px;
+}
+
+.mi-producido-total {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--niebla);
+  border-radius: var(--radio);
+  padding: 20px;
+}
+
+.mi-producido-total span,
+.mi-producido-total small {
+  font-size: var(--texto-sm);
+  color: var(--pizarra);
+}
+
+.mi-producido-total strong {
+  font-size: var(--titulo-sm);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* El producido del mes es la cifra principal: barra negra */
+.mi-producido-principal {
+  background: var(--negro);
+  color: var(--blanco);
+}
+
+.mi-producido-principal span,
+.mi-producido-principal small {
+  color: var(--ceniza);
+}
+
+.mi-producido-tabla th.numero,
+.mi-producido-tabla td.numero {
+  text-align: right;
+}
+
+.mi-producido-tabla .etiqueta {
+  margin-left: 8px;
+}
+
+@media (max-width: 640px) {
+  .mi-producido-principal {
+    grid-column: 1 / -1;
+  }
+
+  .mi-producido-principal strong {
+    font-size: var(--titulo);
+  }
+
+  .mi-producido-total:not(.mi-producido-principal) strong {
+    font-size: var(--texto-sub);
+  }
+
+  .mi-producido-tabla td.numero {
+    text-align: left;
+  }
+}
