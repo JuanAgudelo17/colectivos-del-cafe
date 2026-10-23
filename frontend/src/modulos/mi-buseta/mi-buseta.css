@@ -1,0 +1,103 @@
+/* Tarjeta principal: datos a la izquierda, ilustración a la derecha */
+.mi-buseta-tarjeta {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  align-items: center;
+  gap: 24px;
+  background: var(--niebla);
+  border-radius: var(--radio);
+  padding: var(--relleno-tarjeta);
+}
+
+.mi-buseta-datos h2 {
+  margin-bottom: 8px;
+}
+
+.mi-buseta-rotulo {
+  font-size: var(--texto-sm);
+  color: var(--pizarra);
+}
+
+.mi-buseta-placa {
+  margin: 4px 0;
+  font-size: var(--titulo);
+  line-height: 1.22;
+}
+
+.mi-buseta-ilustracion {
+  aspect-ratio: 1;
+  border-radius: var(--radio);
+  overflow: hidden;
+}
+
+.mi-buseta-ilustracion .ilustracion {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.mi-buseta-alerta {
+  margin-bottom: 24px;
+}
+
+.mi-buseta-alerta p {
+  margin: 0;
+}
+
+.mi-buseta-alerta p + p {
+  margin-top: 4px;
+}
+
+/* Documentos y próximamente: dos tarjetas lado a lado */
+.mi-buseta-documentos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: var(--separacion);
+  margin-bottom: 12px;
+}
+
+.mi-buseta-documento {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.mi-buseta-documento-titulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.mi-buseta-documento-titulo .etiqueta {
+  margin-left: auto;
+}
+
+.mi-buseta-vence {
+  margin: 0;
+  font-size: var(--texto-sub);
+}
+
+.mi-buseta-pronto {
+  color: var(--pizarra);
+}
+
+.mi-buseta-pronto h3 {
+  color: var(--pizarra);
+}
+
+@media (max-width: 640px) {
+  .mi-buseta-tarjeta {
+    grid-template-columns: 1fr;
+  }
+
+  .mi-buseta-ilustracion {
+    order: -1;
+    aspect-ratio: 16 / 8;
+  }
+
+  .mi-buseta-placa {
+    font-size: var(--titulo-sm);
+  }
+}

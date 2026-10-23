@@ -1,3 +1,3 @@
 import { PaginaConductores } from './PaginaConductores.jsx';
 
-export default { id: 'conductores', titulo: 'Conductores', icono: '🧑‍✈️', ruta: 'conductores', Pagina: PaginaConductores };
+export default { id: 'conductores', titulo: 'Conductores', icono: 'persona', ruta: 'conductores', Pagina: PaginaConductores };

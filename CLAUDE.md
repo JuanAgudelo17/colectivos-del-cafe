@@ -115,7 +115,7 @@ neto         = bruto − costos
 2. ✅ Migración SQL inicial con todas las tablas y datos semilla (admin con `npm run crear-admin`, parámetros).
 3. ✅ Login, logout, sesión, middleware de rol, bloqueo por intentos.
 4. ✅ Admin: dashboard, CRUD de busetas, conductores y fechas de documentos.
-5. Conductor: ver su buseta y estado de documentos (módulo `mi-buseta`).
+5. ✅ Conductor: panel con su buseta y estado de documentos (módulo `mi-buseta`, `GET /api/mi-buseta`).
 6. ✅ Despliegue en Netlify conectado a Supabase.
 
 **Fase 2:** registro de producido diario y facturas con foto; consultas por día/mes.

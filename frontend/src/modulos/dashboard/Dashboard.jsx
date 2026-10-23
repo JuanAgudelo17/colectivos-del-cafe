@@ -37,7 +37,7 @@ export function Dashboard() {
     <>
       <div className="titulo-pagina">
         <div>
-          <p className="dashboard-fecha">{fechaLargaHoy()}</p>
+          <p className="fecha-hoy">{fechaLargaHoy()}</p>
           <h1>Panel general</h1>
         </div>
       </div>

@@ -13,7 +13,7 @@ Así dos personas pueden trabajar al mismo tiempo sin pisarse: cada quien toca s
 | Panel general | — (usa busetas y conductores) | `dashboard/` | admin | ✅ |
 | Busetas y documentos | `busetas/` | `busetas/` | admin | ✅ |
 | Conductores | `conductores/` | `conductores/` | admin | ✅ |
-| Mi buseta | por crear | `mi-buseta/` (borrador) | conductor | Fase 1.5 |
+| Mi buseta (panel del conductor) | `mi-buseta/` | `mi-buseta/` | conductor | ✅ |
 | Producido diario | por crear | por crear | ambos | Fase 2 |
 | Facturas con foto | por crear | por crear | ambos | Fase 2 |
 | Cierre mensual | por crear | por crear | admin | Fase 3 |
@@ -42,14 +42,14 @@ frontend/src/
   compartido/          ← de todos
     api.js               cliente HTTP (cookie, errores en español)
     sesion/              usuario actual, rutas protegidas por rol
-    layout/Panel.jsx     barra lateral + contenido
-    ui/                  Campos, Dialogo, Indicador, EstadoDocumento, PasswordUnaVez
+    layout/Panel.jsx     panel: barra lateral negra con el menú agrupado + contenido
+    ui/                  Campos, Dialogo, Indicador, EstadoDocumento, Iconos, Ilustraciones, Pestanas
     utilidades/          useDatos, useEnvio, formato (pesos, fechas)
     estilos/base.css     colores, botones, formularios, tablas
   modulos/<modulo>/    ← del dueño del módulo
     index.js             { id, titulo, icono, ruta, Pagina }
     Pagina*.jsx, Formulario*.jsx, <modulo>.css
-  modulos/index.js     ← registro: menú y rutas por rol
+  modulos/index.js     ← registro: menú lateral agrupado (menuAdmin / menuConductor) y rutas
 ```
 
 **Regla:** un módulo solo usa otro a través de lo que este exporta en su `index.js`.
@@ -79,10 +79,12 @@ romper a nadie.
 1. Crea `frontend/src/modulos/producido/` con `PaginaProducido.jsx` y su `index.js`:
    ```js
    import { PaginaProducido } from './PaginaProducido.jsx';
-   export default { id: 'producido', titulo: 'Producido', icono: '💵', ruta: 'producido', Pagina: PaginaProducido };
+   export default { id: 'producido', titulo: 'Producido', icono: 'dinero', ruta: 'producido', Pagina: PaginaProducido };
    ```
-2. En `frontend/src/modulos/index.js` cambia la entrada `{ id: 'producido', …, fase: 2 }` por el
-   módulo importado. Con eso aparece en el menú y su ruta queda en `/admin/producido`.
+2. En `frontend/src/modulos/index.js` cambia la entrada `{ id: 'producido', …, fase: 2 }` del grupo
+   "Próximamente" por el módulo importado y muévelo al grupo que corresponda (o crea uno). Con eso aparece
+   en la barra lateral y su ruta queda en `/admin/producido`. Los iconos son los de
+   `compartido/ui/Iconos.jsx` (monocromos; si falta uno, agrégalo ahí).
 3. Usa `useDatos('/producido')` para cargar y `useEnvio()` + `api()` para guardar.
 
 ## Flujo de trabajo en pareja

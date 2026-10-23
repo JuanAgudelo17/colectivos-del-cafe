@@ -1,94 +1,112 @@
 import { useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router';
 import { useSesion } from '../sesion/contexto.js';
+import { Icono } from '../ui/Iconos.jsx';
 import './panel.css';
 
-// Estructura de las pantallas con sesión: barra negra arriba con los módulos
-// del rol, contenido blanco al centro y pie negro. En celular el menú se abre
-// con ☰ como una cortina negra.
-export function Panel({ modulos, base }) {
+// Estructura tipo panel para las pantallas con sesión: barra lateral negra con
+// el menú del rol agrupado por secciones y el usuario abajo; contenido a la
+// derecha. En celular la barra lateral se vuelve una barra superior con ☰.
+// `menu`: [{ grupo, modulos: [{ id, titulo, icono, ruta, Pagina } | { id, titulo, icono, fase }] }]
+export function Panel({ menu, base }) {
   const { usuario, cerrarSesion } = useSesion();
   const navegar = useNavigate();
   const [menuAbierto, setMenuAbierto] = useState(false);
   const cerrarMenu = () => setMenuAbierto(false);
+  const rol = usuario.rol === 'admin' ? 'Administración' : 'Conductor';
+  const iniciales = usuario.nombre
+    .split(' ')
+    .slice(0, 2)
+    .map((p) => p[0])
+    .join('')
+    .toUpperCase();
 
   async function salir() {
     await cerrarSesion();
     navegar('/login', { replace: true });
   }
 
-  const enlaces = modulos.map((m) =>
-    m.Pagina ? (
-      <NavLink key={m.id} to={m.ruta ? `${base}/${m.ruta}` : base} end={!m.ruta} onClick={cerrarMenu}>
-        {m.titulo}
-      </NavLink>
-    ) : (
-      <span key={m.id} className="barra-pendiente" title={`Llega en la Fase ${m.fase}`}>
-        {m.titulo}
-        <small>Fase {m.fase}</small>
-      </span>
-    ),
+  const navegacion = (
+    <nav className="lateral-menu" aria-label="Módulos">
+      {menu.map(({ grupo, modulos }) => (
+        <div key={grupo} className="lateral-grupo">
+          <span className="lateral-titulo">{grupo}</span>
+          {modulos.map((m) =>
+            m.Pagina ? (
+              <NavLink key={m.id} to={m.ruta ? `${base}/${m.ruta}` : base} end={!m.ruta} onClick={cerrarMenu}>
+                <Icono nombre={m.icono} />
+                {m.titulo}
+              </NavLink>
+            ) : (
+              <span key={m.id} className="lateral-pendiente" title={`Llega en la Fase ${m.fase}`}>
+                <Icono nombre={m.icono} />
+                {m.titulo}
+                <small>Fase {m.fase}</small>
+              </span>
+            ),
+          )}
+        </div>
+      ))}
+    </nav>
+  );
+
+  const cuenta = (
+    <div className="lateral-usuario">
+      <div className="lateral-persona">
+        <span className="lateral-avatar" aria-hidden="true">
+          {iniciales}
+        </span>
+        <div>
+          <strong>{usuario.nombre}</strong>
+          <small>{rol}</small>
+        </div>
+      </div>
+      <div className="lateral-acciones">
+        <Link to="/cambiar-password" onClick={cerrarMenu}>
+          Cambiar contraseña
+        </Link>
+        <button type="button" className="boton-pildora" onClick={salir}>
+          Salir
+        </button>
+      </div>
+    </div>
   );
 
   return (
     <div className={menuAbierto ? 'panel panel-menu-abierto' : 'panel'}>
-      <header className="barra">
-        <div className="barra-interior">
-          <Link to={base} className="marca barra-marca" onClick={cerrarMenu}>
-            Colectivos del Café
-          </Link>
+      {/* Computador: barra lateral fija */}
+      <aside className="lateral">
+        <Link to={base} className="lateral-marca">
+          <span className="marca">Colectivos del Café</span>
+          <small>{rol}</small>
+        </Link>
+        {navegacion}
+        {cuenta}
+      </aside>
 
-          <nav className="barra-menu" aria-label="Módulos">
-            {enlaces}
-          </nav>
-
-          <div className="barra-usuario">
-            <Link to="/cambiar-password" className="barra-nombre" title="Cambiar contraseña">
-              {usuario.nombre.split(' ')[0]}
-            </Link>
-            <button type="button" className="boton-pildora" onClick={salir}>
-              Salir
-            </button>
-          </div>
-
-          <button
-            type="button"
-            className="boton-icono barra-abrir"
-            onClick={() => setMenuAbierto((v) => !v)}
-            aria-label={menuAbierto ? 'Cerrar menú' : 'Abrir menú'}
-            aria-expanded={menuAbierto}
-          >
-            {menuAbierto ? '✕' : '☰'}
-          </button>
-        </div>
-
-        {/* Cortina del menú en celular */}
-        <div className="cortina">
-          <nav className="cortina-menu" aria-label="Módulos">
-            {enlaces}
-          </nav>
-          <div className="cortina-cuenta">
-            <span>{usuario.nombre}</span>
-            <Link to="/cambiar-password" onClick={cerrarMenu}>
-              Cambiar contraseña
-            </Link>
-            <button type="button" className="boton-pildora" onClick={salir}>
-              Salir
-            </button>
-          </div>
-        </div>
+      {/* Celular: barra superior y menú a pantalla completa */}
+      <header className="barra-movil">
+        <Link to={base} className="marca" onClick={cerrarMenu}>
+          Colectivos del Café
+        </Link>
+        <button
+          type="button"
+          className="boton-icono"
+          onClick={() => setMenuAbierto((v) => !v)}
+          aria-label={menuAbierto ? 'Cerrar menú' : 'Abrir menú'}
+          aria-expanded={menuAbierto}
+        >
+          {menuAbierto ? '✕' : '☰'}
+        </button>
       </header>
+      <div className="cortina">
+        {navegacion}
+        {cuenta}
+      </div>
 
       <main className="panel-contenido">
         <Outlet />
       </main>
-
-      <footer className="pie">
-        <div className="pie-interior">
-          <span className="marca">Colectivos del Café</span>
-          <span>{usuario.rol === 'admin' ? 'Administración' : 'Conductor'} · Pereira, Risaralda</span>
-        </div>
-      </footer>
     </div>
   );
 }

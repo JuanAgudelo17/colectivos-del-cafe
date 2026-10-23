@@ -1,13 +1,3 @@
-.dashboard-fecha {
-  margin: 0 0 8px;
-  font-size: var(--texto-sm);
-  color: var(--pizarra);
-}
-
-.dashboard-fecha::first-letter {
-  text-transform: uppercase;
-}
-
 /* ---- Indicadores ---- */
 .indicadores {
   display: grid;
@@ -45,7 +35,7 @@
 /* ---- Dos columnas: alertas y flota ---- */
 .dashboard-columnas {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 560px), 1fr));
   gap: 48px;
   align-items: start;
 }

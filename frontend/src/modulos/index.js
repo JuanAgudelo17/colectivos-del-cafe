@@ -1,23 +1,37 @@
 // Registro de módulos del frontend. Cada módulo vive en su carpeta y exporta
 // en su index.js: { id, titulo, icono, ruta, Pagina }.
-// Para agregar uno: crea la carpeta, su index.js y súmalo a la lista de su rol.
+// Para agregar uno: crea la carpeta, su index.js y súmalo al grupo del menú de su rol.
 // Los que todavía no existen se listan con `fase` y salen deshabilitados en el menú.
 import busetas from './busetas/index.js';
 import conductores from './conductores/index.js';
 import dashboard from './dashboard/index.js';
 import miBuseta from './mi-buseta/index.js';
 
-export const modulosAdmin = [
-  dashboard,
-  busetas,
-  conductores,
-  { id: 'producido', titulo: 'Producido', icono: '💵', fase: 2 },
-  { id: 'facturas', titulo: 'Facturas', icono: '🧾', fase: 2 },
-  { id: 'cierre', titulo: 'Cierre mensual', icono: '📊', fase: 3 },
+// Menú lateral de cada rol, agrupado por secciones.
+export const menuAdmin = [
+  { grupo: 'General', modulos: [dashboard] },
+  { grupo: 'Flota', modulos: [busetas, conductores] },
+  {
+    grupo: 'Próximamente',
+    modulos: [
+      { id: 'producido', titulo: 'Producido', icono: 'dinero', fase: 2 },
+      { id: 'facturas', titulo: 'Facturas', icono: 'factura', fase: 2 },
+      { id: 'cierre', titulo: 'Cierre mensual', icono: 'cierre', fase: 3 },
+    ],
+  },
 ];
 
-export const modulosConductor = [
-  miBuseta,
-  { id: 'mi-producido', titulo: 'Mi producido', icono: '💵', fase: 2 },
-  { id: 'mis-facturas', titulo: 'Mis facturas', icono: '🧾', fase: 2 },
+export const menuConductor = [
+  { grupo: 'Mi trabajo', modulos: [miBuseta] },
+  {
+    grupo: 'Próximamente',
+    modulos: [
+      { id: 'mi-producido', titulo: 'Mi producido', icono: 'dinero', fase: 2 },
+      { id: 'mis-facturas', titulo: 'Mis facturas', icono: 'factura', fase: 2 },
+    ],
+  },
 ];
+
+// Lista plana de cada rol (para armar las rutas).
+export const modulosAdmin = menuAdmin.flatMap((g) => g.modulos);
+export const modulosConductor = menuConductor.flatMap((g) => g.modulos);
