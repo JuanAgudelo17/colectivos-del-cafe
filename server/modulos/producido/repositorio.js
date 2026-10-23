@@ -82,6 +82,29 @@ export async function mesCerrado(db, busetaId, anio, mes) {
   return rows.length > 0;
 }
 
+// ---- Todo un año, de todas las busetas (para el módulo rentabilidad) --------
+
+// Días y ajustes del año agrupables por buseta y mes, en dos consultas.
+export async function datosDelAnio(db, anio) {
+  const [dias, ajustes] = await Promise.all([
+    db.query(
+      `SELECT buseta_id AS "busetaId", EXTRACT(MONTH FROM fecha)::int AS mes,
+              ingreso, peajes, salidas, acpm, acpm_credito AS "acpmCredito", mantenimiento, relevo
+         FROM producido_diario
+        WHERE fecha BETWEEN $1 AND $2`,
+      [`${anio}-01-01`, `${anio}-12-31`],
+    ),
+    db.query('SELECT buseta_id AS "busetaId", mes, tipo, valor FROM ajuste_mensual WHERE anio = $1', [anio]),
+  ]);
+  return { dias: dias.rows, ajustes: ajustes.rows };
+}
+
+// Primer año con producido registrado (null si todavía no hay nada).
+export async function primerAnio(db) {
+  const { rows } = await db.query('SELECT EXTRACT(YEAR FROM min(fecha))::int AS anio FROM producido_diario');
+  return rows[0]?.anio ?? null;
+}
+
 // ---- Ajustes del mes (bono, préstamos) --------------------------------------
 
 export async function listarAjustes(db, busetaId, anio, mes) {
