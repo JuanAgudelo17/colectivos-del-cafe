@@ -14,7 +14,8 @@ Así dos personas pueden trabajar al mismo tiempo sin pisarse: cada quien toca s
 | Busetas y documentos | `busetas/` | `busetas/` | admin | ✅ |
 | Conductores | `conductores/` | `conductores/` | admin | ✅ |
 | Mi buseta (panel del conductor) | `mi-buseta/` | `mi-buseta/` | conductor | ✅ |
-| Producido diario | por crear | por crear | ambos | Fase 2 |
+| Producido diario (admin) | `producido/` | `producido/` | admin | ✅ |
+| Mi producido | `producido/` (`GET /mio`) | `mi-producido/` | conductor | ✅ |
 | Facturas con foto | por crear | por crear | ambos | Fase 2 |
 | Cierre mensual | por crear | por crear | admin | Fase 3 |
 

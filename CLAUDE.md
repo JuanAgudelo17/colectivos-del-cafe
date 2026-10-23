@@ -61,9 +61,11 @@ Dinero en pesos colombianos: usar `BIGINT` (pesos enteros) o `NUMERIC(14,2)`. **
 - **solicitud_recuperacion**: usuario_id, ip, creado_en, atendida_en, atendida_por — a lo sumo una pendiente por usuario
 - **buseta**: id, numero_interno (único), placa (única, mayúsculas), modelo, tiene_cupo (bool), valor_arriendo (obligatorio si no tiene cupo), activo
 - **documento_buseta**: id, buseta_id (único), fecha_soat, fecha_tecnomecanica
-- **producido_diario**: id, buseta_id, conductor_id, fecha, ingreso, peajes, salidas, acpm, mantenimiento, otros, observacion, creado_por, creado_en — único (buseta_id, fecha)
+- **producido_diario**: id, buseta_id, conductor_id, fecha, ingreso (= producido, valor de las planillas del día), peajes, salidas, acpm, mantenimiento, otros, relevo (bool), observacion, creado_por, creado_en — único (buseta_id, fecha). Un día en cero se borra.
+- **ruta**: nombre, peaje_trayecto, salida_ida, salida_regreso, activo — tarifas para *proponer* peajes y salidas según las vueltas (vuelta = 2 peajes + salida ida + salida regreso). Pereira–Cartago: 21.200 / 7.100 / 0. Pereira–Manizales: 23.500 / 14.100 / 17.100. Lo guardado en producido_diario son los valores finales (editables).
+- **ajuste_mensual**: buseta_id, anio, mes, tipo (`bono` | `prestamo`), descripcion, valor — varios por mes; restan del neto.
 - **factura**: id, conductor_id, buseta_id, fecha, categoria (`peaje` | `mantenimiento` | `acpm` | `salida` | `otro`), descripcion, precio, imagen_path (opcional), creado_en
-- **parametro**: id, clave, valor, vigente_desde — único (clave, vigente_desde). Claves: `porcentaje_empresa` (0.20, lo que se lleva Colectivos), `porcentaje_reposicion` (0.01), `sueldo_conductor` (3066000)
+- **parametro**: id, clave, valor, vigente_desde — único (clave, vigente_desde). Claves: `porcentaje_empresa` (0.20, lo que se lleva Colectivos), `porcentaje_reposicion` (0.01), `sueldo_conductor` (3066000), `valor_relevo` (132000 por día de relevo)
 - **cierre_mensual**: id, buseta_id, anio, mes, bruto, reposicion, empresa, conductor, peajes, salidas, mantenimiento, arriendo, acpm, neto, estado (`abierto` | `cerrado`), cerrado_por, cerrado_en — único (buseta_id, anio, mes)
 - **intento_login**: usuario, ip, creado_en — bloqueo tras 5 fallos por usuario (o 20 por IP) en 15 min.
 
@@ -80,13 +82,19 @@ reposicion   = bruto × porcentaje_reposicion
 empresa      = bruto × porcentaje_empresa
 conductor    = sueldo_conductor (vigente en ese mes)
 arriendo     = tiene_cupo ? 0 : valor_arriendo
+relevo       = días con relevo × valor_relevo   (el conductor descansa y trabaja un reemplazo)
+bono         = Σ bonos del mes (opcional)
+prestamos    = Σ préstamos del mes
 costos       = reposicion + empresa + conductor + Σpeajes + Σsalidas + Σmantenimiento + arriendo + Σacpm
+             + relevo + bono + prestamos
 neto         = bruto − costos
 ```
 
 - Los parámetros se leen de la tabla `parametro` según la fecha del mes, nunca quemados en el código.
 - Al cerrar, se guardan todos los valores calculados en `cierre_mensual` y el mes queda inmutable.
-- El cálculo vive en una sola función pura del backend, con pruebas unitarias.
+- El cálculo vive en una sola función pura: `server/modulos/producido/calculo.js` (`calcularResumen`), con pruebas. Porcentajes en puntos básicos (enteros) y redondeo al peso.
+- La prueba incluye la planilla real de la buseta 2033 (bruto 11.459.500 → neto 1.811.404): si el cálculo cambia, debe seguir cuadrando.
+- El 20 % y el fondo se calculan sobre el bruto completo; bono y préstamos restan al final.
 
 ## Reglas que el código debe respetar
 
@@ -118,14 +126,14 @@ neto         = bruto − costos
 5. ✅ Conductor: panel con su buseta y estado de documentos (módulo `mi-buseta`, `GET /api/mi-buseta`).
 6. ✅ Despliegue en Netlify conectado a Supabase.
 
-**Fase 2:** registro de producido diario y facturas con foto; consultas por día/mes.
+**Fase 2:** ✅ producido diario (admin: cuadrícula del mes, pegar desde Excel, vueltas, relevo, bono, préstamos y resumen; conductor: "Mi producido" de solo lectura). Pendiente: facturas (sin foto primero; la foto en otra fase).
 **Fase 3:** cierre mensual, resumen financiero, exportar PDF/imagen (generado en el navegador).
 **Fase 4:** respaldos automáticos, keep-alive y pulido.
 
 ## Decisiones pendientes (preguntar antes de asumir)
 
-- ¿Quién digita el producido diario: el conductor, el admin, o ambos?
-- ¿Las facturas alimentan automáticamente peajes/mantenimiento/ACPM del producido, o son solo respaldo? (Supuesto actual: alimentan, por categoría.)
+- ✅ Decidido: el **admin** digita el producido; el conductor solo consulta producido, peajes, salidas y ACPM (nunca 20 %, fondo, préstamos ni neto).
+- ¿Las facturas alimentan peajes/mantenimiento/ACPM o son solo respaldo? (Recomendado: solo respaldo, porque el admin ya digita esos valores en la cuadrícula.)
 - ¿Un conductor puede rotar de buseta? (Supuesto actual: no, 1 a 1.)
 - ¿El neto es para el propietario de la buseta? ¿Hace falta rol "propietario"?
 
