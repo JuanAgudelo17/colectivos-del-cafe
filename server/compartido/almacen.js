@@ -7,7 +7,8 @@
 import { ErrorHttp } from './http/errores.js';
 
 export function crearAlmacenSupabase({ url, clave }) {
-  const base = `${url.replace(/\/$/, '')}/storage/v1`;
+  // Acepta la URL del proyecto aunque se copie con /rest/v1/ (la de la Data API).
+  const base = `${url.trim().replace(/\/+$/, '').replace(/\/rest\/v1$/, '')}/storage/v1`;
   const cabeceras = { Authorization: `Bearer ${clave}`, apikey: clave };
 
   async function pedir(ruta, opciones) {
