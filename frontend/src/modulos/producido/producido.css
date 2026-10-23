@@ -65,7 +65,7 @@
 
 .cuadricula {
   width: 100%;
-  min-width: 620px;
+  min-width: 740px;
   border-collapse: collapse;
   font-size: var(--texto-sm);
 }
@@ -455,4 +455,43 @@
   position: sticky;
   left: 0;
   background: var(--blanco);
+}
+
+/* Información del mes que no es descuento */
+.resumen-info {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  font-size: var(--texto-sm);
+}
+
+.resumen-info div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.resumen-info dt {
+  color: var(--pizarra);
+}
+
+.resumen-info dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.resumen-info-destacado {
+  padding: 10px 12px;
+  border-radius: var(--radio);
+  background: var(--blanco);
+  border: 1px solid var(--linea);
+}
+
+.resumen-info-destacado dt {
+  color: var(--negro);
+  font-weight: 500;
+}
+
+.resumen-info-destacado dd {
+  font-weight: 700;
 }

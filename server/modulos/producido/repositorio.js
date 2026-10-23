@@ -19,7 +19,7 @@ export async function parametrosDelMes(db, hasta) {
 }
 
 const CAMPOS_DIA = `
-  fecha, ingreso, peajes, salidas, acpm, mantenimiento, relevo, observacion,
+  fecha, ingreso, peajes, salidas, acpm, acpm_credito AS "acpmCredito", mantenimiento, relevo, observacion,
   conductor_id AS "conductorId"
 `;
 
@@ -39,13 +39,15 @@ export async function listarDias(db, busetaId, desde, hasta, conductorId = null)
 export async function guardarDia(db, { busetaId, fecha, conductorId, creadoPor }, d) {
   const { rows } = await db.query(
     `INSERT INTO producido_diario
-       (buseta_id, fecha, conductor_id, ingreso, peajes, salidas, acpm, mantenimiento, relevo, observacion, creado_por)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+       (buseta_id, fecha, conductor_id, ingreso, peajes, salidas, acpm, mantenimiento, relevo, observacion, creado_por,
+        acpm_credito)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
      ON CONFLICT (buseta_id, fecha) DO UPDATE
        SET ingreso = EXCLUDED.ingreso,
            peajes = EXCLUDED.peajes,
            salidas = EXCLUDED.salidas,
            acpm = EXCLUDED.acpm,
+           acpm_credito = EXCLUDED.acpm_credito,
            mantenimiento = EXCLUDED.mantenimiento,
            relevo = EXCLUDED.relevo,
            observacion = EXCLUDED.observacion
@@ -62,6 +64,7 @@ export async function guardarDia(db, { busetaId, fecha, conductorId, creadoPor }
       d.relevo,
       d.observacion,
       creadoPor,
+      d.acpmCredito,
     ],
   );
   return rows[0];

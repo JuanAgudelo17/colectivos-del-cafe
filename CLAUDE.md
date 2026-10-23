@@ -64,11 +64,11 @@ Dinero en pesos colombianos: usar `BIGINT` (pesos enteros) o `NUMERIC(14,2)`. **
 - **tipo_mantenimiento**: clave, nombre, intervalo_km, intervalo_meses, orden, activo — como `ruta`: solo para *proponer* el próximo cambio (editable por el admin). Valores iniciales por confirmar con el mecánico.
 - **lectura_kilometraje**: buseta_id, fecha, kilometraje, registrado_por — único (buseta_id, fecha). El odómetro nunca retrocede (se valida contra lecturas y mantenimientos).
 - **mantenimiento**: buseta_id, tipo, fecha, kilometraje, proximo_km, proxima_fecha, observacion, registrado_por, creado_en — historial; el "último" de cada tipo es el más reciente. Estado: vencido / pronto (≤ 500 km o ≤ 15 días) / al día, por km o fecha, lo que llegue primero.
-- **producido_diario**: id, buseta_id, conductor_id, fecha, ingreso (= producido, valor de las planillas del día), peajes, salidas, acpm, mantenimiento, otros, relevo (bool), observacion, creado_por, creado_en — único (buseta_id, fecha). Un día en cero se borra.
+- **producido_diario**: id, buseta_id, conductor_id, fecha, ingreso (= producido, valor de las planillas del día), peajes, salidas, acpm (lo paga el conductor del efectivo del día), acpm_credito (tanqueado a crédito en la bomba La Guaca; lo paga el dueño después), mantenimiento, otros, relevo (bool), observacion, creado_por, creado_en — único (buseta_id, fecha). Un día en cero se borra.
 - **ruta**: nombre, peaje_trayecto, salida_ida, salida_regreso, activo — tarifas para *proponer* peajes y salidas según las vueltas (vuelta = 2 peajes + salida ida + salida regreso). Pereira–Cartago: 21.200 / 7.100 / 0. Pereira–Manizales: 23.500 / 14.100 / 17.100. Lo guardado en producido_diario son los valores finales (editables).
-- **ajuste_mensual**: buseta_id, anio, mes, tipo (`bono` | `prestamo`), descripcion, valor — varios por mes; restan del neto.
+- **ajuste_mensual**: buseta_id, anio, mes, tipo (`bono` | `prestamo` | `mantenimiento`), descripcion, valor — varios por mes; restan del neto.
 - **factura**: id, conductor_id, buseta_id, fecha, categoria (`peaje` | `mantenimiento` | `acpm` | `salida` | `otro`), descripcion, precio, imagen_path (opcional), creado_en
-- **parametro**: id, clave, valor, vigente_desde — único (clave, vigente_desde). Claves: `porcentaje_empresa` (0.20, lo que se lleva Colectivos), `porcentaje_reposicion` (0.01), `sueldo_conductor` (3066000), `valor_relevo` (132000 por día de relevo)
+- **parametro**: id, clave, valor, vigente_desde — único (clave, vigente_desde). Claves: `porcentaje_empresa` (0.20, lo que se lleva Colectivos), `porcentaje_reposicion` (0.01), `sueldo_conductor` (3066000), `valor_relevo` (132000 por día de relevo), `fondo_fijo_arriendo` (70000), `seguro_contractual` (valor mensual, pendiente de cargar)
 - **cierre_mensual**: id, buseta_id, anio, mes, bruto, reposicion, empresa, conductor, peajes, salidas, mantenimiento, arriendo, acpm, neto, estado (`abierto` | `cerrado`), cerrado_por, cerrado_en — único (buseta_id, anio, mes)
 - **intento_login**: usuario, ip, creado_en — bloqueo tras 5 fallos por usuario (o 20 por IP) en 15 min.
 
@@ -81,22 +81,26 @@ Una sola versión (reemplaza RN-04, RN-05 y RN-06 del PDF):
 
 ```
 bruto        = Σ ingreso del mes
-reposicion   = bruto × porcentaje_reposicion
+reposicion   = tiene_cupo ? bruto × porcentaje_reposicion : fondo_fijo_arriendo   (sin cupo = paga arriendo)
 empresa      = bruto × porcentaje_empresa
 conductor    = sueldo_conductor (vigente en ese mes)
+acpm         = Σacpm (conductor) + Σacpm_credito (La Guaca)
+mantenimiento= Σ mantenimiento diario + Σ ajustes de mantenimiento del mes
 arriendo     = tiene_cupo ? 0 : valor_arriendo
+seguro       = seguro_contractual, solo de febrero a julio
 relevo       = días con relevo × valor_relevo   (el conductor descansa y trabaja un reemplazo)
 bono         = Σ bonos del mes (opcional)
 prestamos    = Σ préstamos del mes
-costos       = reposicion + empresa + conductor + Σpeajes + Σsalidas + Σmantenimiento + arriendo + Σacpm
-             + relevo + bono + prestamos
+costos       = reposicion + empresa + conductor + Σpeajes + Σsalidas + mantenimiento + arriendo + acpm
+             + relevo + seguro + bono + prestamos
 neto         = bruto − costos
 ```
 
 - Los parámetros se leen de la tabla `parametro` según la fecha del mes, nunca quemados en el código.
 - Al cerrar, se guardan todos los valores calculados en `cierre_mensual` y el mes queda inmutable.
 - El cálculo vive en una sola función pura: `server/modulos/producido/calculo.js` (`calcularResumen`), con pruebas. Porcentajes en puntos básicos (enteros) y redondeo al peso.
-- La prueba incluye la planilla real de la buseta 2033 (bruto 11.459.500 → neto 1.811.404): si el cálculo cambia, debe seguir cuadrando.
+- Las pruebas incluyen planillas reales: buseta 2033 (bruto 11.459.500 → neto 1.811.404) y 2007 de octubre (sin cupo, ACPM La Guaca 585.506; neto 1.218.294 con fondo fijo 70.000). Si el cálculo cambia, deben seguir cuadrando.
+- El resumen se muestra como en la planilla: descuentos sin combustible → **Total bruto** (`netoAntesAcpm`) → ACPM conductor y ACPM La Guaca → **Total neto**. Debajo, "Por pagar a La Guaca" (Σacpm_credito del mes). "Producido del mes" es la suma de lo producido (`bruto` en el código).
 - El 20 % y el fondo se calculan sobre el bruto completo; bono y préstamos restan al final.
 
 ## Reglas que el código debe respetar
@@ -130,13 +134,13 @@ neto         = bruto − costos
 5. ✅ Conductor: panel con su buseta y estado de documentos (módulo `mi-buseta`, `GET /api/mi-buseta`).
 6. ✅ Despliegue en Netlify conectado a Supabase.
 
-**Fase 2:** ✅ producido diario (admin: cuadrícula del mes, pegar desde Excel, vueltas, relevo, bono, préstamos y resumen; conductor: "Mi producido" de solo lectura). Pendiente: facturas (sin foto primero; la foto en otra fase).
+**Fase 2:** ✅ producido diario (admin: cuadrícula del mes, pegar desde Excel, vueltas, relevo, ACPM La Guaca, mantenimiento, bono, préstamos y resumen; conductor: "Mi producido" con sus días y el resumen del mes, de solo lectura). Pendiente: facturas (sin foto primero; la foto en otra fase).
 **Fase 3:** cierre mensual, resumen financiero, exportar PDF/imagen (generado en el navegador).
 **Fase 4:** respaldos automáticos, keep-alive y pulido.
 
 ## Decisiones pendientes (preguntar antes de asumir)
 
-- ✅ Decidido: el **admin** digita el producido; el conductor solo consulta producido, peajes, salidas y ACPM (nunca 20 %, fondo, préstamos ni neto).
+- ✅ Decidido: el **admin** digita el producido. El conductor **solo consulta** ("Mi producido"): sus días y el **mismo resumen del mes que ve el admin** (20 %, fondo, arriendo, mantenimiento, préstamos, neto: "en qué se gastó"), sin poder agregar ni quitar nada (`ResumenMes` con `soloLectura`). Lo de La Guaca solo le aparece si ese mes tanqueó allá.
 - ¿Las facturas alimentan peajes/mantenimiento/ACPM o son solo respaldo? (Recomendado: solo respaldo, porque el admin ya digita esos valores en la cuadrícula.)
 - ¿Un conductor puede rotar de buseta? (Supuesto actual: no, 1 a 1.)
 - ¿El neto es para el propietario de la buseta? ¿Hace falta rol "propietario"?
@@ -144,7 +148,7 @@ neto         = bruto − costos
 ## Convenciones
 
 - Base de datos en español, `snake_case`. JavaScript en `camelCase`. Textos de UI en español.
-- Migraciones SQL numeradas; nunca editar una migración ya aplicada.
+- Migraciones SQL numeradas; nunca editar una migración ya aplicada. Antes de crear una, traer `main` y usar el siguiente número libre (hay dos 007 por crearse en paralelo; ya están aplicadas, no renombrarlas).
 - `frontend/` y `server/` tienen `package.json` propio; **no usar npm workspaces** (Netlify CLI los detecta como monorepo y `netlify dev` se bloquea pidiendo elegir proyecto). Dependencias con `npm install <pkg> --prefix server|frontend`. `serverless-http` vive en la raíz porque lo importa `netlify/functions/api.js`.
 - `docs/requerimientos.pdf` está en `.gitignore` (tiene cédulas); existe solo en local.
 - **Estilo visual** (`frontend/src/compartido/estilos/base.css`): kiosco de transporte en blanco y negro, fuente Inter, sin sombras, radios de 8px (píldora solo en la barra y los interruptores). El color vive solo en las ilustraciones planas (`compartido/ui/Ilustraciones.jsx`); excepción: estados de documentos (rojo/ámbar, siempre con icono + texto). Turquesa solo en la pestaña activa. En celular la acción principal de una página usa la clase `accion-fija` (barra negra abajo).

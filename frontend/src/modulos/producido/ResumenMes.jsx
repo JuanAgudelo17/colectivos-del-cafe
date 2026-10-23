@@ -6,23 +6,41 @@ import { useEnvio } from '../../compartido/utilidades/useEnvio.js';
 
 const porciento = (v) => `${Math.round(v * 10000) / 100} %`;
 
+const AJUSTES = {
+  prestamo: { titulo: 'Préstamo', boton: '+ Préstamo', ejemplo: 'Ej: llantas' },
+  mantenimiento: { titulo: 'Mantenimiento', boton: '+ Mantenimiento', ejemplo: 'Ej: frenos, cambio de aceite' },
+  bono: { titulo: 'Bono', boton: '+ Bono (opcional)', ejemplo: 'Ej: buen mes' },
+};
+
 // El bloque de abajo de la planilla: bruto, descuentos y neto del mes,
-// más los ajustes que se ingresan a mano (bono y préstamos).
-export function ResumenMes({ mes, alActualizar }) {
+// más los ajustes que se ingresan a mano (préstamos, mantenimiento, bono).
+// soloLectura: la versión del conductor (sin agregar ni quitar nada).
+export function ResumenMes({ mes, alActualizar, soloLectura = false }) {
+  const editable = !soloLectura && !mes.cerrado;
   const { resumen: r, buseta, ajustes } = mes;
-  const bonos = ajustes.filter((a) => a.tipo === 'bono');
-  const prestamos = ajustes.filter((a) => a.tipo === 'prestamo');
+  const deTipo = (tipo) => ajustes.filter((a) => a.tipo === tipo);
+  const mantenimientoAjustes = deTipo('mantenimiento').reduce((t, a) => t + a.valor, 0);
+  const mantenimientoDias = r.mantenimiento - mantenimientoAjustes;
 
   const lineas = [
     [`Empresa (${porciento(mes.porcentajeEmpresa)})`, r.empresa],
-    [`Fondo de reposición (${porciento(mes.porcentajeReposicion)})`, r.reposicion],
+    [
+      r.fondoFijo ? 'Fondo de reposición (fijo, paga arriendo)' : `Fondo de reposición (${porciento(mes.porcentajeReposicion)})`,
+      r.reposicion,
+    ],
     ['Conductor', r.conductor],
     ['Peajes', r.peajes],
     ['Salidas', r.salidas],
-    ['ACPM', r.acpm],
-    r.mantenimiento > 0 && ['Mantenimiento', r.mantenimiento],
+    mantenimientoDias > 0 && ['Mantenimiento (días)', mantenimientoDias],
     !buseta.tieneCupo && ['Arriendo', r.arriendo],
     r.diasRelevo > 0 && [`Relevo (${r.diasRelevo} × ${numero(mes.valorRelevo)})`, r.relevo],
+    r.seguroContractual > 0 && ['Seguro contractual', r.seguroContractual],
+  ].filter(Boolean);
+
+  // Como en la planilla: total bruto (antes de combustible) − ACPM = total neto.
+  const lineasAcpm = [
+    ['ACPM conductor', r.acpmConductor],
+    r.acpmCredito > 0 && ['ACPM La Guaca (crédito)', r.acpmCredito],
   ].filter(Boolean);
 
   return (
@@ -43,28 +61,56 @@ export function ResumenMes({ mes, alActualizar }) {
               <td>− {numero(valor)}</td>
             </tr>
           ))}
-          {bonos.map((a) => (
-            <FilaAjuste key={a.id} ajuste={a} mes={mes} alActualizar={alActualizar} />
-          ))}
-          {prestamos.map((a) => (
-            <FilaAjuste key={a.id} ajuste={a} mes={mes} alActualizar={alActualizar} />
+          {['mantenimiento', 'prestamo', 'bono'].flatMap((tipo) =>
+            deTipo(tipo).map((a) => (
+              <FilaAjuste key={a.id} ajuste={a} mes={mes} alActualizar={alActualizar} editable={editable} />
+            )),
+          )}
+        </tbody>
+      </table>
+
+      <Total texto="Total bruto" valor={r.netoAntesAcpm} />
+
+      <table className="resumen-tabla">
+        <tbody>
+          {lineasAcpm.map(([texto, valor]) => (
+            <tr key={texto}>
+              <th scope="row">{texto}</th>
+              <td>− {numero(valor)}</td>
+            </tr>
           ))}
         </tbody>
       </table>
 
-      <div className={r.neto < 0 ? 'resumen-neto resumen-neto-negativo' : 'resumen-neto'}>
-        <span>Neto</span>
-        <strong>$ {numero(r.neto)}</strong>
-      </div>
+      <Total texto="Total neto" valor={r.neto} />
 
-      {!mes.cerrado && <NuevoAjuste mes={mes} alActualizar={alActualizar} />}
+      {r.acpmCredito > 0 && (
+        <dl className="resumen-info">
+          <div className="resumen-info-destacado">
+            <dt>Por pagar a La Guaca</dt>
+            <dd>$ {numero(r.acpmCredito)}</dd>
+          </div>
+        </dl>
+      )}
+
+      {editable && <NuevoAjuste mes={mes} alActualizar={alActualizar} />}
     </aside>
   );
 }
 
-function FilaAjuste({ ajuste, mes, alActualizar }) {
+// Barra negra de total (bruto o neto); si es negativo se marca como pérdida.
+function Total({ texto, valor }) {
+  return (
+    <div className={valor < 0 ? 'resumen-neto resumen-neto-negativo' : 'resumen-neto'}>
+      <span>{texto}</span>
+      <strong>$ {numero(valor)}</strong>
+    </div>
+  );
+}
+
+function FilaAjuste({ ajuste, mes, alActualizar, editable }) {
   const { enviando, enviar } = useEnvio();
-  const titulo = ajuste.tipo === 'bono' ? 'Bono' : 'Préstamo';
+  const { titulo } = AJUSTES[ajuste.tipo];
 
   async function quitar() {
     if (!window.confirm(`¿Quitar ${titulo.toLowerCase()} de $ ${numero(ajuste.valor)}?`)) return;
@@ -77,7 +123,7 @@ function FilaAjuste({ ajuste, mes, alActualizar }) {
       <th scope="row">
         {titulo}
         {ajuste.descripcion && <small> · {ajuste.descripcion}</small>}
-        {!mes.cerrado && (
+        {editable && (
           <button
             type="button"
             className="boton-quitar"
@@ -95,7 +141,7 @@ function FilaAjuste({ ajuste, mes, alActualizar }) {
 }
 
 function NuevoAjuste({ mes, alActualizar }) {
-  const [abierto, setAbierto] = useState(null); // 'prestamo' | 'bono' | null
+  const [abierto, setAbierto] = useState(null); // 'prestamo' | 'mantenimiento' | 'bono' | null
   const [datos, setDatos] = useState({ descripcion: '', valor: null });
   const { enviando, error, campos, enviar } = useEnvio();
 
@@ -117,19 +163,18 @@ function NuevoAjuste({ mes, alActualizar }) {
   if (!abierto) {
     return (
       <div className="resumen-agregar">
-        <button type="button" className="boton-secundario-oscuro" onClick={() => setAbierto('prestamo')}>
-          + Préstamo
-        </button>
-        <button type="button" className="boton-secundario-oscuro" onClick={() => setAbierto('bono')}>
-          + Bono (opcional)
-        </button>
+        {Object.entries(AJUSTES).map(([tipo, { boton }]) => (
+          <button key={tipo} type="button" className="boton-secundario-oscuro" onClick={() => setAbierto(tipo)}>
+            {boton}
+          </button>
+        ))}
       </div>
     );
   }
 
   return (
     <form className="formulario resumen-formulario" onSubmit={guardar} noValidate>
-      <strong>{abierto === 'bono' ? 'Agregar bono' : 'Agregar préstamo'}</strong>
+      <strong>Agregar {AJUSTES[abierto].titulo.toLowerCase()}</strong>
       {error && <p className="error">{error}</p>}
       <CampoPesos
         etiqueta="Valor"
@@ -142,7 +187,7 @@ function NuevoAjuste({ mes, alActualizar }) {
         valor={datos.descripcion}
         alCambiar={(descripcion) => setDatos((d) => ({ ...d, descripcion }))}
         error={campos.descripcion}
-        placeholder={abierto === 'bono' ? 'Ej: buen mes' : 'Ej: llantas'}
+        placeholder={AJUSTES[abierto].ejemplo}
       />
       <div className="acciones">
         <button type="button" className="boton-enlace" onClick={() => setAbierto(null)}>

@@ -64,6 +64,7 @@ function FilaDia({ info, indice, registro, busetaId, bloqueada, alActualizar, ab
           peajes: todo.peajes,
           salidas: todo.salidas,
           acpm: todo.acpm,
+          acpmCredito: todo.acpmCredito,
           mantenimiento: registro?.mantenimiento ?? 0,
           observacion: registro?.observacion ?? null,
           relevo: todo.relevo,
@@ -190,7 +191,8 @@ export function CuadriculaMes({ mes, alActualizar, abrirVueltas }) {
             <td>{numero(resumen.bruto)}</td>
             <td>{numero(resumen.peajes)}</td>
             <td>{numero(resumen.salidas)}</td>
-            <td>{numero(resumen.acpm)}</td>
+            <td>{numero(resumen.acpmConductor)}</td>
+            <td>{numero(resumen.acpmCredito)}</td>
             <td className="col-relevo">{resumen.diasRelevo || ''}</td>
             <td />
           </tr>

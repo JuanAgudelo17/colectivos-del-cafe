@@ -4,6 +4,7 @@ export const COLUMNAS = [
   ['peajes', 'Peajes'],
   ['salidas', 'Salidas'],
   ['acpm', 'ACPM'],
+  ['acpmCredito', 'ACPM Guaca'],
 ];
 
 // Lee un bloque copiado de Excel (texto separado por tabulaciones) y devuelve
@@ -15,7 +16,7 @@ export const COLUMNAS = [
 //    11-20, 21-31); cada fila de días cambia las columnas de las filas siguientes.
 // 2. Vertical: encabezado "dia | producido | peajes | salidas | acpm" y una fila por día.
 //
-// Devuelve { [dia]: { ingreso, peajes, salidas, acpm, mantenimiento } } con solo
+// Devuelve { [dia]: { ingreso, peajes, salidas, acpm, acpmCredito, mantenimiento } } con solo
 // los campos que traían valor. Los números aceptan puntos, comas y "$".
 
 const CAMPOS = {
@@ -27,6 +28,11 @@ const CAMPOS = {
   salida: 'salidas',
   acpm: 'acpm',
   combustible: 'acpm',
+  'acpm conductor': 'acpm',
+  guaca: 'acpmCredito',
+  'acpm guaca': 'acpmCredito',
+  'la guaca': 'acpmCredito',
+  'acpm credito': 'acpmCredito',
   mantenimiento: 'mantenimiento',
 };
 

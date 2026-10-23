@@ -48,6 +48,7 @@ test('ya no existe la tabla empresa', async () => {
 test('carga los parámetros semilla', async () => {
   const { rows } = await db.query('SELECT clave, valor::float AS valor FROM parametro ORDER BY clave');
   assert.deepEqual(rows, [
+    { clave: 'fondo_fijo_arriendo', valor: 70000 },
     { clave: 'porcentaje_empresa', valor: 0.2 },
     { clave: 'porcentaje_reposicion', valor: 0.01 },
     { clave: 'sueldo_conductor', valor: 3066000 },

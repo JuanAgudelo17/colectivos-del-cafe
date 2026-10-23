@@ -109,6 +109,33 @@ describe('admin', () => {
     assert.equal(malo.status, 400);
   });
 
+  test('ACPM a crédito (La Guaca) se guarda aparte y suma al ACPM total', async () => {
+    const { cuerpo } = await pedir('PUT', `/1/${f(4)}`, admin, { ...DIA, acpm: 50000, acpmCredito: 80000 });
+    const dia = cuerpo.dias.find((d) => d.fecha === f(4));
+    assert.equal(dia.acpmCredito, 80000);
+    assert.equal(cuerpo.resumen.acpmCredito, 80000);
+    assert.equal(cuerpo.resumen.acpmConductor, 50000);
+    assert.equal(cuerpo.resumen.acpm, 130000);
+    // Un día con solo ACPM a crédito no se considera vacío
+    const solo = await pedir('PUT', `/1/${f(6)}`, admin, { acpmCredito: 10000 });
+    assert.ok(solo.cuerpo.dias.some((d) => d.fecha === f(6)));
+  });
+
+  test('mantenimiento como ajuste del mes', async () => {
+    const r = await pedir('POST', '/1/ajustes', admin, { anio: ANIO, mes: MES, tipo: 'mantenimiento', descripcion: 'Frenos', valor: 1000000 });
+    assert.equal(r.status, 201);
+    assert.equal(r.cuerpo.resumen.mantenimiento, 1000000);
+  });
+
+  test('buseta sin cupo: arriendo y fondo fijo', async () => {
+    await db.query('UPDATE buseta SET tiene_cupo = false, valor_arriendo = 300000 WHERE id = 2');
+    const { cuerpo } = await pedir('GET', `?busetaId=2&anio=${ANIO}&mes=${MES}`, admin);
+    assert.equal(cuerpo.resumen.arriendo, 300000);
+    assert.equal(cuerpo.resumen.reposicion, 70000);
+    assert.equal(cuerpo.resumen.fondoFijo, true);
+    assert.equal(cuerpo.fondoFijoArriendo, 70000);
+  });
+
   test('un mes cerrado no se modifica', async () => {
     await db.query(
       `INSERT INTO cierre_mensual (buseta_id, anio, mes, bruto, reposicion, empresa, conductor, peajes, salidas,
@@ -141,11 +168,26 @@ describe('conductor', () => {
     const { status, cuerpo } = await pedir('GET', `/mio?anio=${ANIO}&mes=${MES}`, pedro);
     assert.equal(status, 200);
     assert.equal(cuerpo.buseta.numeroInterno, '2033');
-    assert.deepEqual(cuerpo.dias.map((d) => d.fecha), [f(1)]);
-    assert.deepEqual(Object.keys(cuerpo.dias[0]).sort(), ['acpm', 'fecha', 'ingreso', 'peajes', 'relevo', 'salidas']);
-    assert.equal(cuerpo.totales.ingreso, 700000);
-    // Nada del resumen financiero
-    for (const prohibido of ['resumen', 'ajustes', 'neto', 'empresa']) assert.equal(prohibido in cuerpo, false);
+    // Sus días (1, 4 y 6 de la buseta 1); nunca el día 5 de la buseta 2.
+    assert.deepEqual(cuerpo.dias.map((d) => d.fecha), [f(1), f(4), f(6)]);
+    assert.deepEqual(Object.keys(cuerpo.dias[0]).sort(), ['acpm', 'acpmCredito', 'fecha', 'ingreso', 'peajes', 'relevo', 'salidas']);
+    assert.equal(cuerpo.totales.ingreso, 700000 + 630000);
+    assert.equal(cuerpo.totales.acpmCredito, 80000 + 10000);
+  });
+
+  test('ve el mismo resumen del mes que el admin (en qué se gastó)', async () => {
+    const delConductor = (await pedir('GET', `/mio?anio=${ANIO}&mes=${MES}`, pedro)).cuerpo;
+    const delAdmin = (await pedir('GET', `?busetaId=1&anio=${ANIO}&mes=${MES}`, admin)).cuerpo;
+    assert.deepEqual(delConductor.resumen, delAdmin.resumen);
+    assert.equal(delConductor.porcentajeEmpresa, 0.2);
+    assert.equal(delConductor.ajustes.length, delAdmin.ajustes.length);
+    assert.deepEqual(Object.keys(delConductor.ajustes[0]).sort(), ['descripcion', 'id', 'tipo', 'valor']);
+  });
+
+  test('el resumen del conductor es solo de su buseta', async () => {
+    const delOtro = (await pedir('GET', `/mio?anio=${ANIO}&mes=${MES}`, otro)).cuerpo;
+    assert.equal(delOtro.buseta.numeroInterno, '2055');
+    assert.equal(delOtro.resumen.bruto, 999000);
   });
 
   test('no puede usar las rutas del admin', async () => {
