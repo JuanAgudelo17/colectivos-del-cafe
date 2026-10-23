@@ -130,13 +130,13 @@ neto         = bruto − costos
 5. ✅ Conductor: panel con su buseta y estado de documentos (módulo `mi-buseta`, `GET /api/mi-buseta`).
 6. ✅ Despliegue en Netlify conectado a Supabase.
 
-**Fase 2:** ✅ producido diario (admin: cuadrícula del mes, pegar desde Excel, vueltas, relevo, bono, préstamos y resumen; conductor: "Mi producido" de solo lectura). Pendiente: facturas (sin foto primero; la foto en otra fase).
+**Fase 2:** ✅ producido diario (admin: cuadrícula del mes, pegar desde Excel, vueltas, relevo, ACPM La Guaca, mantenimiento, bono, préstamos y resumen; conductor: "Mi producido" con sus días y el resumen del mes, de solo lectura). Pendiente: facturas (sin foto primero; la foto en otra fase).
 **Fase 3:** cierre mensual, resumen financiero, exportar PDF/imagen (generado en el navegador).
 **Fase 4:** respaldos automáticos, keep-alive y pulido.
 
 ## Decisiones pendientes (preguntar antes de asumir)
 
-- ✅ Decidido: el **admin** digita el producido; el conductor solo consulta producido, peajes, salidas y ACPM (nunca 20 %, fondo, préstamos ni neto).
+- ✅ Decidido: el **admin** digita el producido. El conductor **solo consulta** ("Mi producido"): sus días y el **mismo resumen del mes que ve el admin** (20 %, fondo, arriendo, mantenimiento, préstamos, neto: "en qué se gastó"), sin poder agregar ni quitar nada (`ResumenMes` con `soloLectura`). Lo de La Guaca solo le aparece si ese mes tanqueó allá.
 - ¿Las facturas alimentan peajes/mantenimiento/ACPM o son solo respaldo? (Recomendado: solo respaldo, porque el admin ya digita esos valores en la cuadrícula.)
 - ¿Un conductor puede rotar de buseta? (Supuesto actual: no, 1 a 1.)
 - ¿El neto es para el propietario de la buseta? ¿Hace falta rol "propietario"?

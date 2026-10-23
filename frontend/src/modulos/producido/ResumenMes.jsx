@@ -14,7 +14,9 @@ const AJUSTES = {
 
 // El bloque de abajo de la planilla: bruto, descuentos y neto del mes,
 // más los ajustes que se ingresan a mano (préstamos, mantenimiento, bono).
-export function ResumenMes({ mes, alActualizar }) {
+// soloLectura: la versión del conductor (sin agregar ni quitar nada).
+export function ResumenMes({ mes, alActualizar, soloLectura = false }) {
+  const editable = !soloLectura && !mes.cerrado;
   const { resumen: r, buseta, ajustes } = mes;
   const deTipo = (tipo) => ajustes.filter((a) => a.tipo === tipo);
   const mantenimientoAjustes = deTipo('mantenimiento').reduce((t, a) => t + a.valor, 0);
@@ -56,7 +58,9 @@ export function ResumenMes({ mes, alActualizar }) {
             </tr>
           ))}
           {['mantenimiento', 'prestamo', 'bono'].flatMap((tipo) =>
-            deTipo(tipo).map((a) => <FilaAjuste key={a.id} ajuste={a} mes={mes} alActualizar={alActualizar} />),
+            deTipo(tipo).map((a) => (
+              <FilaAjuste key={a.id} ajuste={a} mes={mes} alActualizar={alActualizar} editable={editable} />
+            )),
           )}
         </tbody>
       </table>
@@ -83,12 +87,12 @@ export function ResumenMes({ mes, alActualizar }) {
         )}
       </dl>
 
-      {!mes.cerrado && <NuevoAjuste mes={mes} alActualizar={alActualizar} />}
+      {editable && <NuevoAjuste mes={mes} alActualizar={alActualizar} />}
     </aside>
   );
 }
 
-function FilaAjuste({ ajuste, mes, alActualizar }) {
+function FilaAjuste({ ajuste, mes, alActualizar, editable }) {
   const { enviando, enviar } = useEnvio();
   const { titulo } = AJUSTES[ajuste.tipo];
 
@@ -103,7 +107,7 @@ function FilaAjuste({ ajuste, mes, alActualizar }) {
       <th scope="row">
         {titulo}
         {ajuste.descripcion && <small> · {ajuste.descripcion}</small>}
-        {!mes.cerrado && (
+        {editable && (
           <button
             type="button"
             className="boton-quitar"
