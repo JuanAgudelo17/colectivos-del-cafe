@@ -9,11 +9,12 @@ import dashboard from './dashboard/index.js';
 import miBuseta from './mi-buseta/index.js';
 import miProducido from './mi-producido/index.js';
 import producido from './producido/index.js';
+import rentabilidad from './rentabilidad/index.js';
 
 // Menú lateral de cada rol, agrupado por secciones.
 export const menuAdmin = [
   { grupo: 'General', modulos: [dashboard] },
-  { grupo: 'Contabilidad', modulos: [producido] },
+  { grupo: 'Contabilidad', modulos: [producido, rentabilidad] },
   { grupo: 'Flota', modulos: [busetas, conductores] },
   {
     grupo: 'Próximamente',

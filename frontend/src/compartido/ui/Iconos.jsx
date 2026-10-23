@@ -40,6 +40,13 @@ const TRAZOS = {
       <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
     </>
   ),
+  grafica: (
+    <>
+      <path d="M3 20h18" />
+      <path d="M4 16l5-5 4 3 7-8" />
+      <path d="M15 6h5v5" />
+    </>
+  ),
   documento: (
     <>
       <path d="M7 3h7l5 5v13H7z" />

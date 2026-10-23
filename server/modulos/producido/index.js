@@ -3,6 +3,7 @@
 import router from './rutas.js';
 
 export { calcularResumen } from './calculo.js';
+export { datosDelAnio, parametrosDelMes, primerAnio, rangoDelMes } from './repositorio.js';
 
 export default {
   ruta: '/producido',

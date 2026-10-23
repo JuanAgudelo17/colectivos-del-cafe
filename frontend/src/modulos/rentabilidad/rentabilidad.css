@@ -1,0 +1,355 @@
+.rentabilidad-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.rentabilidad-filtros label {
+  min-width: 200px;
+}
+
+.rentabilidad-buseta {
+  margin: 0 0 16px;
+  color: var(--pizarra);
+}
+
+.rentabilidad-buseta strong {
+  color: var(--negro);
+}
+
+/* ---- Indicadores del año ---- */
+.rentabilidad-indicadores {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--separacion);
+  margin-bottom: 24px;
+}
+
+.rentabilidad-indicador {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--niebla);
+  border-radius: var(--radio);
+  padding: 20px;
+}
+
+.rentabilidad-indicador span,
+.rentabilidad-indicador small {
+  font-size: var(--texto-sm);
+  color: var(--pizarra);
+}
+
+.rentabilidad-indicador strong {
+  font-size: var(--titulo-sm);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* La utilidad es la cifra principal: barra negra, como el total neto */
+.rentabilidad-principal {
+  background: var(--negro);
+  color: var(--blanco);
+}
+
+.rentabilidad-principal span,
+.rentabilidad-principal small {
+  color: var(--ceniza);
+}
+
+.rentabilidad-aviso {
+  margin-bottom: 40px;
+}
+
+.rentabilidad-ayuda {
+  margin: -8px 0 16px;
+  font-size: var(--texto-sm);
+  color: var(--pizarra);
+}
+
+.rentabilidad-columnas {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 48px;
+  align-items: start;
+}
+
+.rentabilidad-columnas section {
+  min-width: 0;
+}
+
+.rentabilidad-comparar {
+  margin-top: var(--separacion-seccion);
+}
+
+/* ---- Gráfica de barras por mes ---- */
+.grafica {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.grafica-escala {
+  position: relative;
+  width: 92px;
+  height: 220px;
+  font-size: var(--texto-caption);
+  color: var(--hierro);
+  font-variant-numeric: tabular-nums;
+}
+
+.grafica-escala span {
+  position: absolute;
+  right: 0;
+  transform: translateY(-50%);
+  white-space: nowrap;
+}
+
+.grafica-area {
+  position: relative;
+  height: 220px;
+  display: grid;
+  grid-template-columns: repeat(var(--columnas), minmax(0, 1fr));
+  border-top: 1px dashed var(--linea);
+  border-bottom: 1px dashed var(--linea);
+  /* Espacio para los nombres de los meses debajo */
+  margin-bottom: 28px;
+}
+
+.grafica-cero {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px solid var(--negro);
+}
+
+.grafica-columna {
+  position: relative;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+}
+
+.grafica-columna:hover,
+.grafica-activa {
+  background: var(--niebla);
+}
+
+.grafica-columna:focus-visible {
+  outline: 2px solid var(--negro);
+  outline-offset: -2px;
+}
+
+.grafica-barra {
+  position: absolute;
+  left: 50%;
+  width: min(60%, 40px);
+  min-height: 2px;
+  transform: translateX(-50%);
+  background: var(--negro);
+  border-radius: 4px 4px 0 0;
+}
+
+/* Pérdida: rayada y hacia abajo (no depende del color) */
+.grafica-perdida {
+  background: repeating-linear-gradient(135deg, var(--negro) 0 2px, var(--blanco) 2px 6px);
+  border: 2px solid var(--negro);
+  border-radius: 0 0 4px 4px;
+}
+
+/* Mes en curso: más claro, porque todavía le faltan días */
+.grafica-en-curso:not(.grafica-perdida) {
+  background: var(--hierro);
+}
+
+.grafica-mes {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  font-size: var(--texto-caption);
+  color: var(--carbon);
+  text-align: center;
+}
+
+.grafica-sin-datos {
+  color: var(--ceniza);
+}
+
+.grafica-detalle {
+  position: absolute;
+  top: 8px;
+  z-index: 2;
+  min-width: 190px;
+  background: var(--blanco);
+  border: 1px solid var(--negro);
+  border-radius: var(--radio);
+  padding: 12px 14px;
+  font-size: var(--texto-sm);
+  pointer-events: none;
+}
+
+.grafica-detalle strong {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.grafica-detalle dl {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+}
+
+.grafica-detalle dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.grafica-detalle dt {
+  color: var(--pizarra);
+}
+
+.grafica-detalle dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.grafica-detalle p {
+  margin: 0;
+  color: var(--pizarra);
+}
+
+/* ---- Tablas ---- */
+.rentabilidad-tabla th.numero,
+.rentabilidad-tabla td.numero {
+  text-align: right;
+}
+
+
+.rentabilidad-mes .etiqueta {
+  margin-left: 8px;
+}
+
+.rentabilidad-total td {
+  font-weight: 600;
+  border-top: 1px solid var(--negro);
+}
+
+.rentabilidad-elegir {
+  padding: 0;
+  color: inherit;
+  text-align: left;
+}
+
+.rentabilidad-conductor {
+  display: block;
+  color: var(--pizarra);
+}
+
+.rentabilidad-sin-datos {
+  color: var(--pizarra);
+}
+
+/* ---- En qué se va la plata ---- */
+.desglose {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.desglose li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px 12px;
+  font-size: var(--texto-sm);
+}
+
+.desglose-valor {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.desglose-valor small {
+  display: inline-block;
+  min-width: 52px;
+  text-align: right;
+  color: var(--pizarra);
+}
+
+.desglose-pista {
+  grid-column: 1 / -1;
+  height: 8px;
+  background: var(--niebla-oscura);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.desglose-pista span {
+  display: block;
+  height: 100%;
+  background: var(--carbon);
+  border-radius: 4px;
+}
+
+.desglose-utilidad {
+  padding-top: 14px;
+  border-top: 1px solid var(--negro);
+  font-weight: 600;
+}
+
+.desglose-utilidad .desglose-pista span {
+  background: var(--negro);
+}
+
+@media (max-width: 1100px) {
+  .rentabilidad-columnas {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .rentabilidad-indicadores {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .rentabilidad-indicador {
+    padding: 16px;
+  }
+
+  .rentabilidad-principal {
+    grid-column: 1 / -1;
+  }
+
+  .rentabilidad-principal strong {
+    font-size: var(--titulo);
+  }
+
+  .rentabilidad-indicador:not(.rentabilidad-principal) strong {
+    font-size: var(--texto-sub);
+  }
+
+  .rentabilidad-tabla td.numero {
+    text-align: left;
+  }
+
+  .grafica-escala {
+    width: 64px;
+  }
+
+  .grafica-mes {
+    font-size: 10px;
+  }
+}
