@@ -1,5 +1,6 @@
 // Registro de módulos del frontend. Cada módulo vive en su carpeta y exporta
-// en su index.js: { id, titulo, icono, ruta, Pagina }.
+// en su index.js: { id, titulo, icono, ruta, Pagina, subrutas? }.
+// `subrutas: [{ ruta: ':id', Pagina }]` agrega páginas internas (ej. /admin/busetas/3).
 // Para agregar uno: crea la carpeta, su index.js y súmalo al grupo del menú de su rol.
 // Los que todavía no existen se listan con `fase` y salen deshabilitados en el menú.
 import busetas from './busetas/index.js';

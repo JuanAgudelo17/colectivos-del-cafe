@@ -16,6 +16,7 @@ Así dos personas pueden trabajar al mismo tiempo sin pisarse: cada quien toca s
 | Mi buseta (panel del conductor) | `mi-buseta/` | `mi-buseta/` | conductor | ✅ |
 | Producido diario (admin) | `producido/` | `producido/` | admin | ✅ |
 | Mi producido | `producido/` (`GET /mio`) | `mi-producido/` | conductor | ✅ |
+| Mantenimiento y kilometraje (hoja de vida) | `mantenimiento/` | `mantenimiento/` (sin menú: lo usan `mi-buseta` y `busetas/:id`) | ambos | ✅ |
 | Facturas con foto | por crear | por crear | ambos | Fase 2 |
 | Cierre mensual | por crear | por crear | admin | Fase 3 |
 
@@ -136,6 +137,7 @@ Si `main` cambió mientras trabajabas: `git pull origin main` en tu rama y resue
   `.github/`, migraciones (`db/`) o `server/scripts/`. La regla está en `netlify/ignorar-build.sh`.
 - Las migraciones (`db/migrations/`) no se aplican al desplegar: se corren con `npm run migrar`
   **antes** de publicar el código que las necesita.
+- Los buckets privados de Storage (`busetas`, `facturas`) se crean una vez con `npm run crear-buckets`.
 
 ## Preparar el entorno (compañero nuevo)
 

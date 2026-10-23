@@ -1,0 +1,104 @@
+/* Foto de la buseta: llena su marco, recortada al centro */
+.foto-buseta {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.enlace-volver {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-bottom: 8px;
+  color: var(--negro);
+  font-size: var(--texto-sm);
+  font-weight: 500;
+  text-underline-offset: 3px;
+}
+
+/* Hoja de vida: datos a la izquierda, foto a la derecha */
+.hoja-tarjeta {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 360px);
+  gap: 24px;
+  background: var(--niebla);
+  border-radius: var(--radio);
+  padding: var(--relleno-tarjeta);
+}
+
+.hoja-datos dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 8px 24px;
+  margin: 8px 0 0;
+}
+
+.hoja-datos dt {
+  color: var(--pizarra);
+  font-size: var(--texto-sm);
+}
+
+.hoja-datos dd {
+  margin: 0;
+  font-weight: 500;
+}
+
+.hoja-foto {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hoja-foto-marco {
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radio);
+  overflow: hidden;
+  background: var(--niebla-oscura);
+}
+
+.hoja-foto-marco .ilustracion {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.subir-foto {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+
+.subir-foto .error {
+  flex-basis: 100%;
+}
+
+.hoja-documentos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  gap: var(--separacion);
+}
+
+.hoja-documento {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.hoja-documento-titulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+@media (max-width: 640px) {
+  .hoja-tarjeta {
+    grid-template-columns: 1fr;
+  }
+
+  .hoja-foto {
+    order: -1;
+  }
+}

@@ -22,7 +22,7 @@ Ciclo mensual: se registra día a día durante el mes y se cierra el consolidado
 - **Frontend:** React + Vite, responsive (los conductores usan celular). UI en español.
 - **Backend:** Node.js + Express, desplegado como **Netlify Functions** con `serverless-http`.
 - **Base de datos:** PostgreSQL en **Supabase** (plan gratis). Conectar con la cadena del **pooler en modo transacción**, no la directa.
-- **Archivos:** Supabase Storage, bucket **privado** `facturas`. Mostrar imágenes solo con URLs firmadas.
+- **Archivos:** Supabase Storage, buckets **privados** `busetas` (fotos) y `facturas` (se crean con `npm run crear-buckets`). Mostrar imágenes solo con URLs firmadas (el backend redirige a una firmada de 10 min). Acceso por `server/compartido/almacen.js` (`req.app.locals.almacen`; en pruebas, `crearAlmacenMemoria()`).
 - **Hosting:** Netlify (plan gratis por créditos: 300/mes, ~15 por despliegue a producción; si se acaban se pausa el sitio). Producción se despliega desde la rama `produccion`, que solo avanza con el workflow manual "Publicar a producción", que exige la aprobación de JuanAgudelo17 (ambiente `produccion` de GitHub). `main` = ambiente de pruebas gratis (main--el-producido.netlify.app). Netlify salta el build si no cambió la app (`netlify/ignorar-build.sh`).
 - **Respaldos:** GitHub Action semanal con `pg_dump` + consulta diaria para que Supabase no pause el proyecto.
 
@@ -59,8 +59,11 @@ Dinero en pesos colombianos: usar `BIGINT` (pesos enteros) o `NUMERIC(14,2)`. **
 
 - **usuario**: id, usuario (único sin distinguir mayúsculas, para login), nombre, cedula, telefono, password_hash, rol (`admin` | `conductor`), buseta_id (FK única, nullable; solo conductores), activo, debe_cambiar_password, password_temporal_hasta, sesion_version, creado_en
 - **solicitud_recuperacion**: usuario_id, ip, creado_en, atendida_en, atendida_por — a lo sumo una pendiente por usuario
-- **buseta**: id, numero_interno (único), placa (única, mayúsculas), modelo, tiene_cupo (bool), valor_arriendo (obligatorio si no tiene cupo), activo
-- **documento_buseta**: id, buseta_id (único), fecha_soat, fecha_tecnomecanica
+- **buseta**: id, numero_interno (único), placa (única, mayúsculas), modelo, tiene_cupo (bool), valor_arriendo (obligatorio si no tiene cupo), activo, foto_path (bucket `busetas`; solo la sube el admin)
+- **documento_buseta**: id, buseta_id (único), fecha_soat, fecha_tecnomecanica, fecha_tarjeta_operacion, fecha_poliza_rcc, fecha_poliza_rce, fecha_extintor (vencimiento de la recarga)
+- **tipo_mantenimiento**: clave, nombre, intervalo_km, intervalo_meses, orden, activo — como `ruta`: solo para *proponer* el próximo cambio (editable por el admin). Valores iniciales por confirmar con el mecánico.
+- **lectura_kilometraje**: buseta_id, fecha, kilometraje, registrado_por — único (buseta_id, fecha). El odómetro nunca retrocede (se valida contra lecturas y mantenimientos).
+- **mantenimiento**: buseta_id, tipo, fecha, kilometraje, proximo_km, proxima_fecha, observacion, registrado_por, creado_en — historial; el "último" de cada tipo es el más reciente. Estado: vencido / pronto (≤ 500 km o ≤ 15 días) / al día, por km o fecha, lo que llegue primero.
 - **producido_diario**: id, buseta_id, conductor_id, fecha, ingreso (= producido, valor de las planillas del día), peajes, salidas, acpm, mantenimiento, otros, relevo (bool), observacion, creado_por, creado_en — único (buseta_id, fecha). Un día en cero se borra.
 - **ruta**: nombre, peaje_trayecto, salida_ida, salida_regreso, activo — tarifas para *proponer* peajes y salidas según las vueltas (vuelta = 2 peajes + salida ida + salida regreso). Pereira–Cartago: 21.200 / 7.100 / 0. Pereira–Manizales: 23.500 / 14.100 / 17.100. Lo guardado en producido_diario son los valores finales (editables).
 - **ajuste_mensual**: buseta_id, anio, mes, tipo (`bono` | `prestamo`), descripcion, valor — varios por mes; restan del neto.
@@ -101,7 +104,8 @@ neto         = bruto − costos
 - Validar sesión y rol en cada endpoint del backend (`autenticar` + `requiereRol`); no confiar en el frontend.
 - Un conductor solo accede a registros donde `conductor_id` o `buseta_id` sean los suyos (usar `alcance(req.usuario)`).
 - No se crea, edita ni borra producido/facturas de un mes con `cierre_mensual.estado = 'cerrado'`.
-- Las fechas de SOAT y tecnomecánica las edita solo el admin; el conductor solo las consulta.
+- Las fechas de los documentos (SOAT, tecnomecánica, tarjeta de operación, pólizas, extintor) las edita solo el admin; el conductor solo las consulta.
+- Kilometraje y mantenimientos: el conductor los registra en su buseta y puede corregir o borrar **lo suyo durante 7 días**; el admin ve y corrige todo. Los mantenimientos no alimentan el cierre (el costo sigue saliendo de la cuadrícula del producido).
 - Mostrar alerta visual si un documento vence en ≤ 30 días o ya venció.
 - Factura mínima: fecha, descripción, precio. Foto opcional.
 - Fechas y "mes actual" en zona horaria `America/Bogota`.

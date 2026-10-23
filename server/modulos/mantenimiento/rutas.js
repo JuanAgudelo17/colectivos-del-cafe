@@ -117,7 +117,7 @@ async function verificarKilometraje(db, busetaId, fecha, kilometraje, excluir) {
   } else if (minDespues !== null && kilometraje > minDespues) {
     mensaje = `No puede ser mayor que el de un registro posterior (${kms.format(minDespues)} km)`;
   }
-  if (mensaje) throw new ErrorHttp(400, mensaje, { kilometraje: mensaje });
+  if (mensaje) throw new ErrorHttp(400, 'Revisa el kilometraje', { kilometraje: mensaje });
 }
 
 async function verificarTipos(db, claves, { permitirInactivo = null } = {}) {
@@ -125,7 +125,7 @@ async function verificarTipos(db, claves, { permitirInactivo = null } = {}) {
   for (const clave of claves) {
     const tipo = tipos.get(clave);
     if (!tipo || (!tipo.activo && clave !== permitirInactivo)) {
-      throw new ErrorHttp(400, 'Tipo de mantenimiento inválido', { tipo: 'Tipo de mantenimiento inválido' });
+      throw new ErrorHttp(400, 'Revisa los datos del formulario', { tipo: 'Tipo de mantenimiento inválido' });
     }
   }
 }

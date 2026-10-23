@@ -1,10 +1,13 @@
 import { useState } from 'react';
+import { Link } from 'react-router';
 import { Dialogo } from '../../compartido/ui/Dialogo.jsx';
 import { EstadoDocumento } from '../../compartido/ui/EstadoDocumento.jsx';
 import { Pestanas } from '../../compartido/ui/Pestanas.jsx';
+import { DOCUMENTOS } from '../../compartido/utilidades/documentos.js';
 import { pesos } from '../../compartido/utilidades/formato.js';
 import { FILTROS_ACTIVO, opcionesActivo } from '../../compartido/utilidades/filtros.js';
 import { useDatos } from '../../compartido/utilidades/useDatos.js';
+import { IntervalosMantenimiento } from '../mantenimiento/index.js';
 import { FormularioBuseta } from './FormularioBuseta.jsx';
 
 const NUEVA = {
@@ -22,6 +25,7 @@ export function PaginaBusetas() {
   const { datos, error, cargando, recargar } = useDatos('/busetas');
   const [editando, setEditando] = useState(null);
   const [filtro, setFiltro] = useState('activos');
+  const [verIntervalos, setVerIntervalos] = useState(false);
   const busetas = datos?.busetas.filter(FILTROS_ACTIVO[filtro]);
 
   return (
@@ -29,11 +33,16 @@ export function PaginaBusetas() {
       <div className="titulo-pagina">
         <div>
           <h1>Busetas</h1>
-          <p className="subtitulo">Flota, cupo o arriendo y vencimiento de documentos.</p>
+          <p className="subtitulo">Flota, documentos y hoja de vida de cada buseta.</p>
         </div>
-        <button type="button" className="boton-principal accion-fija" onClick={() => setEditando(NUEVA)}>
-          + Nueva buseta
-        </button>
+        <div className="acciones">
+          <button type="button" className="boton-secundario-oscuro" onClick={() => setVerIntervalos(true)}>
+            Intervalos de mantenimiento
+          </button>
+          <button type="button" className="boton-principal accion-fija" onClick={() => setEditando(NUEVA)}>
+            + Nueva buseta
+          </button>
+        </div>
       </div>
 
       <Pestanas
@@ -66,11 +75,15 @@ export function PaginaBusetas() {
               <p className="detalle">Conductor: {b.conductor?.nombre ?? 'sin asignar'}</p>
               {!b.tieneCupo && <p className="detalle">Arriendo mensual: {pesos(b.valorArriendo)}</p>}
               <div className="documentos">
-                <EstadoDocumento nombre="SOAT" documento={b.documentos.soat} />
-                <EstadoDocumento nombre="Tecnomecánica" documento={b.documentos.tecnomecanica} />
+                {DOCUMENTOS.map(({ clave, nombre }) => (
+                  <EstadoDocumento key={clave} nombre={nombre} documento={b.documentos[clave]} compacto />
+                ))}
               </div>
             </div>
             <div className="item-acciones">
+              <Link to={String(b.id)} className="boton-principal">
+                Hoja de vida
+              </Link>
               <button type="button" className="boton-secundario-oscuro" onClick={() => setEditando(b)}>
                 Editar
               </button>
@@ -91,6 +104,10 @@ export function PaginaBusetas() {
             recargar();
           }}
         />
+      </Dialogo>
+
+      <Dialogo abierto={verIntervalos} titulo="Intervalos de mantenimiento" alCerrar={() => setVerIntervalos(false)}>
+        <IntervalosMantenimiento />
       </Dialogo>
     </>
   );

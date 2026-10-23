@@ -27,6 +27,11 @@ export function numero(valor) {
   return valor == null || valor === '' ? '' : formatoNumero.format(valor);
 }
 
+// 121500 → "121.500 km"
+export function kilometros(valor) {
+  return valor == null ? '—' : `${formatoNumero.format(valor)} km`;
+}
+
 // Hoy en Bogotá como 'YYYY-MM-DD'.
 export function hoyBogota() {
   return new Intl.DateTimeFormat('sv-SE', { timeZone: 'America/Bogota' }).format(new Date());

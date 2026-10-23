@@ -3,25 +3,21 @@ import { useSesion } from '../../compartido/sesion/contexto.js';
 import { EstadoDocumento } from '../../compartido/ui/EstadoDocumento.jsx';
 import { Icono } from '../../compartido/ui/Iconos.jsx';
 import { IlustracionBuseta } from '../../compartido/ui/Ilustraciones.jsx';
+import { DOCUMENTOS, requiereAtencion } from '../../compartido/utilidades/documentos.js';
 import { fecha, fechaLargaHoy, textoDocumento } from '../../compartido/utilidades/formato.js';
 import { useDatos } from '../../compartido/utilidades/useDatos.js';
+import { FotoBuseta } from '../busetas/index.js';
+import { PanelMantenimiento } from '../mantenimiento/index.js';
 import './mi-buseta.css';
 
-const DOCUMENTOS = [
-  ['soat', 'SOAT'],
-  ['tecnomecanica', 'Tecnomecánica'],
-];
-
-// Panel del conductor: su buseta, el estado de sus documentos y lo que viene.
+// Panel del conductor: su buseta, sus documentos, el kilometraje y los mantenimientos.
 export function MiBuseta() {
   const { usuario } = useSesion();
   const { datos, error, cargando } = useDatos('/mi-buseta');
   const buseta = datos?.buseta;
   const primerNombre = usuario.nombre.split(' ')[0];
 
-  const alertas = buseta
-    ? DOCUMENTOS.filter(([clave]) => ['vencido', 'por_vencer'].includes(buseta.documentos[clave].estado))
-    : [];
+  const alertas = buseta ? DOCUMENTOS.filter(({ clave }) => requiereAtencion(buseta.documentos[clave])) : [];
 
   return (
     <>
@@ -41,8 +37,8 @@ export function MiBuseta() {
           <div className="mi-buseta-datos">
             <h2>Aún no tienes buseta asignada</h2>
             <p className="detalle">
-              Cuando el administrador te asigne una, aquí vas a ver su información y el estado del SOAT y la
-              tecnomecánica.
+              Cuando el administrador te asigne una, aquí vas a ver su información, sus documentos y llevar al día
+              el kilometraje y los mantenimientos.
             </p>
           </div>
           <div className="mi-buseta-ilustracion">
@@ -55,7 +51,7 @@ export function MiBuseta() {
         <>
           {alertas.length > 0 && (
             <div className="aviso mi-buseta-alerta" role="alert">
-              {alertas.map(([clave, nombre]) => (
+              {alertas.map(({ clave, nombre }) => (
                 <p key={clave}>
                   <strong>{nombre}:</strong> {textoDocumento(buseta.documentos[clave]).toLowerCase()}.
                 </p>
@@ -77,14 +73,14 @@ export function MiBuseta() {
               <p className="detalle">{buseta.modelo ?? 'Modelo sin registrar'}</p>
             </div>
             <div className="mi-buseta-ilustracion">
-              <IlustracionBuseta />
+              <FotoBuseta src="/mi-buseta/foto" foto={buseta.foto} alt={`Tu buseta ${buseta.placa}`} />
             </div>
           </section>
 
           <section className="seccion">
             <h2>Documentos</h2>
-            <div className="mi-buseta-documentos">
-              {DOCUMENTOS.map(([clave, nombre]) => {
+            <div className="mi-buseta-documentos mi-buseta-documentos-vencen">
+              {DOCUMENTOS.map(({ clave, nombre }) => {
                 const documento = buseta.documentos[clave];
                 return (
                   <article key={clave} className="tarjeta mi-buseta-documento">
@@ -102,6 +98,8 @@ export function MiBuseta() {
             </div>
             <p className="ayuda">Las fechas las actualiza el administrador. Si ves algo mal, avísale.</p>
           </section>
+
+          <PanelMantenimiento busetaId={buseta.id} accionFija />
         </>
       )}
 
