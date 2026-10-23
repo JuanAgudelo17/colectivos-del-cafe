@@ -14,6 +14,8 @@ export const diaEsquema = z.object({
   peajes: pesosDia,
   salidas: pesosDia,
   acpm: pesosDia,
+  // ACPM a crédito en la bomba La Guaca (lo paga el dueño, no el conductor).
+  acpmCredito: pesosDia,
   mantenimiento: pesosDia,
   relevo: z.boolean().default(false),
   observacion: textoOpcional(300),
@@ -22,7 +24,7 @@ export const diaEsquema = z.object({
 export const ajusteEsquema = z.object({
   anio: z.coerce.number().int().min(2020).max(2100),
   mes: z.coerce.number().int().min(1).max(12),
-  tipo: z.enum(['bono', 'prestamo'], { message: 'Tipo inválido' }),
+  tipo: z.enum(['bono', 'prestamo', 'mantenimiento'], { message: 'Tipo inválido' }),
   descripcion: textoOpcional(200),
   valor: pesos.refine((v) => v > 0, 'El valor debe ser mayor que cero'),
 });
