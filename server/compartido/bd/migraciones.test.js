@@ -51,6 +51,7 @@ test('carga los parámetros semilla', async () => {
     { clave: 'porcentaje_empresa', valor: 0.2 },
     { clave: 'porcentaje_reposicion', valor: 0.01 },
     { clave: 'sueldo_conductor', valor: 3066000 },
+    { clave: 'valor_relevo', valor: 132000 },
   ]);
 });
 

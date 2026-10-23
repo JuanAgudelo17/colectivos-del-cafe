@@ -6,6 +6,7 @@ import auth from './auth/index.js';
 import busetas from './busetas/index.js';
 import conductores from './conductores/index.js';
 import miBuseta from './mi-buseta/index.js';
+import producido from './producido/index.js';
 import salud from './salud/index.js';
 
-export const modulos = [salud, auth, busetas, conductores, miBuseta];
+export const modulos = [salud, auth, busetas, conductores, miBuseta, producido];
