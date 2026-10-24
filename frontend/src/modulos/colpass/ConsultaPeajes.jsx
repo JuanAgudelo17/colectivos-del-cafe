@@ -4,14 +4,15 @@ import { fecha, hoyBogota, numero, pesos } from '../../compartido/utilidades/for
 // Peajes de una fecha a otra (salen de la columna Peajes del producido):
 // total del rango, cuánto ya se liquidó y cuánto falta, y el día a día.
 // La usan el admin y el conductor. `rango` / `alCambiarRango`: { desde, hasta }.
-export function ConsultaPeajes({ detalle, rango, alCambiarRango, campos = {} }) {
+// `nivel`: etiqueta del título (h3 cuando va dentro del apartado de Producido).
+export function ConsultaPeajes({ detalle, rango, alCambiarRango, campos = {}, nivel: Titulo = 'h2' }) {
   const { consulta, colpass } = detalle;
   const hoy = hoyBogota();
   const estado = (d) => (d.liquidado ? 'Liquidado' : d.fecha < colpass.desde ? 'Antes del Colpass' : 'Por liquidar');
 
   return (
     <section className="colpass-consulta" aria-labelledby="titulo-consulta">
-      <h2 id="titulo-consulta">Peajes de una fecha a otra</h2>
+      <Titulo id="titulo-consulta">Peajes de una fecha a otra</Titulo>
       <div className="colpass-rango">
         <CampoTexto
           etiqueta="Desde"
