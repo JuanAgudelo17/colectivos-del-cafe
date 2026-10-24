@@ -12,13 +12,12 @@ const GRAVEDAD = { vencido: 0, pronto: 1, sin_registro: 2, al_dia: 3 };
 
 // Panel general del admin: indicadores de la flota y lo que requiere atención
 // (documentos por vencer y mantenimientos vencidos o próximos).
+// Todo llega en una sola petición (GET /dashboard): es más rápido en Netlify.
 export function Dashboard() {
-  const busetasDatos = useDatos('/busetas');
-  const conductoresDatos = useDatos('/conductores');
-  const mantenimientoDatos = useDatos('/mantenimiento');
-  const busetas = busetasDatos.datos?.busetas.filter((b) => b.activo);
-  const conductores = conductoresDatos.datos?.conductores.filter((c) => c.activo);
-  const mantenimientoDe = new Map(mantenimientoDatos.datos?.busetas.map((m) => [m.id, m]));
+  const { datos, error, recargar } = useDatos('/dashboard');
+  const busetas = datos?.busetas.filter((b) => b.activo);
+  const conductores = datos?.conductores.filter((c) => c.activo);
+  const mantenimientoDe = new Map(datos?.mantenimiento.map((m) => [m.id, m]));
 
   const alertas = (busetas ?? [])
     .flatMap((b) =>
@@ -28,11 +27,11 @@ export function Dashboard() {
     )
     .sort((a, b) => a.documento.dias - b.documento.dias);
 
-  const alertasMantenimiento = (mantenimientoDatos.datos?.busetas ?? [])
+  const alertasMantenimiento = (datos?.mantenimiento ?? [])
     .flatMap((m) => m.estados.filter(mantenimientoRequiereAtencion).map((estado) => ({ buseta: m, estado })))
     .sort((a, b) => GRAVEDAD[a.estado.estado] - GRAVEDAD[b.estado.estado]);
   const mantenimientosVencidos =
-    mantenimientoDatos.datos && alertasMantenimiento.filter((a) => a.estado.estado === 'vencido').length;
+    datos && alertasMantenimiento.filter((a) => a.estado.estado === 'vencido').length;
 
   // El estado más grave de los mantenimientos de una buseta (para la tabla de la flota).
   const peorMantenimiento = (id) =>
@@ -41,7 +40,6 @@ export function Dashboard() {
   const vencidos = busetas && alertas.filter((a) => a.documento.estado === 'vencido').length;
   const porVencer = busetas && alertas.length - vencidos;
   const sinConductor = busetas?.filter((b) => !b.conductor).length;
-  const error = busetasDatos.error ?? conductoresDatos.error ?? mantenimientoDatos.error;
 
   const estadoDe = (n, siHay) => (n === undefined ? undefined : n > 0 ? siHay : 'bien');
 
@@ -56,7 +54,7 @@ export function Dashboard() {
 
       {error && <p className="error">{error}</p>}
 
-      <SolicitudesRecuperacion />
+      <SolicitudesRecuperacion solicitudes={datos?.solicitudes ?? []} alAtender={recargar} />
 
       <section className="indicadores" aria-label="Indicadores">
         <Indicador
@@ -114,7 +112,7 @@ export function Dashboard() {
           )}
 
           <h2 className="dashboard-subtitulo">Mantenimiento que requiere atención</h2>
-          {mantenimientoDatos.datos && alertasMantenimiento.length === 0 && (
+          {datos && alertasMantenimiento.length === 0 && (
             <p className="dashboard-vacio">✓ No hay mantenimientos vencidos ni próximos.</p>
           )}
           {alertasMantenimiento.length > 0 && (

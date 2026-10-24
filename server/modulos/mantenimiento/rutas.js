@@ -2,8 +2,9 @@ import { Router } from 'express';
 import { ErrorHttp, noEncontrado } from '../../compartido/http/errores.js';
 import { idDeRuta, validar } from '../../compartido/http/validacion.js';
 import { alcance, autenticar, requiereRol } from '../../compartido/seguridad/middleware.js';
-import { listarBusetas, obtenerBuseta } from '../busetas/index.js';
+import { obtenerBuseta } from '../busetas/index.js';
 import { DIAS_EDICION, armarEstados, puedeEditar } from './estado.js';
+import { estadoDeLaFlota } from './flota.js';
 import { lecturaEsquema, registroCrear, registroEditar, tipoEditar } from './esquemas.js';
 import {
   actualizarRegistro,
@@ -43,32 +44,7 @@ router.put('/tipos/:clave', requiereRol('admin'), async (req, res) => {
 
 // ---- Admin: estado de toda la flota (para el panel general) -------------------
 router.get('/', requiereRol('admin'), async (req, res) => {
-  const db = req.app.locals.db;
-  const [busetas, tipos, kilometrajes, ultimos] = await Promise.all([
-    listarBusetas(db),
-    listarTipos(db),
-    kilometrajesActuales(db),
-    ultimosPorTipo(db),
-  ]);
-
-  res.json({
-    busetas: busetas
-      .filter((b) => b.activo)
-      .map((b) => {
-        const kilometraje = kilometrajes.find((k) => k.busetaId === b.id) ?? null;
-        return {
-          id: b.id,
-          numeroInterno: b.numeroInterno,
-          placa: b.placa,
-          kilometraje: kilometraje && { actual: kilometraje.actual, fecha: kilometraje.fecha },
-          estados: armarEstados(
-            tipos,
-            ultimos.filter((u) => u.busetaId === b.id),
-            kilometraje?.actual ?? null,
-          ),
-        };
-      }),
-  });
+  res.json({ busetas: await estadoDeLaFlota(req.app.locals.db) });
 });
 
 // ---- Hoja de mantenimiento de una buseta --------------------------------------

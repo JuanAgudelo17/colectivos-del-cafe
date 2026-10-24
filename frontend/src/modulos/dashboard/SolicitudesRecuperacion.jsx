@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { api } from '../../compartido/api.js';
 import { Dialogo } from '../../compartido/ui/Dialogo.jsx';
 import { PasswordUnaVez } from '../../compartido/ui/PasswordUnaVez.jsx';
-import { useDatos } from '../../compartido/utilidades/useDatos.js';
 import { useEnvio } from '../../compartido/utilidades/useEnvio.js';
 
 const formatoHora = new Intl.DateTimeFormat('es-CO', {
@@ -12,17 +11,16 @@ const formatoHora = new Intl.DateTimeFormat('es-CO', {
 });
 
 // Conductores que pidieron "olvidé mi contraseña". Solo aparece si hay pendientes.
-export function SolicitudesRecuperacion() {
-  const { datos, recargar } = useDatos('/auth/solicitudes');
+// Las solicitudes llegan con el panel; alAtender lo recarga.
+export function SolicitudesRecuperacion({ solicitudes, alAtender }) {
   const [credenciales, setCredenciales] = useState(null);
   const { enviando, error, enviar } = useEnvio();
-  const solicitudes = datos?.solicitudes ?? [];
 
   async function generar(s) {
     const r = await enviar(() => api(`/conductores/${s.usuarioId}/restablecer-password`, { method: 'POST' }));
     if (r) {
       setCredenciales({ usuario: s.usuario, password: r.password });
-      recargar();
+      alAtender();
     }
   }
 
