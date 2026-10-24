@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router';
 import { api } from '../../compartido/api.js';
 import { PantallaAcceso } from '../../compartido/layout/PantallaAcceso.jsx';
 import { rutaInicio, useSesion } from '../../compartido/sesion/contexto.js';
-import { CampoTexto } from '../../compartido/ui/Campos.jsx';
+import { CampoPassword } from '../../compartido/ui/Campos.jsx';
 import { IlustracionLlave } from '../../compartido/ui/Ilustraciones.jsx';
 import { useEnvio } from '../../compartido/utilidades/useEnvio.js';
 import './cuenta.css';
@@ -21,7 +21,6 @@ export function CambiarPassword() {
   const { usuario, actualizarUsuario } = useSesion();
   const navegar = useNavigate();
   const [datos, setDatos] = useState({ actual: '', nueva: '', confirmar: '' });
-  const [ver, setVer] = useState(false);
   const { enviando, error, campos, enviar } = useEnvio();
   const obligatorio = usuario.debeCambiarPassword;
   const cambiar = (campo) => (valor) => setDatos((d) => ({ ...d, [campo]: valor }));
@@ -46,9 +45,9 @@ export function CambiarPassword() {
       <h1>{obligatorio ? 'Crea tu contraseña' : 'Cambiar contraseña'}</h1>
       <p className="subtitulo">
         {obligatorio
-            ? `Hola, ${usuario.nombre.split(' ')[0]}. Entraste con una contraseña temporal; crea una propia que solo tú conozcas.`
-            : 'Al cambiarla se cierran tus sesiones abiertas en otros dispositivos.'}
-        </p>
+          ? `Hola, ${usuario.nombre.split(' ')[0]}. Entraste con una contraseña temporal; crea una propia que solo tú conozcas.`
+          : 'Al cambiarla se cierran tus sesiones abiertas en otros dispositivos.'}
+      </p>
 
       {error && (
         <p className="error" role="alert">
@@ -57,18 +56,16 @@ export function CambiarPassword() {
       )}
 
       <form onSubmit={guardar} noValidate>
-        <CampoTexto
+        <CampoPassword
           etiqueta={obligatorio ? 'Contraseña temporal' : 'Contraseña actual'}
-          type={ver ? 'text' : 'password'}
           autoComplete="current-password"
           valor={datos.actual}
           alCambiar={cambiar('actual')}
           error={campos.actual}
           required
         />
-        <CampoTexto
+        <CampoPassword
           etiqueta="Contraseña nueva"
-          type={ver ? 'text' : 'password'}
           autoComplete="new-password"
           valor={datos.nueva}
           alCambiar={cambiar('nueva')}
@@ -82,26 +79,27 @@ export function CambiarPassword() {
             </li>
           ))}
         </ul>
-        <CampoTexto
+        <CampoPassword
           etiqueta="Repite la contraseña nueva"
-          type={ver ? 'text' : 'password'}
           autoComplete="new-password"
           valor={datos.confirmar}
           alCambiar={cambiar('confirmar')}
           error={noCoinciden ? 'No coincide con la nueva' : undefined}
           required
         />
-        <label className="interruptor">
-          <input type="checkbox" checked={ver} onChange={(e) => setVer(e.target.checked)} />
-          <span>Mostrar contraseñas</span>
-        </label>
 
         <button
           type="submit"
           className="boton-principal"
           disabled={enviando || !cumpleReglas || noCoinciden || !datos.actual || !datos.confirmar}
         >
-          {enviando ? 'Guardando…' : 'Guardar contraseña'}
+          {enviando ? (
+            <>
+              <span className="girando" aria-hidden="true" /> Guardando…
+            </>
+          ) : (
+            'Guardar contraseña'
+          )}
         </button>
       </form>
 

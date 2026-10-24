@@ -421,6 +421,46 @@ legend {
   padding-left: 30px;
 }
 
+/* Contraseña con el ojo adentro, a la derecha */
+.entrada-password {
+  position: relative;
+  display: flex;
+}
+
+.entrada-password input {
+  flex: 1;
+  min-width: 0;
+  padding-right: 52px;
+}
+
+.boton-ojo {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  border-radius: 0 var(--radio) var(--radio) 0;
+  color: var(--pizarra);
+  cursor: pointer;
+}
+
+.boton-ojo:hover,
+.boton-ojo[aria-pressed='true'] {
+  color: var(--negro);
+}
+
+.aviso-mayusculas {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--carbon);
+}
+
 /* Interruptor: píldora negra cuando está activo */
 .interruptor {
   flex-direction: row;

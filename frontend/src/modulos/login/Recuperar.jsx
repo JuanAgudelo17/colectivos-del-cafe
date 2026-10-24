@@ -3,12 +3,20 @@ import { Link } from 'react-router';
 import { api } from '../../compartido/api.js';
 import { PantallaAcceso } from '../../compartido/layout/PantallaAcceso.jsx';
 import { CampoTexto } from '../../compartido/ui/Campos.jsx';
+import { Icono } from '../../compartido/ui/Iconos.jsx';
 import { IlustracionLlave } from '../../compartido/ui/Ilustraciones.jsx';
 import { useEnvio } from '../../compartido/utilidades/useEnvio.js';
+import { leerUltimoUsuario } from './ultimoUsuario.js';
+
+const PASOS = [
+  ['enviar', 'Pides', 'una contraseña temporal aquí.'],
+  ['llave', 'El administrador', 'te la entrega.'],
+  ['candado', 'Entras', 'con ella y creas tu propia contraseña.'],
+];
 
 // "Olvidé mi contraseña": deja una solicitud que el admin atiende con una contraseña temporal.
 export function Recuperar() {
-  const [usuario, setUsuario] = useState('');
+  const [usuario, setUsuario] = useState(() => leerUltimoUsuario()?.usuario ?? '');
   const [mensaje, setMensaje] = useState(null);
   const { enviando, error, campos, enviar } = useEnvio();
 
@@ -22,19 +30,26 @@ export function Recuperar() {
     <PantallaAcceso ilustracion={<IlustracionLlave />}>
       <h1>Recuperar contraseña</h1>
 
+      <ol className="pasos" aria-label="Cómo funciona">
+        {PASOS.map(([icono, quien, que], i) => (
+          <li key={icono} className={mensaje && i === 0 ? 'paso-hecho' : undefined}>
+            <span className="paso-icono">
+              <Icono nombre={mensaje && i === 0 ? 'listo' : icono} />
+            </span>
+            <span>
+              <strong>{quien}</strong> {que}
+            </span>
+          </li>
+        ))}
+      </ol>
+
       {mensaje ? (
         <>
           <p className="aviso">{mensaje}</p>
-          <p className="ayuda">
-            Cuando la recibas, entra con ella y el sistema te pedirá crear una contraseña nueva. La temporal
-            vence en 48 horas.
-          </p>
+          <p className="ayuda">La contraseña temporal vence en 48 horas.</p>
         </>
       ) : (
         <>
-          <p className="subtitulo">
-            Escribe tu usuario. El administrador recibirá tu solicitud y te enviará una contraseña temporal.
-          </p>
           {error && <p className="error">{error}</p>}
           <form onSubmit={enviarSolicitud} noValidate>
             <CampoTexto
@@ -44,10 +59,20 @@ export function Recuperar() {
               error={campos.usuario}
               autoComplete="username"
               autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
               required
             />
             <button type="submit" className="boton-principal" disabled={enviando || !usuario.trim()}>
-              {enviando ? 'Enviando…' : 'Pedir contraseña temporal'}
+              {enviando ? (
+                <>
+                  <span className="girando" aria-hidden="true" /> Enviando…
+                </>
+              ) : (
+                <>
+                  Pedir contraseña temporal <Icono nombre="enviar" />
+                </>
+              )}
             </button>
           </form>
         </>

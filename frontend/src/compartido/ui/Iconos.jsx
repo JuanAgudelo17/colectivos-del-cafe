@@ -60,6 +60,45 @@ const TRAZOS = {
       <path d="M14 3v5h5M10 13h6M10 17h6" />
     </>
   ),
+  ojo: (
+    <>
+      <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" />
+      <circle cx="12" cy="12" r="3" />
+    </>
+  ),
+  ojoTachado: (
+    <>
+      <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" />
+      <circle cx="12" cy="12" r="3" />
+      <path d="M4 4l16 16" />
+    </>
+  ),
+  flecha: <path d="M5 12h14M13 6l6 6-6 6" />,
+  listo: <path d="M5 12.5l4.5 4.5L19 7.5" />,
+  mayusculas: (
+    <>
+      <path d="M12 4l-8 8h4v4h8v-4h4z" />
+      <path d="M8 20h8" />
+    </>
+  ),
+  enviar: (
+    <>
+      <path d="M21 3L10 14" />
+      <path d="M21 3l-7 18-4-7-7-4z" />
+    </>
+  ),
+  llave: (
+    <>
+      <circle cx="8" cy="15" r="4" />
+      <path d="M11 12l9-9M16 7l3 3M14 9l2 2" />
+    </>
+  ),
+  candado: (
+    <>
+      <rect x="5" y="11" width="14" height="10" rx="2" />
+      <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+    </>
+  ),
 };
 
 export function Icono({ nombre, tamano = 20 }) {
