@@ -1,12 +1,24 @@
-/* Tarjeta principal: datos a la izquierda, ilustración a la derecha */
+/* ---- Tu buseta + Estado, lado a lado en computador ---- */
+.mi-buseta-principal {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: var(--separacion);
+  margin-bottom: 40px;
+}
+
+/* Tarjeta de la buseta: foto arriba, datos abajo */
 .mi-buseta-tarjeta {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 220px;
+  grid-template-columns: 200px minmax(0, 1fr);
   align-items: center;
   gap: 24px;
   background: var(--niebla);
   border-radius: var(--radio);
-  padding: var(--relleno-tarjeta);
+  padding: 20px;
+}
+
+.mi-buseta-sin {
+  grid-template-columns: minmax(0, 1fr) 220px;
 }
 
 .mi-buseta-datos h2 {
@@ -24,122 +36,175 @@
   line-height: 1.22;
 }
 
+.mi-buseta-datos .etiquetas {
+  margin-top: 12px;
+}
+
 .mi-buseta-ilustracion {
   aspect-ratio: 1;
   border-radius: var(--radio);
   overflow: hidden;
 }
 
-.mi-buseta-ilustracion .ilustracion {
+.mi-buseta-ilustracion .ilustracion,
+.mi-buseta-ilustracion img {
   display: block;
   width: 100%;
   height: 100%;
+  object-fit: cover;
 }
 
-.mi-buseta-alerta {
-  margin-bottom: 24px;
-}
-
-.mi-buseta-alerta p {
-  margin: 0;
-}
-
-.mi-buseta-alerta p + p {
-  margin-top: 4px;
-}
-
-/* Documentos y próximamente: dos tarjetas lado a lado */
-.mi-buseta-documentos {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
-  gap: var(--separacion);
-  margin-bottom: 12px;
-}
-
-.mi-buseta-documento {
+/* ---- Estado de un vistazo ---- */
+.mi-buseta-estado {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+  padding: 20px;
 }
 
-.mi-buseta-documento-titulo {
+.mi-buseta-estado h2 {
+  font-size: var(--texto-sub);
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.mi-buseta-estado ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.mi-buseta-estado li + li {
+  border-top: 1px solid var(--linea);
+}
+
+.mi-buseta-estado a {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.mi-buseta-estado a:hover strong {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.mi-buseta-estado a > span:nth-child(2) {
   display: flex;
+  flex-direction: column;
+}
+
+.mi-buseta-estado strong {
+  font-weight: 500;
+}
+
+.mi-buseta-estado small {
+  font-size: var(--texto-sm);
+  color: var(--pizarra);
+}
+
+.mi-buseta-indicador {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radio);
+  font-size: var(--texto-sm);
+  background: var(--niebla);
+}
+
+.mi-buseta-indicador-0 {
+  background: var(--critico-fondo);
+}
+
+.mi-buseta-indicador-1 {
+  background: var(--advertencia-fondo);
+}
+
+.mi-buseta-indicador-2 {
+  font-weight: 700;
+  color: var(--bien-texto);
+}
+
+/* ---- Requiere atención ---- */
+.mi-buseta-atencion {
+  margin-bottom: 40px;
+}
+
+.mi-buseta-atencion h2 {
+  font-size: var(--texto-sub);
+  font-weight: 500;
+}
+
+.mi-buseta-atencion ul {
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  margin: 0 0 8px;
+  padding: 0;
+}
+
+.mi-buseta-atencion li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px;
-  width: 100%;
+  padding: 12px 16px;
+  border-radius: var(--radio);
+  font-size: var(--texto-sm);
 }
 
-.mi-buseta-documento-titulo .etiqueta {
-  margin-left: auto;
+.mi-buseta-atencion .atencion-grave {
+  background: var(--critico-fondo);
+  color: var(--critico-texto);
 }
 
-.mi-buseta-vence {
-  margin: 0;
-  font-size: var(--texto-sub);
+.mi-buseta-atencion .atencion-pronto {
+  background: var(--advertencia-fondo);
+  color: var(--advertencia-texto);
 }
 
-.mi-buseta-pronto {
-  color: var(--pizarra);
+.mi-buseta-atencion li a {
+  color: inherit;
+  font-weight: 600;
+  text-underline-offset: 3px;
 }
 
-.mi-buseta-pronto h3 {
-  color: var(--pizarra);
+#mantenimiento {
+  scroll-margin-top: 80px;
+}
+
+@media (max-width: 900px) {
+  .mi-buseta-principal {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 640px) {
-  .mi-buseta-tarjeta {
+  .mi-buseta-tarjeta,
+  .mi-buseta-sin {
     grid-template-columns: 1fr;
   }
 
   .mi-buseta-ilustracion {
-    order: -1;
     aspect-ratio: 16 / 8;
+  }
+
+  .mi-buseta-sin .mi-buseta-ilustracion {
+    order: -1;
   }
 
   .mi-buseta-placa {
     font-size: var(--titulo-sm);
   }
-}
 
-.mi-buseta-enlace {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  color: var(--negro);
-  text-decoration: none;
-}
-
-.mi-buseta-enlace .mi-buseta-documento-titulo span {
-  margin-left: auto;
-  font-size: var(--texto-sub);
-}
-
-.mi-buseta-enlace:hover {
-  background: var(--niebla-oscura);
-}
-
-/* En celular los seis documentos van de a dos, en tarjetas compactas */
-@media (max-width: 640px) {
-  .mi-buseta-documentos-vencen {
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-
-  .mi-buseta-documentos-vencen .mi-buseta-documento {
-    padding: 14px;
-    gap: 6px;
-  }
-
-  .mi-buseta-documentos-vencen h3 {
-    font-size: var(--texto-sm);
-  }
-
-  .mi-buseta-documentos-vencen .mi-buseta-vence {
-    font-size: var(--texto-sm);
-  }
-
-  .mi-buseta-documentos-vencen .documento {
-    white-space: normal;
+  .mi-buseta-principal {
+    margin-bottom: 32px;
   }
 }

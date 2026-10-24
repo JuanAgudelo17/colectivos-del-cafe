@@ -1,0 +1,156 @@
+.doc-buseta {
+  font-size: var(--texto-sm);
+  font-weight: 600;
+  padding: 6px 12px;
+  border: 1px solid var(--negro);
+  border-radius: var(--radio);
+  white-space: nowrap;
+}
+
+/* ---- Resumen: cuántos hay en cada estado ---- */
+.doc-resumen {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 24px;
+  padding: 0;
+}
+
+.doc-resumen li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 16px 18px;
+  background: var(--niebla);
+  border-radius: var(--radio);
+}
+
+.doc-resumen strong {
+  font-size: var(--titulo-sm);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.doc-resumen span {
+  font-size: var(--texto-sm);
+  color: var(--pizarra);
+}
+
+/* Los estados de documentos son la única excepción de color (siempre con icono y texto) */
+.doc-resumen .doc-resumen-vencido {
+  background: var(--critico-fondo);
+}
+
+.doc-resumen-vencido strong,
+.doc-resumen-vencido span {
+  color: var(--critico-texto);
+}
+
+.doc-resumen .doc-resumen-por_vencer {
+  background: var(--advertencia-fondo);
+}
+
+.doc-resumen-por_vencer strong,
+.doc-resumen-por_vencer span {
+  color: var(--advertencia-texto);
+}
+
+.doc-aviso {
+  margin-bottom: 24px;
+}
+
+/* ---- Lista de documentos, el más urgente primero ---- */
+.doc-lista {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  border-top: 1px solid var(--negro);
+}
+
+.doc-item {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--linea);
+}
+
+.doc-icono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radio);
+  background: var(--niebla);
+}
+
+.doc-item-vencido .doc-icono {
+  background: var(--critico-fondo);
+  color: var(--critico-texto);
+}
+
+.doc-item-por_vencer .doc-icono {
+  background: var(--advertencia-fondo);
+  color: var(--advertencia-texto);
+}
+
+.doc-texto h2 {
+  margin: 0;
+  font-size: var(--texto-sub);
+  font-weight: 500;
+}
+
+.doc-texto p {
+  margin: 2px 0 0;
+  font-size: var(--texto-sm);
+  color: var(--pizarra);
+}
+
+.doc-vence {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.doc-vence-fecha {
+  font-size: var(--texto-sm);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .doc-resumen {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .doc-resumen li {
+    padding: 12px 14px;
+  }
+
+  /* El icono a la izquierda; nombre arriba y la fecha con su estado abajo */
+  .doc-item {
+    grid-template-columns: 44px minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .doc-icono {
+    grid-row: span 2;
+  }
+
+  .doc-vence {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+  }
+
+  .doc-vence .documento {
+    white-space: normal;
+  }
+}
