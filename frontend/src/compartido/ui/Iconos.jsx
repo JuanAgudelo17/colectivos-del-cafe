@@ -40,6 +40,13 @@ const TRAZOS = {
       <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
     </>
   ),
+  peaje: (
+    <>
+      <path d="M4 21V4" />
+      <rect x="4" y="5" width="17" height="5" rx="1" />
+      <path d="M9 5l-2 5M14 5l-2 5M19 5l-2 5" />
+    </>
+  ),
   grafica: (
     <>
       <path d="M3 20h18" />

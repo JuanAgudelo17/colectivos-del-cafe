@@ -1,0 +1,243 @@
+.colpass-volver {
+  display: inline-block;
+  margin-bottom: 8px;
+  font-size: var(--texto-sm);
+  color: var(--pizarra);
+  text-underline-offset: 3px;
+}
+
+/* ---- Lo pendiente por liquidar: barra negra, la cifra principal ---- */
+.colpass-pendiente {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 420px;
+  background: var(--negro);
+  color: var(--blanco);
+  border-radius: var(--radio);
+  padding: 20px 24px;
+  margin-bottom: 40px;
+}
+
+.colpass-pendiente span,
+.colpass-pendiente small {
+  font-size: var(--texto-sm);
+  color: var(--ceniza);
+}
+
+.colpass-pendiente strong {
+  font-size: var(--titulo);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.colpass-encabezado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px 24px;
+  margin-bottom: 40px;
+}
+
+.colpass-encabezado .colpass-pendiente {
+  margin-bottom: 0;
+  flex: 1 1 320px;
+}
+
+/* ---- Busetas con Colpass (admin) ---- */
+.colpass-busetas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  gap: var(--separacion);
+  margin-bottom: 32px;
+}
+
+.colpass-buseta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 16px 20px;
+  background: var(--niebla);
+  border: 2px solid transparent;
+  border-radius: var(--radio);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.colpass-buseta small {
+  color: var(--pizarra);
+}
+
+.colpass-buseta span {
+  margin-top: 8px;
+  font-size: var(--texto-sm);
+}
+
+.colpass-buseta-activa {
+  border-color: var(--negro);
+  background: var(--blanco);
+}
+
+/* ---- Consulta por rango ---- */
+.colpass-cuerpo {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: 48px;
+  align-items: start;
+}
+
+.colpass-cuerpo > * {
+  min-width: 0;
+}
+
+.colpass-rango {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  max-width: 440px;
+  margin-bottom: 24px;
+}
+
+.colpass-totales {
+  display: grid;
+  gap: 0;
+  margin: 0 0 24px;
+  border-top: 1px solid var(--negro);
+}
+
+.colpass-totales div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--linea);
+}
+
+.colpass-totales dt {
+  color: var(--pizarra);
+}
+
+.colpass-totales dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.colpass-totales-destacado dt,
+.colpass-totales-destacado dd {
+  color: var(--negro);
+  font-weight: 600;
+}
+
+.colpass-tabla th.numero,
+.colpass-tabla td.numero {
+  text-align: right;
+}
+
+.colpass-liquidar {
+  margin-top: 24px;
+}
+
+/* ---- Liquidaciones ---- */
+.colpass-liquidaciones {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--negro);
+}
+
+.colpass-liquidaciones li {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--linea);
+}
+
+.colpass-liquidaciones strong {
+  font-size: var(--texto-sub);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.colpass-liquidaciones span,
+.colpass-liquidaciones small {
+  font-size: var(--texto-sm);
+  color: var(--pizarra);
+}
+
+.colpass-liquidaciones .boton-enlace {
+  padding: 0;
+  font-size: var(--texto-sm);
+}
+
+.colpass-nota {
+  margin: 16px 0 0;
+  font-size: var(--texto-sm);
+  color: var(--pizarra);
+}
+
+.colpass-confirmar {
+  margin: 0;
+}
+
+.colpass-quitar {
+  margin-top: var(--separacion-seccion);
+  padding-top: 16px;
+  border-top: 1px solid var(--linea);
+}
+
+/* ---- Tarjeta en "Mi producido" del conductor ---- */
+.colpass-aviso {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+  padding: 16px 20px;
+  background: var(--negro);
+  color: var(--blanco);
+  border-radius: var(--radio);
+  text-decoration: none;
+}
+
+.colpass-aviso > span:first-child {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.colpass-aviso small {
+  color: var(--ceniza);
+  font-size: var(--texto-sm);
+}
+
+.colpass-aviso-valor {
+  font-size: var(--titulo-sm);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .colpass-cuerpo {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .colpass-pendiente strong {
+    font-size: var(--titulo-sm);
+  }
+
+  .colpass-tabla td.numero {
+    text-align: left;
+  }
+
+  /* La barra fija de abajo tapa el final de la página */
+  .colpass-quitar {
+    margin-bottom: 72px;
+  }
+}
