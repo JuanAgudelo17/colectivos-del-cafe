@@ -5,14 +5,13 @@ import { hoyBogota } from '../../compartido/fecha.js';
 import { alcance, autenticar, requiereRol } from '../../compartido/seguridad/middleware.js';
 import { listarBusetas, obtenerBuseta } from '../busetas/index.js';
 import { activarEsquema, entregaEsquema, rangoConsulta } from './esquemas.js';
-import { repartir } from './reparto.js';
+import { estadoDeCuenta } from './cuenta.js';
 import {
   activarColpass,
   borrarEntrega,
   crearEntrega,
   diasConPeajes,
   listarColpass,
-  listarEntregas,
   obtenerColpass,
   obtenerEntrega,
   quitarColpass,
@@ -31,16 +30,6 @@ function rango(query) {
   const { desde, hasta } = validar(rangoConsulta, query);
   const hoy = hoyBogota();
   return { desde: desde ?? `${hoy.slice(0, 8)}01`, hasta: hasta ?? hoy };
-}
-
-// Cuenta del Colpass: los peajes desde que hay Colpass y las entregas, repartidas
-// en orden (las entregas cubren primero los días más viejos).
-async function estadoDeCuenta(db, busetaId, colpass) {
-  const [dias, entregas] = await Promise.all([
-    diasConPeajes(db, busetaId, colpass.desde, hoyBogota()),
-    listarEntregas(db, busetaId),
-  ]);
-  return repartir(dias, entregas);
 }
 
 function puedeBorrar(entrega, usuario) {

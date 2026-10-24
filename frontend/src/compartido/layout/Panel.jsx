@@ -1,14 +1,30 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router';
 import { useSesion } from '../sesion/contexto.js';
 import { Icono } from '../ui/Iconos.jsx';
 import './panel.css';
 
+const CELULAR = '(max-width: 1024px)';
+
+// true si se está viendo la barra del celular (y no la barra lateral).
+function useEsCelular() {
+  const [esCelular, setEsCelular] = useState(() => window.matchMedia(CELULAR).matches);
+  useEffect(() => {
+    const consulta = window.matchMedia(CELULAR);
+    const cambiar = () => setEsCelular(consulta.matches);
+    consulta.addEventListener('change', cambiar);
+    return () => consulta.removeEventListener('change', cambiar);
+  }, []);
+  return esCelular;
+}
+
 // Estructura tipo panel para las pantallas con sesión: barra lateral negra con
 // el menú del rol agrupado por secciones y el usuario abajo; contenido a la
 // derecha. En celular la barra lateral se vuelve una barra superior con ☰.
 // `menu`: [{ grupo, modulos: [{ id, titulo, icono, ruta, Pagina } | { id, titulo, icono, fase }] }]
-export function Panel({ menu, base }) {
+// `acciones` (ej. la campanita) va en la barra lateral o en la del celular, en una sola.
+export function Panel({ menu, base, acciones = null }) {
+  const esCelular = useEsCelular();
   const { usuario, cerrarSesion } = useSesion();
   const navegar = useNavigate();
   const [menuAbierto, setMenuAbierto] = useState(false);
@@ -76,10 +92,13 @@ export function Panel({ menu, base }) {
     <div className={menuAbierto ? 'panel panel-menu-abierto' : 'panel'}>
       {/* Computador: barra lateral fija */}
       <aside className="lateral">
-        <Link to={base} className="lateral-marca">
-          <span className="marca">Colectivos del Café</span>
-          <small>{rol}</small>
-        </Link>
+        <div className="lateral-cabeza">
+          <Link to={base} className="lateral-marca">
+            <span className="marca">Colectivos del Café</span>
+            <small>{rol}</small>
+          </Link>
+          {!esCelular && acciones}
+        </div>
         {navegacion}
         {cuenta}
       </aside>
@@ -89,15 +108,18 @@ export function Panel({ menu, base }) {
         <Link to={base} className="marca" onClick={cerrarMenu}>
           Colectivos del Café
         </Link>
-        <button
-          type="button"
-          className="boton-icono"
-          onClick={() => setMenuAbierto((v) => !v)}
-          aria-label={menuAbierto ? 'Cerrar menú' : 'Abrir menú'}
-          aria-expanded={menuAbierto}
-        >
-          {menuAbierto ? '✕' : '☰'}
-        </button>
+        <span className="barra-movil-acciones">
+          {esCelular && acciones}
+          <button
+            type="button"
+            className="boton-icono"
+            onClick={() => setMenuAbierto((v) => !v)}
+            aria-label={menuAbierto ? 'Cerrar menú' : 'Abrir menú'}
+            aria-expanded={menuAbierto}
+          >
+            {menuAbierto ? '✕' : '☰'}
+          </button>
+        </span>
       </header>
       <div className="cortina">
         {navegacion}

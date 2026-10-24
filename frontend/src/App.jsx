@@ -5,6 +5,7 @@ import { ProveedorSesion } from './compartido/sesion/ProveedorSesion.jsx';
 import { rutaInicio, useSesion } from './compartido/sesion/contexto.js';
 import { CambiarPassword } from './modulos/cuenta/CambiarPassword.jsx';
 import { menuAdmin, menuConductor, modulosAdmin, modulosConductor } from './modulos/index.js';
+import { Campana } from './modulos/notificaciones/index.js';
 import { Login } from './modulos/login/Login.jsx';
 import { Recuperar } from './modulos/login/Recuperar.jsx';
 
@@ -38,13 +39,13 @@ export default function App() {
           </Route>
 
           <Route element={<RutaProtegida rol="admin" />}>
-            <Route path="/admin" element={<Panel menu={menuAdmin} base="/admin" />}>
+            <Route path="/admin" element={<Panel menu={menuAdmin} base="/admin" acciones={<Campana />} />}>
               {rutasDe(modulosAdmin)}
             </Route>
           </Route>
 
           <Route element={<RutaProtegida rol="conductor" />}>
-            <Route path="/conductor" element={<Panel menu={menuConductor} base="/conductor" />}>
+            <Route path="/conductor" element={<Panel menu={menuConductor} base="/conductor" acciones={<Campana />} />}>
               {rutasDe(modulosConductor)}
             </Route>
           </Route>

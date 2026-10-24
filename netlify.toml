@@ -37,3 +37,10 @@
     X-Frame-Options        = "DENY"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy        = "strict-origin-when-cross-origin"
+
+# El service worker de las notificaciones siempre se pide de nuevo (nunca de caché),
+# para que los cambios lleguen a todos los celulares.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"

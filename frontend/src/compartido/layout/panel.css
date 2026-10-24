@@ -234,3 +234,17 @@
     padding-bottom: 104px;
   }
 }
+
+/* Marca y acciones (la campanita) en la cabeza de la barra lateral */
+.lateral-cabeza {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.barra-movil-acciones {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
