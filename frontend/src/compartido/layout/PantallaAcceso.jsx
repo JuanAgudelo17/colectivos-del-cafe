@@ -12,7 +12,7 @@ export function PantallaAcceso({ ilustracion, children }) {
       <header className="acceso-barra">
         <span className="marca acceso-marca">
           <Logo tamano={28} />
-          Colectivos del Café
+          El Producido
         </span>
       </header>
 
@@ -24,8 +24,7 @@ export function PantallaAcceso({ ilustracion, children }) {
       </main>
 
       <footer className="acceso-pie">
-        <span className="marca">El Producido</span>
-        <span>© {hoyBogota().slice(0, 4)} · Desarrollado por Juan Agudelo y Nicolás Valencia</span>
+        © {hoyBogota().slice(0, 4)} · Desarrollado por Juan Agudelo y Nicolás Valencia
       </footer>
     </div>
   );

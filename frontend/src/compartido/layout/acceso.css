@@ -220,19 +220,11 @@
 }
 
 .acceso-pie {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px 24px;
-  padding: 24px 32px;
+  padding: 40px 32px;
   background: var(--negro);
   color: var(--ceniza);
   font-size: var(--texto-sm);
-}
-
-.acceso-pie .marca {
-  color: var(--blanco);
+  text-align: center;
 }
 
 @media (max-width: 860px) {
@@ -283,10 +275,7 @@
   }
 
   .acceso-pie {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
-    padding: 16px 20px calc(16px + env(safe-area-inset-bottom));
+    padding: 28px 20px calc(28px + env(safe-area-inset-bottom));
     font-size: var(--texto-caption);
   }
 }
