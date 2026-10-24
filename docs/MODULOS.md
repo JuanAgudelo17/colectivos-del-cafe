@@ -16,7 +16,7 @@ Así dos personas pueden trabajar al mismo tiempo sin pisarse: cada quien toca s
 | Mi buseta (panel del conductor) | `mi-buseta/` | `mi-buseta/` | conductor | ✅ |
 | Producido diario (admin) | `producido/` | `producido/` | admin | ✅ |
 | Mi producido | `producido/` (`GET /mio`) | `mi-producido/` | conductor | ✅ |
-| Colpass (plata de peajes por liquidar) | `colpass/` | `colpass/` (admin) + subpágina `mi-producido/peajes` (conductor) | ambos | ✅ |
+| Colpass (plata de peajes por liquidar) | `colpass/` | `colpass/` (sin menú: apartado "Peajes Colpass" en Producido para el admin y subpágina `mi-producido/peajes` del conductor) | ambos | ✅ |
 | Rentabilidad (utilidad por buseta y flota) | `rentabilidad/` (usa `calcularResumen` y `datosDelAnio` de producido) | `rentabilidad/` | admin | ✅ |
 | Mantenimiento y kilometraje (hoja de vida) | `mantenimiento/` | `mantenimiento/` (sin menú: lo usan `mi-buseta` y `busetas/:id`) | ambos | ✅ |
 | Facturas con foto | por crear | por crear | ambos | Fase 2 |

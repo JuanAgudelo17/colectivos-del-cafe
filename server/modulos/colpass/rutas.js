@@ -144,10 +144,15 @@ router.delete('/:busetaId', async (req, res) => {
   res.status(204).end();
 });
 
+// Detalle de una buseta (el apartado de Producido). Sin Colpass responde
+// `colpass: null` para que el admin pueda activarlo desde ahí.
 router.get('/:busetaId', async (req, res) => {
   const db = req.app.locals.db;
   const buseta = await busetaDeRuta(req);
-  res.json(await armarDetalle(db, buseta, await colpassDe(db, buseta), rango(req.query)));
+  const consulta = rango(req.query);
+  const colpass = await obtenerColpass(db, buseta.id);
+  if (!colpass) return res.json({ buseta: { id: buseta.id, numeroInterno: buseta.numeroInterno }, colpass: null });
+  res.json(await armarDetalle(db, buseta, colpass, consulta));
 });
 
 // Liquidar: el conductor le entregó al admin la plata de los peajes de esos días.

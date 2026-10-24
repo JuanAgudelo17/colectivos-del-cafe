@@ -44,42 +44,6 @@
   flex: 1 1 320px;
 }
 
-/* ---- Busetas con Colpass (admin) ---- */
-.colpass-busetas {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
-  gap: var(--separacion);
-  margin-bottom: 32px;
-}
-
-.colpass-buseta {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  padding: 16px 20px;
-  background: var(--niebla);
-  border: 2px solid transparent;
-  border-radius: var(--radio);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.colpass-buseta small {
-  color: var(--pizarra);
-}
-
-.colpass-buseta span {
-  margin-top: 8px;
-  font-size: var(--texto-sm);
-}
-
-.colpass-buseta-activa {
-  border-color: var(--negro);
-  background: var(--blanco);
-}
-
 /* ---- Consulta por rango ---- */
 .colpass-cuerpo {
   display: grid;
@@ -184,12 +148,6 @@
   margin: 0;
 }
 
-.colpass-quitar {
-  margin-top: var(--separacion-seccion);
-  padding-top: 16px;
-  border-top: 1px solid var(--linea);
-}
-
 /* ---- Tarjeta en "Mi producido" del conductor ---- */
 .colpass-aviso {
   display: flex;
@@ -235,9 +193,49 @@
   .colpass-tabla td.numero {
     text-align: left;
   }
+}
 
-  /* La barra fija de abajo tapa el final de la página */
-  .colpass-quitar {
-    margin-bottom: 72px;
-  }
+/* ---- Apartado dentro de Producido (admin) ---- */
+.colpass-seccion {
+  margin-top: var(--separacion-seccion);
+  padding-top: 40px;
+  border-top: 1px solid var(--negro);
+}
+
+.colpass-seccion > .subtitulo {
+  margin: -8px 0 24px;
+  max-width: 640px;
+}
+
+.colpass-seccion h3 {
+  margin-bottom: 16px;
+}
+
+.colpass-seccion-inactiva {
+  padding-top: 16px;
+  border-top-color: var(--linea);
+}
+
+.colpass-seccion-inactiva .boton-enlace {
+  padding: 0;
+  font-size: var(--texto-sm);
+}
+
+.colpass-ajustes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 16px 32px;
+  margin-top: 40px;
+  padding-top: 16px;
+  border-top: 1px solid var(--linea);
+}
+
+.colpass-ajustes .boton-enlace {
+  padding: 0;
+  font-size: var(--texto-sm);
+}
+
+.colpass-fecha {
+  max-width: 320px;
 }

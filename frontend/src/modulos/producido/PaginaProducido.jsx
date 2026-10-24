@@ -4,6 +4,7 @@ import { Dialogo } from '../../compartido/ui/Dialogo.jsx';
 import { SelectorMes } from '../../compartido/ui/SelectorMes.jsx';
 import { mesActual, nombreMes } from '../../compartido/utilidades/formato.js';
 import { useDatos } from '../../compartido/utilidades/useDatos.js';
+import { SeccionColpass } from '../colpass/index.js';
 import { CalculoVueltas } from './CalculoVueltas.jsx';
 import { CuadriculaMes } from './CuadriculaMes.jsx';
 import { PegarExcel } from './PegarExcel.jsx';
@@ -100,6 +101,8 @@ export function PaginaProducido() {
             />
             <ResumenMes mes={mes} alActualizar={alActualizar} />
           </div>
+
+          <SeccionColpass key={mes.buseta.id} busetaId={mes.buseta.id} cambio={mes.resumen.peajes} />
         </>
       )}
 

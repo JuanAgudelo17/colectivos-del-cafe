@@ -145,7 +145,10 @@ describe('Colpass de la 2033', () => {
     await pedir('POST', '/1/liquidaciones', admin, { desde: '2026-10-01', hasta: '2026-10-05' });
     assert.equal((await pedir('DELETE', '/1', admin)).status, 204);
     assert.deepEqual((await pedir('GET', '/mio', pedro)).cuerpo, { colpass: null });
-    assert.equal((await pedir('GET', '/1', admin)).status, 404);
+    // El apartado de Producido ve que ya no tiene Colpass (para poder activarlo otra vez).
+    const sinColpass = await pedir('GET', '/1', admin);
+    assert.equal(sinColpass.status, 200);
+    assert.deepEqual(sinColpass.cuerpo, { buseta: { id: 1, numeroInterno: '2033' }, colpass: null });
     // Las liquidaciones hechas se conservan.
     const { rows } = await db.query('SELECT count(*)::int AS n FROM liquidacion_peaje');
     assert.equal(rows[0].n, 1);
