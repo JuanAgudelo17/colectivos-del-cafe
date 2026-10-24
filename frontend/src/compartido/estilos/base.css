@@ -433,6 +433,12 @@ legend {
   padding-right: 52px;
 }
 
+/* Edge pone su propio ojo en los campos de contraseña: se oculta para dejar solo el nuestro */
+.entrada-password input::-ms-reveal,
+.entrada-password input::-ms-clear {
+  display: none;
+}
+
 .boton-ojo {
   position: absolute;
   top: 0;

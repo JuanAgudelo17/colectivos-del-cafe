@@ -1,4 +1,4 @@
-export const VENTANA_MIN = 15;
+export const VENTANA_MIN = 5;
 export const MAX_FALLOS_USUARIO = 5;
 export const MAX_FALLOS_IP = 20;
 
