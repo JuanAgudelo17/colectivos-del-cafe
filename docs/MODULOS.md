@@ -21,6 +21,7 @@ Así dos personas pueden trabajar al mismo tiempo sin pisarse: cada quien toca s
 | Notificaciones (campanita, push y recordatorios diarios) | `notificaciones/` (usa busetas, mantenimiento y colpass) | `notificaciones/` (la `Campana` va en el Panel desde `App.jsx`) | ambos | ✅ |
 | Ranking (producido del mes y días trabajados) | `ranking/` (usa `producidoPorBuseta` de producido) | `ranking/` | ambos | ✅ |
 | Rentabilidad (utilidad por buseta y flota) | `rentabilidad/` (usa `calcularResumen` y `datosDelAnio` de producido) | `rentabilidad/` | admin | ✅ |
+| Rentabilidad del conductor (solo su buseta) | `rentabilidad/` (`GET /mia`) | `mi-rentabilidad/` (usa la gráfica y el desglose de `rentabilidad`) | conductor | ✅ |
 | Mantenimiento y kilometraje (hoja de vida) | `mantenimiento/` | `mantenimiento/` (sin menú: lo usan `mi-buseta` y `busetas/:id`) | ambos | ✅ |
 | Facturas con foto | por crear | por crear | ambos | Fase 2 |
 | Cierre mensual | por crear | por crear | admin | Fase 3 |

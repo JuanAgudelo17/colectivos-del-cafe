@@ -1,0 +1,241 @@
+.mr-buseta {
+  font-size: var(--texto-sm);
+  font-weight: 600;
+  padding: 6px 12px;
+  border: 1px solid var(--negro);
+  border-radius: var(--radio);
+  white-space: nowrap;
+}
+
+.mr-filtros {
+  max-width: 200px;
+  margin-bottom: 24px;
+}
+
+.mr-vacio {
+  margin: 0;
+  padding: var(--relleno-tarjeta);
+  background: var(--niebla);
+  border-radius: var(--radio);
+  color: var(--pizarra);
+}
+
+.mr-cuerpo {
+  display: grid;
+  gap: 40px;
+}
+
+.mr-cuerpo h2 {
+  font-size: var(--texto-sub);
+  font-weight: 500;
+}
+
+/* ---- Utilidad del año: la cifra principal ---- */
+.mr-principal {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 24px;
+  background: var(--negro);
+  color: var(--blanco);
+  border-radius: var(--radio);
+}
+
+.mr-principal-titulo,
+.mr-principal small {
+  font-size: var(--texto-sm);
+  color: var(--ceniza);
+}
+
+.mr-principal-valor {
+  font-size: var(--display);
+  font-weight: 400;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.mr-principal p {
+  margin: 8px 0 0;
+  color: var(--ceniza);
+}
+
+.mr-principal p strong {
+  color: var(--blanco);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ---- Este mes ---- */
+.mr-mes {
+  padding: 20px 24px;
+  border: 1px solid var(--negro);
+  border-radius: var(--radio);
+}
+
+.mr-mes h2::first-letter {
+  text-transform: uppercase;
+}
+
+.mr-mes-datos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 40px;
+  margin: 0;
+}
+
+.mr-mes-datos dt {
+  font-size: var(--texto-sm);
+  color: var(--pizarra);
+}
+
+.mr-mes-datos dd {
+  margin: 0;
+  font-size: var(--titulo-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.mr-proyeccion {
+  margin: 16px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--linea);
+}
+
+.mr-proyeccion small {
+  display: block;
+  margin-top: 6px;
+  font-size: var(--texto-sm);
+  color: var(--pizarra);
+}
+
+/* ---- Lo que más importa ---- */
+.mr-datos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.mr-dato {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 16px 18px;
+  background: var(--niebla);
+  border-radius: var(--radio);
+}
+
+.mr-dato span,
+.mr-dato small {
+  font-size: var(--texto-sm);
+  color: var(--pizarra);
+}
+
+.mr-dato strong {
+  font-size: var(--titulo-sm);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ---- Mes a mes y desglose ---- */
+.mr-columnas {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 48px;
+  align-items: start;
+}
+
+.mr-columnas > section {
+  min-width: 0;
+}
+
+.mr-ayuda {
+  margin: -8px 0 16px;
+  font-size: var(--texto-sm);
+  color: var(--pizarra);
+}
+
+.mr-tabla th.numero,
+.mr-tabla td.numero {
+  text-align: right;
+}
+
+.mr-tabla td:first-child::first-letter {
+  text-transform: uppercase;
+}
+
+.mr-tabla .etiqueta {
+  margin-left: 8px;
+}
+
+/* ---- Cómo se calcula ---- */
+.mr-como {
+  padding: 16px 20px;
+  background: var(--niebla);
+  border-radius: var(--radio);
+  font-size: var(--texto-sm);
+}
+
+.mr-como summary {
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.mr-como p {
+  margin: 12px 0 8px;
+}
+
+.mr-como ul {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 4px;
+}
+
+@media (max-width: 1100px) {
+  .mr-columnas {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .mr-cuerpo {
+    gap: 32px;
+  }
+
+  .mr-principal {
+    padding: 20px;
+  }
+
+  .mr-principal-valor {
+    font-size: var(--titulo);
+  }
+
+  .mr-mes {
+    padding: 16px;
+  }
+
+  .mr-mes-datos {
+    gap: 12px 24px;
+  }
+
+  .mr-mes-datos dd {
+    font-size: var(--texto-sub);
+  }
+
+  .mr-datos {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mr-dato {
+    padding: 14px 16px;
+  }
+
+  .mr-dato strong {
+    font-size: var(--texto-sub);
+  }
+
+  .mr-tabla td.numero {
+    text-align: left;
+  }
+}

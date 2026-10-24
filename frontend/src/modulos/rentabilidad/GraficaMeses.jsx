@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { pesos } from '../../compartido/utilidades/formato.js';
 import { mesCorto, mesLargo, porcentaje } from './utilidades.js';
+import './rentabilidad.css';
 
 // El detalle se abre centrado sobre la barra, pero pegado al borde en los
 // extremos para no salirse de la gráfica.

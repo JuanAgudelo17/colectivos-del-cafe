@@ -107,7 +107,7 @@ neto         = bruto − costos
 - El resumen se muestra como en la planilla: descuentos sin combustible → **Total bruto** (`netoAntesAcpm`) → ACPM conductor y ACPM La Guaca → **Total neto**. Debajo, "Por pagar a La Guaca" (Σacpm_credito del mes). "Producido del mes" es la suma de lo producido (`bruto` en el código).
 - El 20 % y el fondo se calculan sobre el bruto completo; bono y préstamos restan al final.
 - **Ranking** (módulo `ranking`, admin y conductores): busetas ordenadas por producido del mes (`bruto`, sin descuentos) con los días trabajados. Decidido que los conductores lo ven, pero solo número, placa, producido y días de las otras busetas.
-- **Rentabilidad** (módulo `rentabilidad`, solo admin): utilidad (= neto) del año por buseta y de la flota, mes a mes, con la misma `calcularResumen`. Solo cuentan los meses con algún registro (un mes vacío no es pérdida); el mes en curso se marca porque ya descuenta el sueldo completo. Margen = neto ÷ producido.
+- **Rentabilidad** (módulo `rentabilidad`): el admin ve la utilidad (= neto) del año por buseta y de la flota, mes a mes, con la misma `calcularResumen`. El **conductor** ve solo la de su buseta (`GET /api/rentabilidad/mia`, módulo frontend `mi-rentabilidad`): utilidad del año, cómo va el mes y su **proyección al cierre** (`rentabilidad/proyeccion.js`: escala lo que depende del producido por días del mes ÷ días corridos; lo fijo no; desde el día 5), producido y utilidad por día trabajado, días sin producido, % de ACPM, mantenimiento, mes a mes y en qué se va la plata. Solo cuentan los meses con algún registro (un mes vacío no es pérdida); el mes en curso se marca porque ya descuenta el sueldo completo. Margen = neto ÷ producido.
 
 ## Reglas que el código debe respetar
 

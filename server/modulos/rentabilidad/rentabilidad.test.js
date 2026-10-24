@@ -154,4 +154,23 @@ describe('GET /api/rentabilidad', () => {
     assert.equal((await pedir('?anio=abc', admin)).status, 400);
     assert.equal((await pedir('?anio=1990', admin)).status, 400);
   });
+  test('el conductor ve solo la rentabilidad de su buseta', async () => {
+    const { status, cuerpo } = await pedir('/mia?anio=2025', conductor);
+    assert.equal(status, 200);
+    assert.equal(cuerpo.buseta.numeroInterno, '2033');
+    assert.deepEqual(cuerpo.meses.map((m) => m.mes), [3, 5]);
+    // Lo mismo que ve el admin de esa buseta, y nada de la flota ni de otras busetas.
+    const delAdmin = (await pedir('?anio=2025', admin)).cuerpo.busetas.find((b) => b.numeroInterno === '2033');
+    assert.deepEqual(cuerpo.total, delAdmin.total);
+    assert.equal(cuerpo.busetas, undefined);
+    assert.equal(cuerpo.flota, undefined);
+    assert.equal(cuerpo.proyeccion, null); // 2025 no tiene mes en curso
+  });
+
+  test('/mia: solo conductores; sin buseta no hay datos', async () => {
+    assert.equal((await pedir('/mia')).status, 401);
+    assert.equal((await pedir('/mia', admin)).status, 403);
+    const nuevo = await crearUsuario(db, { usuario: 'nuevo', rol: 'conductor' });
+    assert.equal((await pedir('/mia', nuevo)).cuerpo.buseta, null);
+  });
 });
