@@ -1,5 +1,6 @@
 import { pesos } from '../../compartido/utilidades/formato.js';
 import { CONCEPTOS, porcentaje } from './utilidades.js';
+import './rentabilidad.css';
 
 // De cada peso producido, cuánto se fue en cada concepto y cuánto quedó.
 // La barra es la parte del producido (el 100 % es todo lo producido).

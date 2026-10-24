@@ -9,6 +9,7 @@ import dashboard from './dashboard/index.js';
 import documentos from './documentos/index.js';
 import miBuseta from './mi-buseta/index.js';
 import miProducido from './mi-producido/index.js';
+import miRentabilidad from './mi-rentabilidad/index.js';
 import producido from './producido/index.js';
 import ranking from './ranking/index.js';
 import rentabilidad from './rentabilidad/index.js';
@@ -28,7 +29,7 @@ export const menuAdmin = [
 ];
 
 export const menuConductor = [
-  { grupo: 'Mi trabajo', modulos: [miBuseta, miProducido, documentos, ranking] },
+  { grupo: 'Mi trabajo', modulos: [miBuseta, miProducido, miRentabilidad, documentos, ranking] },
   {
     grupo: 'Próximamente',
     modulos: [
