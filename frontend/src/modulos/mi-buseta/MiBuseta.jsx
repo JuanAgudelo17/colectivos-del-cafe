@@ -8,6 +8,7 @@ import { fecha, fechaLargaHoy, textoDocumento } from '../../compartido/utilidade
 import { useDatos } from '../../compartido/utilidades/useDatos.js';
 import { FotoBuseta } from '../busetas/index.js';
 import { PanelMantenimiento } from '../mantenimiento/index.js';
+import { ResumenMiProducido } from '../mi-producido/index.js';
 import './mi-buseta.css';
 
 // Panel del conductor: su buseta, sus documentos, el kilometraje y los mantenimientos.
@@ -49,6 +50,8 @@ export function MiBuseta() {
 
       {buseta && (
         <>
+          <ResumenMiProducido />
+
           {alertas.length > 0 && (
             <div className="aviso mi-buseta-alerta" role="alert">
               {alertas.map(({ clave, nombre }) => (
