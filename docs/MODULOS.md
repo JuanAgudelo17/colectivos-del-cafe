@@ -10,7 +10,7 @@ Así dos personas pueden trabajar al mismo tiempo sin pisarse: cada quien toca s
 |---|---|---|---|---|
 | Salud | `salud/` | — | público | ✅ |
 | Auth (login) | `auth/` | `login/` | todos | ✅ |
-| Panel general | — (usa busetas y conductores) | `dashboard/` | admin | ✅ |
+| Panel general | `dashboard/` (`GET /dashboard`: busetas, conductores, mantenimiento y solicitudes en una sola petición) | `dashboard/` | admin | ✅ |
 | Busetas y documentos | `busetas/` | `busetas/` | admin | ✅ |
 | Conductores | `conductores/` | `conductores/` | admin | ✅ |
 | Mi buseta (panel del conductor) | `mi-buseta/` | `mi-buseta/` | conductor | ✅ |

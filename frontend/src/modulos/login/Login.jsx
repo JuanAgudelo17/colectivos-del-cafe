@@ -1,5 +1,6 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router';
+import { api } from '../../compartido/api.js';
 import { PantallaAcceso } from '../../compartido/layout/PantallaAcceso.jsx';
 import { rutaInicio, useSesion } from '../../compartido/sesion/contexto.js';
 import { CampoPassword, CampoTexto } from '../../compartido/ui/Campos.jsx';
@@ -25,6 +26,14 @@ export function Login() {
   const [enviando, setEnviando] = useState(false);
   const campoUsuario = useRef(null);
   const campoPassword = useRef(null);
+
+  // Mientras la persona escribe, despierta la función de Netlify y abre la
+  // conexión a la BD: así el clic en "Ingresar" no paga el arranque en frío.
+  // Va después de /auth/yo (no al tiempo) para que use la misma instancia.
+  const sinSesion = !cargando && !sesion;
+  useEffect(() => {
+    if (sinSesion) api('/salud').catch(() => {});
+  }, [sinSesion]);
 
   if (cargando) return <p className="cargando">Cargando…</p>;
   if (sesion) return <Navigate to={rutaInicio(sesion)} replace />;

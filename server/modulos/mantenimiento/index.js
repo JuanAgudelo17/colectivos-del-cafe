@@ -3,6 +3,8 @@
 // El conductor registra en su buseta; el admin ve y corrige todo.
 import router from './rutas.js';
 
+export { estadoDeLaFlota } from './flota.js';
+
 export default {
   ruta: '/mantenimiento',
   router,

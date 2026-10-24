@@ -1,5 +1,6 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
+import bcrypt from 'bcryptjs';
 import { crearApp } from '../../app.js';
 import { DURACION_SESION_SEG, firmarToken } from '../../compartido/seguridad/sesion.js';
 import { cookieDe, crearBdPrueba, crearUsuario, iniciarServidor } from '../../compartido/test/helpers.js';
@@ -125,6 +126,17 @@ test('el bloqueo dice cuántos minutos faltan y se levanta al salir de la ventan
 
   await db.query(`UPDATE intento_login SET creado_en = now() - interval '6 minutes' WHERE usuario = 'paciente'`);
   assert.equal((await login('paciente', 'clave-correcta')).status, 200);
+});
+
+test('un hash viejo de costo 12 se rehace con el costo actual al entrar, sin cerrar sesiones', async () => {
+  const { id } = await crearUsuario(db, { usuario: 'antiguo' });
+  await db.query('UPDATE usuario SET password_hash = $2 WHERE id = $1', [id, await bcrypt.hash('clave-correcta', 12)]);
+
+  assert.equal((await login('antiguo', 'clave-correcta')).status, 200);
+  const { rows } = await db.query('SELECT password_hash, sesion_version FROM usuario WHERE id = $1', [id]);
+  assert.equal(bcrypt.getRounds(rows[0].password_hash), 10);
+  assert.equal(rows[0].sesion_version, 0);
+  assert.equal((await login('antiguo', 'clave-correcta')).status, 200);
 });
 
 test('login exitoso reinicia el contador de fallos', async () => {

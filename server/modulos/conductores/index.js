@@ -1,6 +1,8 @@
 // Módulo conductores: cuentas de conductores, asignación de buseta y contraseñas.
 import router from './rutas.js';
 
+export { listarConductores } from './repositorio.js';
+
 export default {
   ruta: '/conductores',
   router,
