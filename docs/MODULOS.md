@@ -13,7 +13,8 @@ Así dos personas pueden trabajar al mismo tiempo sin pisarse: cada quien toca s
 | Panel general | `dashboard/` (`GET /dashboard`: busetas, conductores, mantenimiento y solicitudes en una sola petición) | `dashboard/` | admin | ✅ |
 | Busetas y documentos | `busetas/` | `busetas/` | admin | ✅ |
 | Conductores | `conductores/` | `conductores/` | admin | ✅ |
-| Mi buseta (panel del conductor) | `mi-buseta/` | `mi-buseta/` | conductor | ✅ |
+| Mi buseta (inicio del conductor: producido, estado, atención y mantenimiento) | `mi-buseta/` | `mi-buseta/` | conductor | ✅ |
+| Documentos del conductor (vencimientos de su buseta) | — (usa `GET /api/mi-buseta`) | `documentos/` | conductor | ✅ |
 | Producido diario (admin) | `producido/` | `producido/` | admin | ✅ |
 | Mi producido | `producido/` (`GET /mio`) | `mi-producido/` | conductor | ✅ |
 | Colpass (plata de peajes por liquidar) | `colpass/` | `colpass/` (sin menú: apartado "Peajes Colpass" en Producido para el admin y subpágina `mi-producido/peajes` del conductor) | ambos | ✅ |

@@ -6,6 +6,7 @@
 import busetas from './busetas/index.js';
 import conductores from './conductores/index.js';
 import dashboard from './dashboard/index.js';
+import documentos from './documentos/index.js';
 import miBuseta from './mi-buseta/index.js';
 import miProducido from './mi-producido/index.js';
 import producido from './producido/index.js';
@@ -27,7 +28,7 @@ export const menuAdmin = [
 ];
 
 export const menuConductor = [
-  { grupo: 'Mi trabajo', modulos: [miBuseta, miProducido, ranking] },
+  { grupo: 'Mi trabajo', modulos: [miBuseta, miProducido, documentos, ranking] },
   {
     grupo: 'Próximamente',
     modulos: [

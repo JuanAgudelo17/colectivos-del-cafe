@@ -190,3 +190,38 @@
     padding-top: 8px;
   }
 }
+
+/* Resumido (inicio del conductor): los tipos sin registro en una sola lista */
+.mantenimiento-sin-registro {
+  margin-top: 16px;
+  padding: 16px 20px;
+  border: 1px dashed var(--linea);
+  border-radius: var(--radio);
+}
+
+.mantenimiento-sin-registro p {
+  margin: 0 0 12px;
+  font-size: var(--texto-sm);
+  color: var(--pizarra);
+}
+
+.mantenimiento-sin-registro strong {
+  color: var(--negro);
+}
+
+.mantenimiento-sin-registro-tipos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mantenimiento-sin-registro-tipos .etiqueta {
+  font: inherit;
+  font-size: var(--texto-sm);
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.mantenimiento-sin-registro-tipos .etiqueta:hover {
+  border-color: var(--negro);
+}

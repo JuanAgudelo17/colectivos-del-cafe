@@ -15,7 +15,7 @@ import './mantenimiento.css';
 // Lo usan el conductor (Mi buseta) y el admin (hoja de vida). Los permisos los
 // decide el backend: cada registro trae `editable`.
 // `accionFija`: en celular, "Registrar kilometraje" va en la barra negra de abajo.
-export function PanelMantenimiento({ busetaId, accionFija = false }) {
+export function PanelMantenimiento({ busetaId, accionFija = false, resumido = false }) {
   const ruta = `/mantenimiento/${busetaId}`;
   const consulta = useDatos(ruta);
   // Cada cambio devuelve la hoja completa: se muestra sin volver a pedirla.
@@ -41,6 +41,10 @@ export function PanelMantenimiento({ busetaId, accionFija = false }) {
 
   const alertas = hoja.estados.filter(requiereAtencion).sort((a, b) => (b.estado === 'vencido') - (a.estado === 'vencido'));
   const nuevoRegistro = (tipo) => setDialogo({ tipo: 'registro', inicial: { tipo } });
+  // Resumido (inicio del conductor): los tipos nunca registrados van en una sola
+  // lista corta en vez de una tarjeta cada uno, y las alertas ya se muestran arriba.
+  const sinRegistro = resumido ? hoja.estados.filter((e) => e.estado === 'sin_registro') : [];
+  const conTarjeta = resumido ? hoja.estados.filter((e) => e.estado !== 'sin_registro') : hoja.estados;
 
   return (
     <>
@@ -71,7 +75,7 @@ export function PanelMantenimiento({ busetaId, accionFija = false }) {
           </div>
         </div>
 
-        {alertas.length > 0 && (
+        {!resumido && alertas.length > 0 && (
           <div className="aviso mantenimiento-alerta" role="alert">
             {alertas.map((e) => (
               <p key={e.tipo}>
@@ -82,30 +86,47 @@ export function PanelMantenimiento({ busetaId, accionFija = false }) {
           </div>
         )}
 
-        <div className="mantenimiento-estados">
-          {hoja.estados.map((e) => (
-            <article key={e.tipo} className="tarjeta mantenimiento-estado">
-              <h3>{e.nombre}</h3>
-              {e.ultimo ? (
-                <>
-                  <p className="detalle">
-                    Último: {fecha(e.ultimo.fecha)}
-                    {e.ultimo.kilometraje != null && ` · ${kilometros(e.ultimo.kilometraje)}`}
-                  </p>
-                  <p className="detalle">Próximo: {textoProximo(e.ultimo)}</p>
-                </>
-              ) : (
-                <p className="detalle">Todavía no se ha registrado.</p>
-              )}
-              <div className="mantenimiento-estado-pie">
-                <EstadoMantenimiento estado={e} compacto={e.estado === 'sin_registro'} />
-                <button type="button" className="boton-enlace" onClick={() => nuevoRegistro(e.tipo)}>
-                  Registrar
+        {conTarjeta.length > 0 && (
+          <div className="mantenimiento-estados">
+            {conTarjeta.map((e) => (
+              <article key={e.tipo} className="tarjeta mantenimiento-estado">
+                <h3>{e.nombre}</h3>
+                {e.ultimo ? (
+                  <>
+                    <p className="detalle">
+                      Último: {fecha(e.ultimo.fecha)}
+                      {e.ultimo.kilometraje != null && ` · ${kilometros(e.ultimo.kilometraje)}`}
+                    </p>
+                    <p className="detalle">Próximo: {textoProximo(e.ultimo)}</p>
+                  </>
+                ) : (
+                  <p className="detalle">Todavía no se ha registrado.</p>
+                )}
+                <div className="mantenimiento-estado-pie">
+                  <EstadoMantenimiento estado={e} compacto={e.estado === 'sin_registro'} />
+                  <button type="button" className="boton-enlace" onClick={() => nuevoRegistro(e.tipo)}>
+                    Registrar
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+
+        {sinRegistro.length > 0 && (
+          <div className="mantenimiento-sin-registro">
+            <p>
+              <strong>Sin registro todavía.</strong> Cuando hagas alguno, regístralo para saber cuándo toca el siguiente:
+            </p>
+            <div className="mantenimiento-sin-registro-tipos">
+              {sinRegistro.map((e) => (
+                <button key={e.tipo} type="button" className="etiqueta" onClick={() => nuevoRegistro(e.tipo)}>
+                  + {e.nombre}
                 </button>
-              </div>
-            </article>
-          ))}
-        </div>
+              ))}
+            </div>
+          </div>
+        )}
       </section>
 
       <section className="seccion">
