@@ -1,0 +1,96 @@
+.ranking-filtros {
+  margin-bottom: 32px;
+}
+
+.ranking-filtros .selector-mes {
+  max-width: 260px;
+}
+
+.ranking-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-width: 760px;
+  border-top: 1px solid var(--negro);
+}
+
+.ranking-fila {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--linea);
+}
+
+/* La buseta del conductor que mira: fondo gris para encontrarla rápido */
+.ranking-propia {
+  background: var(--niebla);
+  padding-left: 12px;
+  padding-right: 12px;
+  border-radius: var(--radio);
+}
+
+.ranking-puesto {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ranking-primero {
+  background: var(--negro);
+  border-color: var(--negro);
+  color: var(--blanco);
+}
+
+.ranking-buseta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  min-width: 0;
+}
+
+.ranking-datos {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.ranking-datos strong {
+  font-size: var(--texto-sub);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ranking-datos small {
+  font-size: var(--texto-sm);
+  color: var(--pizarra);
+}
+
+.ranking-pista {
+  grid-column: 2 / -1;
+  height: 6px;
+  background: var(--niebla-oscura);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.ranking-pista span {
+  display: block;
+  height: 100%;
+  background: var(--carbon);
+  border-radius: 3px;
+}
+
+.ranking-primero ~ .ranking-pista span {
+  background: var(--negro);
+}

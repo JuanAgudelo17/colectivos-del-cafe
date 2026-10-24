@@ -40,6 +40,14 @@ const TRAZOS = {
       <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
     </>
   ),
+  ranking: (
+    <>
+      <path d="M3 21h18" />
+      <rect x="9" y="5" width="6" height="16" rx="1" />
+      <rect x="3" y="11" width="6" height="10" rx="1" />
+      <rect x="15" y="14" width="6" height="7" rx="1" />
+    </>
+  ),
   peaje: (
     <>
       <path d="M4 21V4" />

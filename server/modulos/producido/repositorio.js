@@ -99,6 +99,19 @@ export async function datosDelAnio(db, anio) {
   return { dias: dias.rows, ajustes: ajustes.rows };
 }
 
+// Producido y días trabajados de cada buseta en un rango (las que no trabajaron no salen).
+export async function producidoPorBuseta(db, desde, hasta) {
+  const { rows } = await db.query(
+    `SELECT buseta_id AS "busetaId", SUM(ingreso)::bigint AS bruto,
+            COUNT(*) FILTER (WHERE ingreso > 0)::int AS "diasTrabajados"
+       FROM producido_diario
+      WHERE fecha BETWEEN $1 AND $2
+      GROUP BY buseta_id`,
+    [desde, hasta],
+  );
+  return rows;
+}
+
 // Primer año con producido registrado (null si todavía no hay nada).
 export async function primerAnio(db) {
   const { rows } = await db.query('SELECT EXTRACT(YEAR FROM min(fecha))::int AS anio FROM producido_diario');

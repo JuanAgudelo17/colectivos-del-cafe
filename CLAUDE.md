@@ -104,6 +104,7 @@ neto         = bruto − costos
 - Las pruebas incluyen planillas reales: buseta 2033 (bruto 11.459.500 → neto 1.811.404) y 2007 de octubre (sin cupo, ACPM La Guaca 585.506; neto 1.218.294 con fondo fijo 70.000). Si el cálculo cambia, deben seguir cuadrando.
 - El resumen se muestra como en la planilla: descuentos sin combustible → **Total bruto** (`netoAntesAcpm`) → ACPM conductor y ACPM La Guaca → **Total neto**. Debajo, "Por pagar a La Guaca" (Σacpm_credito del mes). "Producido del mes" es la suma de lo producido (`bruto` en el código).
 - El 20 % y el fondo se calculan sobre el bruto completo; bono y préstamos restan al final.
+- **Ranking** (módulo `ranking`, admin y conductores): busetas ordenadas por producido del mes (`bruto`, sin descuentos) con los días trabajados. Decidido que los conductores lo ven, pero solo número, placa, producido y días de las otras busetas.
 - **Rentabilidad** (módulo `rentabilidad`, solo admin): utilidad (= neto) del año por buseta y de la flota, mes a mes, con la misma `calcularResumen`. Solo cuentan los meses con algún registro (un mes vacío no es pérdida); el mes en curso se marca porque ya descuenta el sueldo completo. Margen = neto ÷ producido.
 
 ## Reglas que el código debe respetar
