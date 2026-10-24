@@ -6,7 +6,7 @@ import { validar } from '../../compartido/http/validacion.js';
 import { autenticar, requiereRol } from '../../compartido/seguridad/middleware.js';
 import { hashPassword, passwordNueva } from '../../compartido/seguridad/passwords.js';
 import { borrarCookieSesion, ponerCookieSesion } from '../../compartido/seguridad/sesion.js';
-import { estaBloqueado, limpiarFallos, registrarFallo, VENTANA_MIN } from './intentos.js';
+import { limpiarFallos, minutosDeBloqueo, registrarFallo } from './intentos.js';
 import { crearSolicitud, listarPendientes } from './recuperacion.js';
 import { buscarParaLogin, guardarPasswordPropia, obtenerHash } from './repositorio.js';
 
@@ -19,8 +19,14 @@ let hashRelleno;
 // Netlify pone la IP real del cliente en este encabezado (no se puede falsificar).
 const ipCliente = (req) => req.headers['x-nf-client-connection-ip'] ?? req.ip ?? null;
 
-const bloqueado = () =>
-  new ErrorHttp(429, `Demasiados intentos fallidos. Espera ${VENTANA_MIN} minutos e intenta de nuevo.`);
+// Corta la petición si el usuario o la IP están bloqueados, diciendo cuánto falta.
+async function verificarBloqueo(db, usuario, ip) {
+  const minutos = await minutosDeBloqueo(db, usuario, ip);
+  if (minutos > 0) {
+    const espera = minutos === 1 ? '1 minuto' : `${minutos} minutos`;
+    throw new ErrorHttp(429, `Demasiados intentos fallidos. Intenta de nuevo en ${espera}.`);
+  }
+}
 
 router.post('/login', async (req, res) => {
   const db = req.app.locals.db;
@@ -31,7 +37,7 @@ router.post('/login', async (req, res) => {
   }
 
   const ip = ipCliente(req);
-  if (await estaBloqueado(db, usuario, ip)) throw bloqueado();
+  await verificarBloqueo(db, usuario, ip);
 
   const encontrado = await buscarParaLogin(db, usuario);
   hashRelleno ??= await bcrypt.hash('relleno', 12);
@@ -72,7 +78,7 @@ router.post('/cambiar-password', autenticar, async (req, res) => {
   const { id, usuario } = req.usuario;
 
   const ip = ipCliente(req);
-  if (await estaBloqueado(db, usuario, ip)) throw bloqueado();
+  await verificarBloqueo(db, usuario, ip);
 
   if (!(await bcrypt.compare(actual, await obtenerHash(db, id)))) {
     await registrarFallo(db, usuario, ip);
