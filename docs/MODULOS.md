@@ -18,6 +18,7 @@ Así dos personas pueden trabajar al mismo tiempo sin pisarse: cada quien toca s
 | Producido diario (admin) | `producido/` | `producido/` | admin | ✅ |
 | Mi producido | `producido/` (`GET /mio`) | `mi-producido/` | conductor | ✅ |
 | Colpass (plata de peajes por liquidar) | `colpass/` | `colpass/` (sin menú: apartado "Peajes Colpass" en Producido para el admin y subpágina `mi-producido/peajes` del conductor) | ambos | ✅ |
+| Notificaciones (campanita, push y recordatorios diarios) | `notificaciones/` (usa busetas, mantenimiento y colpass) | `notificaciones/` (la `Campana` va en el Panel desde `App.jsx`) | ambos | ✅ |
 | Ranking (producido del mes y días trabajados) | `ranking/` (usa `producidoPorBuseta` de producido) | `ranking/` | ambos | ✅ |
 | Rentabilidad (utilidad por buseta y flota) | `rentabilidad/` (usa `calcularResumen` y `datosDelAnio` de producido) | `rentabilidad/` | admin | ✅ |
 | Mantenimiento y kilometraje (hoja de vida) | `mantenimiento/` | `mantenimiento/` (sin menú: lo usan `mi-buseta` y `busetas/:id`) | ambos | ✅ |

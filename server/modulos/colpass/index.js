@@ -3,6 +3,8 @@
 // liquida rangos de días cuando le entregan la plata.
 import router from './rutas.js';
 
+export { pendientesColpass } from './cuenta.js';
+
 export default {
   ruta: '/colpass',
   router,

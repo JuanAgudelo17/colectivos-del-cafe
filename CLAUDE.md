@@ -73,6 +73,8 @@ Dinero en pesos colombianos: usar `BIGINT` (pesos enteros) o `NUMERIC(14,2)`. **
 - **parametro**: id, clave, valor, vigente_desde — único (clave, vigente_desde). Claves: `porcentaje_empresa` (0.20, lo que se lleva Colectivos), `porcentaje_reposicion` (0.01), `sueldo_conductor` (3066000), `valor_relevo` (132000 por día de relevo), `fondo_fijo_arriendo` (70000), `seguro_contractual` (valor mensual, pendiente de cargar)
 - **cierre_mensual**: id, buseta_id, anio, mes, bruto, reposicion, empresa, conductor, peajes, salidas, mantenimiento, arriendo, acpm, neto, estado (`abierto` | `cerrado`), cerrado_por, cerrado_en — único (buseta_id, anio, mes)
 - **intento_login**: usuario, ip, creado_en — bloqueo tras 5 fallos por usuario (o 20 por IP) en 5 min.
+- **notificacion** (migración 010): usuario_id, clave, tipo (`documento` | `mantenimiento` | `kilometraje` | `colpass`), titulo, cuerpo, url, creada_en, leida_en — único (usuario_id, clave): el mismo aviso no se repite. La genera la revisión diaria (`notificaciones/recordatorios.js`, función pura con pruebas): documentos al quedar a 30, 7 y 1 día y al vencer; mantenimiento al pasar a pronto/vencido; kilometraje sin reportar > 7 días (solo conductor, semanal); peajes Colpass pendientes (semanal). Le llega al conductor de la buseta y a los admin. Se ve en la campanita del panel.
+- **suscripcion_push**: usuario_id, endpoint (único), p256dh, auth — celulares donde el usuario activó las notificaciones push. La revisión diaria corre en la función programada `netlify/functions/recordatorios.mjs` (7 a. m. Bogotá, solo en producción) o con `npm run recordatorios --prefix server`. Con más de 3 avisos nuevos, al celular llega uno solo que los resume.
 
 Relación conductor–buseta: 1 a 1 en esta versión (`usuario.buseta_id`).
 No se borran busetas ni conductores: se desactivan (`activo = false`) para no romper el histórico.
@@ -124,7 +126,7 @@ neto         = bruto − costos
 - Cambiar o restablecer la contraseña sube `usuario.sesion_version` (va en el JWT) y cierra las demás sesiones.
 - Recuperación sin correo: el conductor pide en /recuperar, el admin genera la temporal desde el panel. Si el admin olvida la suya: `npm run restablecer-password -- --usuario <u>`.
 - Sesión con JWT en cookie `httpOnly`, `secure`, `sameSite`, expiración por inactividad de 30 min.
-- Secretos solo en variables de entorno: `DATABASE_URL`, `JWT_SECRET`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`. Nunca en el frontend ni en git. Mantener `.env.example` sin valores reales.
+- Secretos solo en variables de entorno: `DATABASE_URL`, `JWT_SECRET`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `VAPID_PRIVATE_KEY` (push; la pública `VAPID_PUBLIC_KEY` no es secreta). Las VAPID se crean una sola vez con `npm run claves-push --prefix server` (cambiarlas deja sin push a los celulares suscritos). Nunca en el frontend ni en git. Mantener `.env.example` sin valores reales.
 - Comprimir imágenes en el navegador antes de subir (`browser-image-compression`).
 - Datos personales de conductores sujetos a la Ley 1581 de 2012 (habeas data).
 
