@@ -1,3 +1,6 @@
+import { useState } from 'react';
+import { Icono } from './Iconos.jsx';
+
 // Campos de formulario con etiqueta y mensaje de error debajo.
 
 export function Campo({ etiqueta, error, ayuda, children }) {
@@ -14,6 +17,48 @@ export function CampoTexto({ etiqueta, error, ayuda, valor, alCambiar, ...props 
   return (
     <Campo etiqueta={etiqueta} error={error} ayuda={ayuda}>
       <input value={valor ?? ''} onChange={(e) => alCambiar(e.target.value)} aria-invalid={Boolean(error)} {...props} />
+    </Campo>
+  );
+}
+
+// Contraseña con un ojo para verla mientras se escribe y aviso de mayúsculas activadas.
+export function CampoPassword({ etiqueta, error, ayuda, valor, alCambiar, ...props }) {
+  const [visible, setVisible] = useState(false);
+  const [mayusculas, setMayusculas] = useState(false);
+  const revisarMayusculas = (e) => setMayusculas(e.getModifierState?.('CapsLock') ?? false);
+
+  return (
+    <Campo etiqueta={etiqueta} error={error} ayuda={ayuda}>
+      <div className="entrada-password">
+        <input
+          type={visible ? 'text' : 'password'}
+          value={valor ?? ''}
+          onChange={(e) => alCambiar(e.target.value)}
+          onKeyDown={revisarMayusculas}
+          onKeyUp={revisarMayusculas}
+          onBlur={() => setMayusculas(false)}
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          aria-invalid={Boolean(error)}
+          {...props}
+        />
+        <button
+          type="button"
+          className="boton-ojo"
+          onClick={() => setVisible((v) => !v)}
+          onMouseDown={(e) => e.preventDefault()} // no quita el foco del campo (el teclado sigue abierto)
+          aria-label={visible ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+          aria-pressed={visible}
+        >
+          <Icono nombre={visible ? 'ojoTachado' : 'ojo'} />
+        </button>
+      </div>
+      {mayusculas && (
+        <small className="aviso-mayusculas">
+          <Icono nombre="mayusculas" tamano={14} /> Mayúsculas activadas
+        </small>
+      )}
     </Campo>
   );
 }

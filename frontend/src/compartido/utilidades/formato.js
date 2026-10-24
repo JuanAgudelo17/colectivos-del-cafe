@@ -32,6 +32,20 @@ export function kilometros(valor) {
   return valor == null ? '—' : `${formatoNumero.format(valor)} km`;
 }
 
+// Hora actual en Bogotá (0-23).
+export function horaBogota() {
+  return Number(
+    new Intl.DateTimeFormat('en-US', { timeZone: 'America/Bogota', hour: 'numeric', hourCycle: 'h23' }).format(new Date()),
+  );
+}
+
+// Cielo de la ilustración según la hora en Bogotá: 'dia' | 'atardecer' | 'noche'.
+export function cieloBogota() {
+  const hora = horaBogota();
+  if (hora < 6 || hora >= 19) return 'noche';
+  return hora >= 17 ? 'atardecer' : 'dia';
+}
+
 // Hoy en Bogotá como 'YYYY-MM-DD'.
 export function hoyBogota() {
   return new Intl.DateTimeFormat('sv-SE', { timeZone: 'America/Bogota' }).format(new Date());

@@ -107,10 +107,24 @@ test('5 intentos fallidos bloquean el usuario aunque luego acierte', async () =>
 
   const { status, cuerpo } = await login('VICTIMA', 'clave-correcta');
   assert.equal(status, 429);
-  assert.match(cuerpo.error, /Demasiados intentos/);
+  assert.match(cuerpo.error, /Demasiados intentos fallidos\. Intenta de nuevo en 15 minutos\./);
 
   // Otros usuarios no se ven afectados.
   assert.equal((await login('pedro', 'clave-correcta')).status, 200);
+});
+
+test('el bloqueo dice cuántos minutos faltan y se levanta al salir de la ventana', async () => {
+  await crearUsuario(db, { usuario: 'paciente' });
+  for (let i = 0; i < 5; i++) await login('paciente', 'mala');
+
+  await db.query(`UPDATE intento_login SET creado_en = now() - interval '10 minutes' WHERE usuario = 'paciente'`);
+  assert.match((await login('paciente', 'clave-correcta')).cuerpo.error, /en 5 minutos\./);
+
+  await db.query(`UPDATE intento_login SET creado_en = now() - interval '14 minutes 30 seconds' WHERE usuario = 'paciente'`);
+  assert.match((await login('paciente', 'clave-correcta')).cuerpo.error, /en 1 minuto\./);
+
+  await db.query(`UPDATE intento_login SET creado_en = now() - interval '16 minutes' WHERE usuario = 'paciente'`);
+  assert.equal((await login('paciente', 'clave-correcta')).status, 200);
 });
 
 test('login exitoso reinicia el contador de fallos', async () => {
