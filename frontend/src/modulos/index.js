@@ -4,6 +4,7 @@
 // Para agregar uno: crea la carpeta, su index.js y súmalo al grupo del menú de su rol.
 // Los que todavía no existen se listan con `fase` y salen deshabilitados en el menú.
 import busetas from './busetas/index.js';
+import colpass from './colpass/index.js';
 import conductores from './conductores/index.js';
 import dashboard from './dashboard/index.js';
 import miBuseta from './mi-buseta/index.js';
@@ -14,7 +15,7 @@ import rentabilidad from './rentabilidad/index.js';
 // Menú lateral de cada rol, agrupado por secciones.
 export const menuAdmin = [
   { grupo: 'General', modulos: [dashboard] },
-  { grupo: 'Contabilidad', modulos: [producido, rentabilidad] },
+  { grupo: 'Contabilidad', modulos: [producido, rentabilidad, colpass] },
   { grupo: 'Flota', modulos: [busetas, conductores] },
   {
     grupo: 'Próximamente',

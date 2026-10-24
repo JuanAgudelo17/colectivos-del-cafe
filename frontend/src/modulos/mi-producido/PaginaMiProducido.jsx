@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { SelectorMes } from '../../compartido/ui/SelectorMes.jsx';
 import { diasDelMes, mesActual, nombreMes, numero } from '../../compartido/utilidades/formato.js';
 import { useDatos } from '../../compartido/utilidades/useDatos.js';
+import { AvisoColpass } from '../colpass/index.js';
 import { ResumenMes } from '../producido/index.js';
 import './mi-producido.css';
 
@@ -32,6 +33,8 @@ export function PaginaMiProducido() {
           <p className="subtitulo">Lo que registró el administrador para tu buseta y en qué se gastó.</p>
         </div>
       </div>
+
+      <AvisoColpass />
 
       <div className="mi-producido-filtros">
         <SelectorMes valor={periodo} alCambiar={setPeriodo} />
