@@ -110,3 +110,78 @@
     position: static;
   }
 }
+
+/* ---- Mini resumen en el inicio del conductor (Mi buseta) ---- */
+.resumen-inicio {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 16px 32px;
+  margin-bottom: 24px;
+  padding: 20px 24px;
+  background: var(--negro);
+  color: var(--blanco);
+  border-radius: var(--radio);
+  text-decoration: none;
+}
+
+.resumen-inicio-titulo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-weight: 500;
+}
+
+.resumen-inicio-titulo::first-letter {
+  text-transform: uppercase;
+}
+
+.resumen-inicio small {
+  font-size: var(--texto-sm);
+  font-weight: 400;
+  color: var(--ceniza);
+}
+
+.resumen-inicio-cifras {
+  display: flex;
+  gap: 32px;
+}
+
+.resumen-inicio-cifras > span {
+  display: flex;
+  flex-direction: column;
+}
+
+.resumen-inicio-cifras strong {
+  font-size: var(--titulo-sm);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.resumen-inicio-enlace {
+  font-size: var(--texto-sm);
+  font-weight: 500;
+  white-space: nowrap;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 760px) {
+  .resumen-inicio {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .resumen-inicio-cifras {
+    gap: 24px;
+  }
+
+  .resumen-inicio-cifras > span {
+    flex: 1;
+  }
+
+  .resumen-inicio-cifras strong {
+    font-size: var(--texto-sub);
+  }
+}

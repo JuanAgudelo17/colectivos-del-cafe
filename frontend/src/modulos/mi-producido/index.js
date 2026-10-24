@@ -1,6 +1,9 @@
 import { PaginaMiColpass } from '../colpass/index.js';
 import { PaginaMiProducido } from './PaginaMiProducido.jsx';
 
+// Lo que otros módulos pueden usar de este (ver docs/MODULOS.md).
+export { ResumenMiProducido } from './ResumenMiProducido.jsx';
+
 export default {
   id: 'mi-producido',
   titulo: 'Mi producido',
