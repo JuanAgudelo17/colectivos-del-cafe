@@ -8,9 +8,10 @@ let servidor;
 let admin;
 let pedro;
 let sinBuseta;
+let db;
 
 before(async () => {
-  const db = await crearBdPrueba();
+  db = await crearBdPrueba();
   await db.exec(`
     INSERT INTO buseta (numero_interno, placa) VALUES ('2033', 'SOT112');
     INSERT INTO buseta (numero_interno, placa, tiene_cupo, valor_arriendo) VALUES ('2007', 'TXA235', false, 300000);
@@ -71,6 +72,7 @@ test('a los conductores solo les llega número, placa, producido y días, y se m
     'bruto',
     'diasTrabajados',
     'id',
+    'liquidacion',
     'numeroInterno',
     'placa',
     'propia',
@@ -87,4 +89,18 @@ test('por defecto el mes actual; mes inválido o sin año 400', async () => {
   assert.deepEqual({ anio: cuerpo.anio, mes: cuerpo.mes }, mesActualBogota());
   assert.equal((await pedir('?anio=2026&mes=13', admin)).status, 400);
   assert.equal((await pedir('?mes=9', admin)).status, 400);
+});
+
+test('un mes cerrado con la liquidación de la cooperativa usa el bruto del documento', async () => {
+  await db.query(
+    `INSERT INTO cierre_mensual (buseta_id, anio, mes, bruto, reposicion, empresa, conductor, peajes, salidas,
+       mantenimiento, arriendo, acpm, neto, estado, cerrado_por, cerrado_en, origen)
+     VALUES (2, 2026, 7, 10427500, 0, 0, 0, 0, 0, 0, 0, 0, 3146069, 'cerrado', $1, now(), 'liquidacion')`,
+    [admin.id],
+  );
+  const { cuerpo } = await pedir('?anio=2026&mes=7', admin);
+  assert.deepEqual(
+    [cuerpo.busetas[0].numeroInterno, cuerpo.busetas[0].bruto, cuerpo.busetas[0].liquidacion, cuerpo.busetas[0].puesto],
+    ['2007', 10427500, true, 1],
+  );
 });

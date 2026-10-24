@@ -601,3 +601,8 @@
     font-size: var(--texto-sub);
   }
 }
+
+/* Mes cerrado con la liquidación de la cooperativa, sin días registrados */
+.mp-solo-liquidacion {
+  max-width: 460px;
+}

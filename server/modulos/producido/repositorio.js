@@ -84,9 +84,9 @@ export async function mesCerrado(db, busetaId, anio, mes) {
 
 // ---- Todo un año, de todas las busetas (para el módulo rentabilidad) --------
 
-// Días y ajustes del año agrupables por buseta y mes, en dos consultas.
+// Días, ajustes y cierres del año, agrupables por buseta y mes.
 export async function datosDelAnio(db, anio) {
-  const [dias, ajustes] = await Promise.all([
+  const [dias, ajustes, cierres] = await Promise.all([
     db.query(
       `SELECT buseta_id AS "busetaId", EXTRACT(MONTH FROM fecha)::int AS mes,
               ingreso, peajes, salidas, acpm, acpm_credito AS "acpmCredito", mantenimiento, relevo
@@ -95,8 +95,9 @@ export async function datosDelAnio(db, anio) {
       [`${anio}-01-01`, `${anio}-12-31`],
     ),
     db.query('SELECT buseta_id AS "busetaId", mes, tipo, valor FROM ajuste_mensual WHERE anio = $1', [anio]),
+    db.query(`SELECT ${CAMPOS_CIERRE} FROM cierre_mensual WHERE anio = $1 AND estado = 'cerrado'`, [anio]),
   ]);
-  return { dias: dias.rows, ajustes: ajustes.rows };
+  return { dias: dias.rows, ajustes: ajustes.rows, cierres: cierres.rows };
 }
 
 // Producido y días trabajados de cada buseta en un rango (las que no trabajaron no salen).
@@ -173,4 +174,79 @@ export async function actualizarRuta(db, id, r) {
     [id, r.peajeTrayecto, r.salidaIda, r.salidaRegreso],
   );
   return rows[0] ?? null;
+}
+
+// ---- Cierres del mes (por ahora, con la liquidación de la cooperativa) ---------
+
+const CAMPOS_CIERRE = `
+  buseta_id AS "busetaId", anio, mes, bruto, reposicion, empresa, conductor, peajes, salidas,
+  mantenimiento, arriendo, acpm, neto, polizas, prestamos, relevo, bono, origen, liquidacion,
+  cerrado_en AS "cerradoEn"
+`;
+
+export async function obtenerCierre(db, busetaId, anio, mes) {
+  const { rows } = await db.query(
+    `SELECT ${CAMPOS_CIERRE} FROM cierre_mensual
+      WHERE buseta_id = $1 AND anio = $2 AND mes = $3 AND estado = 'cerrado'`,
+    [busetaId, anio, mes],
+  );
+  return rows[0] ?? null;
+}
+
+export async function cierresDelMes(db, anio, mes) {
+  const { rows } = await db.query(
+    `SELECT ${CAMPOS_CIERRE} FROM cierre_mensual WHERE anio = $1 AND mes = $2 AND estado = 'cerrado'`,
+    [anio, mes],
+  );
+  return rows;
+}
+
+// Cierra el mes con la liquidación (o la reemplaza si ya estaba). Nunca pisa un
+// cierre calculado por la app.
+export async function guardarCierreLiquidacion(db, { busetaId, anio, mes, cierre, liquidacion, cerradoPor }) {
+  await db.query(
+    `INSERT INTO cierre_mensual
+       (buseta_id, anio, mes, bruto, reposicion, empresa, conductor, peajes, salidas, mantenimiento, arriendo,
+        acpm, neto, polizas, prestamos, relevo, bono, origen, liquidacion, estado, cerrado_por, cerrado_en)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, 'liquidacion', $18,
+             'cerrado', $19, now())
+     ON CONFLICT (buseta_id, anio, mes) DO UPDATE
+       SET bruto = EXCLUDED.bruto, reposicion = EXCLUDED.reposicion, empresa = EXCLUDED.empresa,
+           conductor = EXCLUDED.conductor, peajes = EXCLUDED.peajes, salidas = EXCLUDED.salidas,
+           mantenimiento = EXCLUDED.mantenimiento, arriendo = EXCLUDED.arriendo, acpm = EXCLUDED.acpm,
+           neto = EXCLUDED.neto, polizas = EXCLUDED.polizas, prestamos = EXCLUDED.prestamos,
+           relevo = EXCLUDED.relevo, bono = EXCLUDED.bono, liquidacion = EXCLUDED.liquidacion,
+           estado = 'cerrado', cerrado_por = EXCLUDED.cerrado_por, cerrado_en = now()
+       WHERE cierre_mensual.origen = 'liquidacion'`,
+    [
+      busetaId,
+      anio,
+      mes,
+      cierre.bruto,
+      cierre.reposicion,
+      cierre.empresa,
+      cierre.conductor,
+      cierre.peajes,
+      cierre.salidas,
+      cierre.mantenimiento,
+      cierre.arriendo,
+      cierre.acpm,
+      cierre.neto,
+      cierre.polizas,
+      cierre.prestamos,
+      cierre.relevo,
+      cierre.bono,
+      JSON.stringify(liquidacion),
+      cerradoPor,
+    ],
+  );
+}
+
+// Reabre el mes quitando la liquidación (solo si el cierre vino de una).
+export async function borrarCierreLiquidacion(db, busetaId, anio, mes) {
+  const { rowCount } = await db.query(
+    `DELETE FROM cierre_mensual WHERE buseta_id = $1 AND anio = $2 AND mes = $3 AND origen = 'liquidacion'`,
+    [busetaId, anio, mes],
+  );
+  return rowCount > 0;
 }

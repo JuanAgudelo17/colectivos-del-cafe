@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { mesActual, nombreMes, pesos } from '../../compartido/utilidades/formato.js';
 import { useDatos } from '../../compartido/utilidades/useDatos.js';
 import { AvisoColpass } from '../colpass/index.js';
-import { ResumenMes } from '../producido/index.js';
+import { LiquidacionCooperativa, ResumenMes } from '../producido/index.js';
 import { GraficaDias } from './GraficaDias.jsx';
 import { ListaDias } from './ListaDias.jsx';
 import { NavegadorMes } from './NavegadorMes.jsx';
@@ -43,11 +43,18 @@ export function PaginaMiProducido() {
         <p className="mp-vacio">Aún no tienes buseta asignada. Cuando la tengas, aquí verás tu producido.</p>
       )}
 
-      {vigente?.buseta && vigente.dias.length === 0 && (
+      {vigente?.buseta && vigente.dias.length === 0 && !vigente.liquidacion && (
         <p className="mp-vacio">
           Todavía no hay días registrados en {nombreMes(periodo.anio, periodo.mes)}. El administrador los registra con
           las planillas.
         </p>
+      )}
+
+      {/* Mes cerrado con la liquidación de la cooperativa y sin días registrados: solo el documento */}
+      {vigente?.buseta && vigente.dias.length === 0 && vigente.liquidacion && (
+        <section className="mp-solo-liquidacion" aria-label="Liquidación del mes">
+          <LiquidacionCooperativa liquidacion={vigente.liquidacion} anio={vigente.anio} mes={vigente.mes} />
+        </section>
       )}
 
       {vigente?.buseta && vigente.dias.length > 0 && (
@@ -110,7 +117,11 @@ function Mes({ mes, enCurso }) {
 
       <section className="mp-resumen" aria-labelledby="titulo-resumen">
         <h2 id="titulo-resumen">En qué se gastó</h2>
-        <ResumenMes mes={mes} soloLectura />
+        {mes.liquidacion ? (
+          <LiquidacionCooperativa liquidacion={mes.liquidacion} anio={mes.anio} mes={mes.mes} />
+        ) : (
+          <ResumenMes mes={mes} soloLectura />
+        )}
       </section>
 
       <section className="mp-dias-seccion" aria-labelledby="titulo-dias">

@@ -4,7 +4,7 @@ import { PaginaRentabilidad } from './PaginaRentabilidad.jsx';
 // conductor (mi-rentabilidad) reutiliza la gráfica, el desglose y los cálculos.
 export { DesgloseCostos } from './DesgloseCostos.jsx';
 export { GraficaMeses } from './GraficaMeses.jsx';
-export { mesLargo, porcentaje, promedio } from './utilidades.js';
+export { diasConRegistro, mesLargo, porDia, porcentaje, promedio } from './utilidades.js';
 
 export default {
   id: 'rentabilidad',

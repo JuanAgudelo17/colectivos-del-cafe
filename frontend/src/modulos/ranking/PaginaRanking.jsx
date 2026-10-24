@@ -44,7 +44,9 @@ export function PaginaRanking() {
               <span className="ranking-datos">
                 <strong>{pesos(b.bruto)}</strong>
                 <small>
-                  {b.diasTrabajados} {b.diasTrabajados === 1 ? 'día trabajado' : 'días trabajados'}
+                  {b.liquidacion
+                    ? 'Según la liquidación'
+                    : `${b.diasTrabajados} ${b.diasTrabajados === 1 ? 'día trabajado' : 'días trabajados'}`}
                 </small>
               </span>
               <span className="ranking-pista" aria-hidden="true">

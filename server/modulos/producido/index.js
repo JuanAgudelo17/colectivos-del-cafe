@@ -3,7 +3,15 @@
 import router from './rutas.js';
 
 export { calcularResumen } from './calculo.js';
-export { datosDelAnio, parametrosDelMes, primerAnio, producidoPorBuseta, rangoDelMes } from './repositorio.js';
+export { resumenDeCierre } from './liquidacion.js';
+export {
+  cierresDelMes,
+  datosDelAnio,
+  parametrosDelMes,
+  primerAnio,
+  producidoPorBuseta,
+  rangoDelMes,
+} from './repositorio.js';
 
 export default {
   ruta: '/producido',

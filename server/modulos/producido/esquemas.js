@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { pesos, textoOpcional } from '../../compartido/http/validacion.js';
+import { fechaOpcional, pesos, textoOpcional } from '../../compartido/http/validacion.js';
 
 // Vacío o ausente = 0 (en la planilla los días sin ACPM se dejan en blanco).
 const pesosDia = z.preprocess((v) => (v === null || v === undefined || v === '' ? 0 : v), pesos);
@@ -33,4 +33,28 @@ export const rutaEsquema = z.object({
   peajeTrayecto: pesos,
   salidaIda: pesos,
   salidaRegreso: pesos,
+});
+
+// Liquidación mensual de la cooperativa: total bruto, descuentos (vacío = 0) y el
+// neto a pagar del documento (se verifica que cuadre).
+export const liquidacionEsquema = z.object({
+  anio: z.coerce.number().int().min(2020).max(2100),
+  mes: z.coerce.number().int().min(1).max(12),
+  fecha: fechaOpcional,
+  totalBruto: pesos,
+  administracion: pesosDia,
+  polizas: pesosDia,
+  fondoReposicion: pesosDia,
+  salidas: pesosDia,
+  combustibles: pesosDia,
+  peajes: pesosDia,
+  prestamos: pesosDia,
+  salarioConductor: pesosDia,
+  prestacionesConductor: pesosDia,
+  seguridadSocialConductor: pesosDia,
+  salarioRelevo: pesosDia,
+  prestacionesRelevo: pesosDia,
+  seguridadSocialRelevo: pesosDia,
+  vacacionesRelevo: pesosDia,
+  netoAPagar: z.coerce.number({ message: 'Valor inválido' }).int('Sin decimales'),
 });

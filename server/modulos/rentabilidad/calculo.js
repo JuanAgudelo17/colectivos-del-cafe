@@ -1,7 +1,7 @@
 // Rentabilidad del año: junta los días y ajustes de cada buseta por mes, calcula
 // cada mes con la fórmula oficial (calcularResumen del producido) y acumula
 // totales por buseta y de la flota. Función pura, sin base de datos.
-import { calcularResumen } from '../producido/index.js';
+import { calcularResumen, resumenDeCierre } from '../producido/index.js';
 
 // Campos del resumen mensual que tiene sentido sumar entre meses o busetas.
 export const CAMPOS_SUMABLES = [
@@ -43,8 +43,9 @@ export function acumular(resumenes) {
  * @param {Array<{busetaId, mes}>} p.dias      días del año (con los campos del producido)
  * @param {Array<{busetaId, mes, tipo, valor}>} p.ajustes
  * @param {Record<number, Record<string, string>>} p.parametrosPorMes  mes → parámetros vigentes
+ * @param {Array<{busetaId, mes}>} [p.cierres]  meses cerrados (ej. con la liquidación de la cooperativa): mandan
  */
-export function armarAnio({ anio, mesActual, busetas, dias, ajustes, parametrosPorMes }) {
+export function armarAnio({ anio, mesActual, busetas, dias, ajustes, parametrosPorMes, cierres = [] }) {
   // Hasta el mes actual: los meses que no han llegado no cuentan.
   const ultimoMes = anio < mesActual.anio ? 12 : anio === mesActual.anio ? mesActual.mes : 0;
   const meses = Array.from({ length: ultimoMes }, (_, i) => i + 1);
@@ -58,6 +59,9 @@ export function armarAnio({ anio, mesActual, busetas, dias, ajustes, parametrosP
       const delAnio = meses.flatMap((mes) => {
         const diasMes = de(dias, buseta.id, mes);
         const ajustesMes = de(ajustes, buseta.id, mes);
+        // Un mes cerrado (ej. con la liquidación de la cooperativa) usa sus valores.
+        const cierre = de(cierres, buseta.id, mes)[0];
+        if (cierre) return [{ mes, enCurso: enCurso(mes), ...resumenDeCierre(cierre, diasMes) }];
         if (diasMes.length === 0 && ajustesMes.length === 0) return [];
         const resumen = calcularResumen({
           dias: diasMes,

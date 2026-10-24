@@ -2,7 +2,15 @@ import { useState } from 'react';
 import { CampoSeleccion } from '../../compartido/ui/Campos.jsx';
 import { diasDelMes, hoyBogota, pesos } from '../../compartido/utilidades/formato.js';
 import { useDatos } from '../../compartido/utilidades/useDatos.js';
-import { DesgloseCostos, GraficaMeses, mesLargo, porcentaje, promedio } from '../rentabilidad/index.js';
+import {
+  DesgloseCostos,
+  GraficaMeses,
+  diasConRegistro,
+  mesLargo,
+  porDia,
+  porcentaje,
+  promedio,
+} from '../rentabilidad/index.js';
 import './mi-rentabilidad.css';
 
 // Días de cada mes que ya pasaron (el mes en curso, hasta hoy): para saber
@@ -61,8 +69,11 @@ export function PaginaMiRentabilidad() {
 function Rentabilidad({ datos }) {
   const { total, meses, anio, mesActual, buseta } = datos;
   const enCurso = meses.find((m) => m.enCurso);
-  const corridos = meses.reduce((t, m) => t + diasCorridos(anio, m.mes, mesActual), 0);
-  const sinTrabajar = Math.max(corridos - total.diasTrabajados, 0);
+  // Los días solo cuentan en los meses con días registrados (no en los de liquidación).
+  const conDias = meses.filter((m) => !m.deLiquidacion);
+  const trabajados = diasConRegistro(meses);
+  const corridos = conDias.reduce((t, m) => t + diasCorridos(anio, m.mes, mesActual), 0);
+  const sinTrabajar = Math.max(corridos - trabajados, 0);
   const quedan = total.bruto > 0 ? Math.round((total.neto / total.bruto) * 100) : 0;
 
   return (
@@ -88,15 +99,15 @@ function Rentabilidad({ datos }) {
             valor={pesos(promedio(total.neto, meses.length))}
             nota={enCurso ? 'Incluye el mes en curso' : undefined}
           />
-          <Dato texto="Producido por día trabajado" valor={pesos(promedio(total.bruto, total.diasTrabajados))} />
+          <Dato texto="Producido por día trabajado" valor={pesos(porDia(meses, 'bruto'))} />
           <Dato
             texto="Utilidad por día trabajado"
-            valor={pesos(promedio(total.neto, total.diasTrabajados))}
+            valor={pesos(porDia(meses, 'neto'))}
             nota="Lo que deja, en promedio, cada día que sale"
           />
           <Dato
             texto="Días trabajados"
-            valor={`${total.diasTrabajados} de ${corridos}`}
+            valor={`${trabajados} de ${corridos}`}
             nota={
               sinTrabajar > 0
                 ? `${sinTrabajar} ${sinTrabajar === 1 ? 'día' : 'días'} sin producido`
@@ -210,7 +221,7 @@ function TablaMeses({ anio, meses, mesActual }) {
                 {m.bruto > 0 ? `$ ${Math.round((m.neto / m.bruto) * 100)}` : '—'}
               </td>
               <td className="numero" data-etiqueta="Días">
-                {m.diasTrabajados} de {diasCorridos(anio, m.mes, mesActual)}
+                {m.deLiquidacion ? 'Liquidación' : `${m.diasTrabajados} de ${diasCorridos(anio, m.mes, mesActual)}`}
               </td>
             </tr>
           ))}

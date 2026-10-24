@@ -32,3 +32,19 @@ export const CONCEPTOS = [
   ['prestamos', 'Préstamos'],
   ['bono', 'Bonos'],
 ];
+
+// Promedio por día trabajado de un campo (ej. 'neto'), solo con los meses que
+// tienen días registrados: un mes cerrado con la liquidación de la cooperativa
+// trae el total pero no los días, y si se contara inflaría el promedio.
+export function porDia(meses, campo) {
+  const conDias = meses.filter((m) => !m.deLiquidacion);
+  const dias = conDias.reduce((t, m) => t + m.diasTrabajados, 0);
+  return promedio(
+    conDias.reduce((t, m) => t + m[campo], 0),
+    dias,
+  );
+}
+
+// Días trabajados de los meses con días registrados (sin los de liquidación).
+export const diasConRegistro = (meses) =>
+  meses.filter((m) => !m.deLiquidacion).reduce((t, m) => t + m.diasTrabajados, 0);
