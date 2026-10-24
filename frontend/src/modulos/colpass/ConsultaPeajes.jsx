@@ -6,9 +6,8 @@ import { fecha, hoyBogota, numero, pesos } from '../../compartido/utilidades/for
 // La usan el admin y el conductor. `rango` / `alCambiarRango`: { desde, hasta }.
 // `nivel`: etiqueta del título (h3 cuando va dentro del apartado de Producido).
 export function ConsultaPeajes({ detalle, rango, alCambiarRango, campos = {}, nivel: Titulo = 'h2' }) {
-  const { consulta, colpass } = detalle;
+  const { consulta } = detalle;
   const hoy = hoyBogota();
-  const estado = (d) => (d.liquidado ? 'Liquidado' : d.fecha < colpass.desde ? 'Antes del Colpass' : 'Por liquidar');
 
   return (
     <section className="colpass-consulta" aria-labelledby="titulo-consulta">
@@ -68,9 +67,7 @@ export function ConsultaPeajes({ detalle, rango, alCambiarRango, campos = {}, ni
                     {numero(d.peajes)}
                   </td>
                   <td>
-                    <span className={d.liquidado ? 'etiqueta' : 'etiqueta etiqueta-oscura'}>
-                      {d.liquidado && <span aria-hidden="true">✓</span>} {estado(d)}
-                    </span>
+                    <EstadoDia dia={d} />
                   </td>
                 </tr>
               ))}
@@ -82,19 +79,37 @@ export function ConsultaPeajes({ detalle, rango, alCambiarRango, campos = {}, ni
   );
 }
 
-// Lo que el conductor tiene guardado sin liquidar (barra negra, la cifra principal).
-export function TotalPendiente({ pendiente, texto }) {
+// Estado de un día: liquidado, parcial (cuánto se cubrió), pendiente o antes del Colpass.
+function EstadoDia({ dia }) {
+  if (dia.estado === 'liquidado') {
+    return (
+      <span className="etiqueta">
+        <span aria-hidden="true">✓</span> Liquidado
+      </span>
+    );
+  }
+  if (dia.estado === 'antes') return <span className="etiqueta">Antes del Colpass</span>;
+  if (dia.estado === 'parcial') {
+    return <span className="etiqueta etiqueta-oscura">Faltan {pesos(dia.peajes - dia.cubierto)}</span>;
+  }
+  return <span className="etiqueta etiqueta-oscura">Por liquidar</span>;
+}
+
+// Lo que el conductor tiene guardado sin entregar (barra negra, la cifra principal).
+export function TotalPendiente({ detalle, texto }) {
+  const { pendiente, saldoAFavor } = detalle;
   return (
     <div className="colpass-pendiente">
       <span>{texto}</span>
       <strong>{pesos(pendiente.total)}</strong>
       <small>
         {pendiente.dias === 0
-          ? 'Todo está liquidado'
-          : `Del ${fecha(pendiente.desde)} al ${fecha(pendiente.hasta)} · ${pendiente.dias} ${
-              pendiente.dias === 1 ? 'día' : 'días'
-            }`}
+          ? 'No hay peajes pendientes por liquidar'
+          : `Peajes pendientes por liquidar del ${fecha(pendiente.desde)} al ${fecha(pendiente.hasta)} · ${
+              pendiente.dias
+            } ${pendiente.dias === 1 ? 'día' : 'días'}`}
       </small>
+      {saldoAFavor > 0 && <small>Saldo a favor del conductor: {pesos(saldoAFavor)}</small>}
     </div>
   );
 }

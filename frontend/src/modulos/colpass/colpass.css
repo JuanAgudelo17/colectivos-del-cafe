@@ -100,10 +100,6 @@
   text-align: right;
 }
 
-.colpass-liquidar {
-  margin-top: 24px;
-}
-
 /* ---- Liquidaciones ---- */
 .colpass-liquidaciones {
   list-style: none;
@@ -142,10 +138,6 @@
   margin: 16px 0 0;
   font-size: var(--texto-sm);
   color: var(--pizarra);
-}
-
-.colpass-confirmar {
-  margin: 0;
 }
 
 /* ---- Tarjeta en "Mi producido" del conductor ---- */
@@ -238,4 +230,33 @@
 
 .colpass-fecha {
   max-width: 320px;
+}
+
+.colpass-registrar {
+  margin-bottom: 16px;
+}
+
+.colpass-entrega {
+  margin-bottom: 24px;
+  padding: 20px;
+  background: var(--niebla);
+  border-radius: var(--radio);
+}
+
+/* Conductor: lo entregado a la izquierda (y primero en celular), la consulta a la derecha */
+.colpass-cuerpo-conductor {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+}
+
+@media (max-width: 900px) {
+  .colpass-cuerpo-conductor {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  /* La barra fija de "Registrar lo que entregué" no tapa el final */
+  .colpass-cuerpo-conductor {
+    padding-bottom: 72px;
+  }
 }

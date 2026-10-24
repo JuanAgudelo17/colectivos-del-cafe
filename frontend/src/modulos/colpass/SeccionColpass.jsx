@@ -6,25 +6,19 @@ import { fecha, hoyBogota, pesos } from '../../compartido/utilidades/formato.js'
 import { useDatos } from '../../compartido/utilidades/useDatos.js';
 import { useEnvio } from '../../compartido/utilidades/useEnvio.js';
 import { ConsultaPeajes, TotalPendiente } from './ConsultaPeajes.jsx';
+import { FormularioEntrega, ListaEntregas } from './Entregas.jsx';
 import './colpass.css';
 
 const inicioDelMes = () => `${hoyBogota().slice(0, 8)}01`;
 
-// Por qué no se puede liquidar el rango consultado (el backend lo valida igual).
-function motivoNoLiquidar({ consulta, colpass }) {
-  if (consulta.desde < colpass.desde) return `Para liquidar, empieza desde el ${fecha(colpass.desde)} (inicio del Colpass).`;
-  if (consulta.liquidado > 0) return 'El rango incluye días ya liquidados: usa "Ver los días pendientes".';
-  if (consulta.porLiquidar === 0) return 'No hay peajes por liquidar en esas fechas.';
-  return null;
-}
-
 // Apartado "Peajes Colpass" dentro de Producido (admin), para la buseta elegida.
-// Con Colpass: lo que el conductor tiene guardado, consulta por fechas, liquidar
-// y las liquidaciones. Sin Colpass: solo un enlace para activarlo.
+// Con Colpass: lo que el conductor tiene guardado para el propietario, consulta
+// por fechas y las entregas (las registra el conductor o el admin). Sin Colpass:
+// solo un enlace para activarlo.
 // `cambio`: cuando cambia (ej. los peajes del mes en la cuadrícula), se recarga.
 export function SeccionColpass({ busetaId, cambio }) {
   const [rango, setRango] = useState(() => ({ desde: inicioDelMes(), hasta: hoyBogota() }));
-  const [liquidando, setLiquidando] = useState(false);
+  const [registrando, setRegistrando] = useState(false);
   const detalle = useDatos(`/colpass/${busetaId}?desde=${rango.desde}&hasta=${rango.hasta}`);
   const { recargar } = detalle;
   const datos = detalle.datos?.buseta.id === busetaId ? detalle.datos : null;
@@ -47,20 +41,18 @@ export function SeccionColpass({ busetaId, cambio }) {
     );
   }
 
-  const motivo = motivoNoLiquidar(datos);
-
   return (
     <section className="colpass-seccion" aria-labelledby="titulo-colpass">
       <h2 id="titulo-colpass">Peajes Colpass</h2>
       <p className="subtitulo">
         La empresa le da los peajes al conductor, pero el Colpass los cobra aparte: él guarda esa plata hasta
-        entregártela.
+        entregársela al propietario. Cada entrega cubre los peajes pendientes más viejos.
       </p>
 
       <div className="colpass-encabezado">
         <TotalPendiente
-          pendiente={datos.pendiente}
-          texto={`Por liquidar · ${datos.buseta.conductor ?? 'sin conductor'}`}
+          detalle={datos}
+          texto={`Por entregar al propietario · ${datos.buseta.conductor ?? 'sin conductor'}`}
         />
         {datos.pendiente.dias > 0 && (
           <button
@@ -74,20 +66,22 @@ export function SeccionColpass({ busetaId, cambio }) {
       </div>
 
       <div className="colpass-cuerpo">
-        <div>
-          <ConsultaPeajes detalle={datos} rango={rango} alCambiarRango={setRango} nivel="h3" />
-          {motivo && <p className="colpass-nota">{motivo}</p>}
-          <button
-            type="button"
-            className="boton-principal colpass-liquidar"
-            disabled={Boolean(motivo)}
-            onClick={() => setLiquidando(true)}
-          >
-            Liquidar {pesos(datos.consulta.porLiquidar)}
-          </button>
-        </div>
+        <ConsultaPeajes detalle={datos} rango={rango} alCambiarRango={setRango} nivel="h3" />
 
-        <Liquidaciones datos={datos} alActualizar={recargar} />
+        <section aria-labelledby="titulo-entregas">
+          <h3 id="titulo-entregas">Entregas al propietario</h3>
+          {datos.pendiente.total > 0 && (
+            <button type="button" className="boton-principal colpass-registrar" onClick={() => setRegistrando(true)}>
+              Registrar entrega
+            </button>
+          )}
+          <ListaEntregas
+            entregas={datos.entregas}
+            rutaBorrar={(id) => `/colpass/${busetaId}/entregas/${id}`}
+            alActualizar={recargar}
+          />
+          <p className="colpass-nota">Total entregado: {pesos(datos.totalEntregado)}</p>
+        </section>
       </div>
 
       <div className="colpass-ajustes">
@@ -100,11 +94,12 @@ export function SeccionColpass({ busetaId, cambio }) {
         <QuitarColpass buseta={datos.buseta} alQuitar={recargar} />
       </div>
 
-      <Dialogo abierto={liquidando} titulo="Registrar liquidación" alCerrar={() => setLiquidando(false)}>
-        <Liquidar
-          datos={datos}
+      <Dialogo abierto={registrando} titulo="Registrar entrega al propietario" alCerrar={() => setRegistrando(false)}>
+        <FormularioEntrega
+          ruta={`/colpass/${busetaId}/entregas`}
+          detalle={datos}
           alGuardar={() => {
-            setLiquidando(false);
+            setRegistrando(false);
             recargar();
           }}
         />
@@ -146,7 +141,7 @@ function FechaColpass({ busetaId, actual, texto, alGuardar }) {
         valor={desde}
         alCambiar={setDesde}
         error={campos.desde}
-        ayuda="Antes de esta fecha los peajes se pagaban en efectivo: no quedan por liquidar."
+        ayuda="Antes de esta fecha los peajes se pagaban en efectivo: no se le entregan al propietario."
       />
       <div className="acciones">
         <button type="button" className="boton-enlace" onClick={() => setAbierto(false)}>
@@ -160,89 +155,11 @@ function FechaColpass({ busetaId, actual, texto, alGuardar }) {
   );
 }
 
-// Confirma la liquidación del rango consultado: el conductor entrega esa plata.
-function Liquidar({ datos, alGuardar }) {
-  const [observacion, setObservacion] = useState('');
-  const { enviando, error, enviar } = useEnvio();
-  const { desde, hasta, porLiquidar } = datos.consulta;
-
-  async function guardar(e) {
-    e.preventDefault();
-    const r = await enviar(() =>
-      api(`/colpass/${datos.buseta.id}/liquidaciones`, { method: 'POST', cuerpo: { desde, hasta, observacion } }),
-    );
-    if (r) alGuardar();
-  }
-
-  return (
-    <form className="formulario" onSubmit={guardar} noValidate>
-      {error && <p className="error">{error}</p>}
-      <p className="colpass-confirmar">
-        {datos.buseta.conductor ?? 'El conductor'} entrega <strong>{pesos(porLiquidar)}</strong> de los peajes
-        del {fecha(desde)} al {fecha(hasta)} ({datos.buseta.numeroInterno}).
-      </p>
-      <CampoTexto
-        etiqueta="Nota (opcional)"
-        valor={observacion}
-        alCambiar={setObservacion}
-        placeholder="Ej: entregó en efectivo"
-        maxLength={200}
-      />
-      <div className="acciones">
-        <button type="submit" className="boton-principal" disabled={enviando}>
-          {enviando ? 'Guardando…' : 'Liquidar'}
-        </button>
-      </div>
-    </form>
-  );
-}
-
-function Liquidaciones({ datos, alActualizar }) {
-  const { enviando, error, enviar } = useEnvio();
-
-  async function quitar(l) {
-    if (!window.confirm(`¿Quitar la liquidación de ${pesos(l.valor)}? Esos días vuelven a quedar por liquidar.`)) return;
-    const r = await enviar(() => api(`/colpass/${datos.buseta.id}/liquidaciones/${l.id}`, { method: 'DELETE' }));
-    if (r) alActualizar();
-  }
-
-  return (
-    <section aria-labelledby="titulo-liquidaciones">
-      <h3 id="titulo-liquidaciones">Liquidaciones</h3>
-      {error && <p className="error">{error}</p>}
-      {datos.liquidaciones.length === 0 ? (
-        <p className="vacio">Todavía no hay liquidaciones.</p>
-      ) : (
-        <ul className="colpass-liquidaciones">
-          {datos.liquidaciones.map((l) => (
-            <li key={l.id}>
-              <strong>{pesos(l.valor)}</strong>
-              <span>
-                Peajes del {fecha(l.desde)} al {fecha(l.hasta)}
-              </span>
-              {l.observacion && <small>{l.observacion}</small>}
-              {l.valorActual !== l.valor && (
-                <span className="documento documento-por_vencer">
-                  <span aria-hidden="true">⚠️</span> Se corrigió el producido: hoy esos días suman{' '}
-                  {pesos(l.valorActual)}
-                </span>
-              )}
-              <button type="button" className="boton-enlace" disabled={enviando} onClick={() => quitar(l)}>
-                Quitar
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
-  );
-}
-
 function QuitarColpass({ buseta, alQuitar }) {
   const { enviando, error, enviar } = useEnvio();
 
   async function quitar() {
-    if (!window.confirm(`¿Quitar el Colpass de la ${buseta.numeroInterno}? Las liquidaciones hechas se conservan.`)) {
+    if (!window.confirm(`¿Quitar el Colpass de la ${buseta.numeroInterno}? Las entregas hechas se conservan.`)) {
       return;
     }
     const r = await enviar(() => api(`/colpass/${buseta.id}`, { method: 'DELETE' }).then(() => true));

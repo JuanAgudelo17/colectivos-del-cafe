@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { textoOpcional } from '../../compartido/http/validacion.js';
+import { pesos, textoOpcional } from '../../compartido/http/validacion.js';
 
 const fecha = z.iso.date({ message: 'Fecha inválida' });
 
@@ -13,6 +13,9 @@ export const rangoConsulta = z
 
 export const activarEsquema = z.object({ desde: fecha });
 
-export const liquidacionEsquema = z
-  .object({ desde: fecha, hasta: fecha, observacion: textoOpcional(200) })
-  .refine((r) => r.desde <= r.hasta, { message: 'La fecha inicial debe ser antes de la final', path: ['hasta'] });
+// Plata que el conductor le entregó al propietario.
+export const entregaEsquema = z.object({
+  fecha,
+  valor: pesos.refine((v) => v > 0, 'El valor debe ser mayor que cero'),
+  observacion: textoOpcional(200),
+});
