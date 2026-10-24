@@ -4,25 +4,27 @@ import { idDeRuta, validar } from '../../compartido/http/validacion.js';
 import { hoyBogota } from '../../compartido/fecha.js';
 import { alcance, autenticar, requiereRol } from '../../compartido/seguridad/middleware.js';
 import { listarBusetas, obtenerBuseta } from '../busetas/index.js';
-import { activarEsquema, liquidacionEsquema, rangoConsulta } from './esquemas.js';
+import { activarEsquema, entregaEsquema, rangoConsulta } from './esquemas.js';
+import { repartir } from './reparto.js';
 import {
   activarColpass,
-  borrarLiquidacion,
-  crearLiquidacion,
+  borrarEntrega,
+  crearEntrega,
   diasConPeajes,
-  liquidacionQueSeCruza,
   listarColpass,
-  listarLiquidaciones,
+  listarEntregas,
   obtenerColpass,
-  obtenerLiquidacion,
-  pendiente,
+  obtenerEntrega,
   quitarColpass,
-  sumaPeajes,
 } from './repositorio.js';
 
 const router = Router();
 
+// El conductor puede borrar lo que registró durante estos días (por si se equivocó).
+const DIAS_EDICION = 7;
+
 const fechaCorta = (iso) => iso.split('-').reverse().join('/');
+const enPesos = (valor) => `$ ${new Intl.NumberFormat('es-CO').format(valor)}`;
 
 // Rango pedido o, por defecto, del primero del mes actual a hoy.
 function rango(query) {
@@ -31,17 +33,37 @@ function rango(query) {
   return { desde: desde ?? `${hoy.slice(0, 8)}01`, hasta: hasta ?? hoy };
 }
 
-// Todo lo que se ve de una buseta con Colpass: lo pendiente por liquidar, la
-// consulta del rango (total y día por día) y las liquidaciones.
-// conductorId: limita a lo de ese conductor (vista del conductor).
-async function armarDetalle(db, buseta, colpass, { desde, hasta }, conductorId = null) {
-  const filtro = { busetaId: buseta.id, conductorId };
-  const [porLiquidar, dias, liquidaciones] = await Promise.all([
-    pendiente(db, { ...filtro, desde: colpass.desde, hasta: hoyBogota() }),
-    diasConPeajes(db, { ...filtro, desde, hasta }),
-    listarLiquidaciones(db, buseta.id, conductorId),
+// Cuenta del Colpass: los peajes desde que hay Colpass y las entregas, repartidas
+// en orden (las entregas cubren primero los días más viejos).
+async function estadoDeCuenta(db, busetaId, colpass) {
+  const [dias, entregas] = await Promise.all([
+    diasConPeajes(db, busetaId, colpass.desde, hoyBogota()),
+    listarEntregas(db, busetaId),
   ]);
-  const sumar = (lista) => lista.reduce((t, d) => t + d.peajes, 0);
+  return repartir(dias, entregas);
+}
+
+function puedeBorrar(entrega, usuario) {
+  if (usuario.rol === 'admin') return true;
+  const reciente = Date.now() - new Date(entrega.creadoEn).getTime() <= DIAS_EDICION * 86_400_000;
+  return entrega.registradoPor === usuario.id && reciente;
+}
+
+// Todo lo que se ve de una buseta con Colpass: lo pendiente, la consulta del
+// rango (total y día por día) y las entregas (la más reciente primero).
+async function armarDetalle(db, buseta, colpass, { desde, hasta }, usuario) {
+  const [cuenta, delRango] = await Promise.all([
+    estadoDeCuenta(db, buseta.id, colpass),
+    diasConPeajes(db, buseta.id, desde, hasta),
+  ]);
+  const deLaCuenta = new Map(cuenta.dias.map((d) => [d.fecha, d]));
+  // Los días antes del Colpass se pagaron en efectivo: no se entregan.
+  const dias = delRango.map((d) => {
+    if (d.fecha < colpass.desde) return { ...d, cubierto: 0, estado: 'antes' };
+    const enCuenta = deLaCuenta.get(d.fecha);
+    return { ...d, cubierto: enCuenta?.cubierto ?? 0, estado: enCuenta?.estado ?? 'pendiente' };
+  });
+  const sumar = (valor) => dias.reduce((t, d) => t + valor(d), 0);
 
   return {
     buseta: {
@@ -51,50 +73,102 @@ async function armarDetalle(db, buseta, colpass, { desde, hasta }, conductorId =
       conductor: buseta.conductor?.nombre ?? null,
     },
     colpass: { desde: colpass.desde },
-    pendiente: porLiquidar,
+    pendiente: cuenta.pendiente,
+    saldoAFavor: cuenta.saldoAFavor,
+    totalEntregado: cuenta.totalEntregado,
     consulta: {
       desde,
       hasta,
-      total: sumar(dias),
-      liquidado: sumar(dias.filter((d) => d.liquidado)),
-      // Los días antes del Colpass se pagaron en efectivo: no quedan por liquidar.
-      porLiquidar: sumar(dias.filter((d) => !d.liquidado && d.fecha >= colpass.desde)),
+      total: sumar((d) => d.peajes),
+      liquidado: sumar((d) => d.cubierto),
+      porLiquidar: sumar((d) => (d.estado === 'antes' ? 0 : d.peajes - d.cubierto)),
       dias,
     },
-    liquidaciones,
+    entregas: cuenta.entregas
+      .map((e) => ({
+        id: e.id,
+        fecha: e.fecha,
+        valor: e.valor,
+        observacion: e.observacion,
+        cubre: e.cubre,
+        registradaPor: e.registradoPorRol === 'conductor' ? 'conductor' : 'admin',
+        puedeBorrar: puedeBorrar(e, usuario),
+      }))
+      .reverse(),
   };
 }
 
-// ---- Conductor: solo consulta lo suyo -----------------------------------------
-router.get('/mio', autenticar, requiereRol('conductor'), async (req, res) => {
+// Registra la plata entregada al propietario: queda liquidada de una vez y cubre
+// los peajes pendientes más viejos. No se puede entregar más de lo pendiente.
+async function registrarEntrega(db, { buseta, colpass, datos, conductorId, registradoPor }) {
+  if (datos.fecha < colpass.desde) {
+    throw new ErrorHttp(400, `El Colpass empezó el ${fechaCorta(colpass.desde)}`, { fecha: 'Antes del Colpass' });
+  }
+  if (datos.fecha > hoyBogota()) throw new ErrorHttp(400, 'La fecha no puede ser futura', { fecha: 'Fecha futura' });
+
+  const { pendiente } = await estadoDeCuenta(db, buseta.id, colpass);
+  if (pendiente.total === 0) throw new ErrorHttp(400, 'No hay peajes pendientes por entregar');
+  if (datos.valor > pendiente.total) {
+    throw new ErrorHttp(400, `Solo hay ${enPesos(pendiente.total)} de peajes pendientes`, {
+      valor: `Máximo ${enPesos(pendiente.total)}`,
+    });
+  }
+  await crearEntrega(db, { ...datos, busetaId: buseta.id, conductorId, registradoPor });
+}
+
+// ---- Conductor: consulta lo suyo y registra lo que entregó --------------------
+const soloConductor = [autenticar, requiereRol('conductor')];
+
+// Su buseta y su Colpass (null si no tiene). Nunca recibe un id: sale de la sesión.
+async function miColpass(req) {
   const db = req.app.locals.db;
-  const consulta = rango(req.query);
-  const { busetaId, conductorId } = alcance(req.usuario);
+  const { busetaId } = alcance(req.usuario);
   const buseta = busetaId && (await obtenerBuseta(db, busetaId));
   const colpass = buseta && (await obtenerColpass(db, buseta.id));
-  if (!colpass) return res.json({ colpass: null });
+  return colpass ? { buseta, colpass } : null;
+}
 
-  const detalle = await armarDetalle(db, buseta, colpass, consulta, conductorId);
-  // El conductor no necesita las notas internas del admin ni el valor recalculado.
-  detalle.liquidaciones = detalle.liquidaciones.map(({ id, desde, hasta, valor, creadoEn }) => ({
-    id,
-    desde,
-    hasta,
-    valor,
-    creadoEn,
-  }));
-  res.json(detalle);
+async function miColpassObligatorio(req) {
+  const mio = await miColpass(req);
+  if (!mio) throw new ErrorHttp(404, 'Tu buseta no tiene Colpass');
+  return mio;
+}
+
+router.get('/mio', soloConductor, async (req, res) => {
+  const consulta = rango(req.query);
+  const mio = await miColpass(req);
+  if (!mio) return res.json({ colpass: null });
+  res.json(await armarDetalle(req.app.locals.db, mio.buseta, mio.colpass, consulta, req.usuario));
+});
+
+router.post('/mio/entregas', soloConductor, async (req, res) => {
+  const db = req.app.locals.db;
+  const { buseta, colpass } = await miColpassObligatorio(req);
+  const datos = validar(entregaEsquema, req.body);
+  await registrarEntrega(db, { buseta, colpass, datos, conductorId: req.usuario.id, registradoPor: req.usuario.id });
+  res.status(201).json(await armarDetalle(db, buseta, colpass, rango(req.query), req.usuario));
+});
+
+router.delete('/mio/entregas/:id', soloConductor, async (req, res) => {
+  const db = req.app.locals.db;
+  const { buseta, colpass } = await miColpassObligatorio(req);
+  const entrega = await obtenerEntrega(db, idDeRuta(req));
+  if (!entrega || entrega.busetaId !== buseta.id) throw noEncontrado('La entrega');
+  if (!puedeBorrar(entrega, req.usuario)) {
+    throw new ErrorHttp(403, `Solo puedes borrar lo que registraste en los últimos ${DIAS_EDICION} días`);
+  }
+  await borrarEntrega(db, entrega.id);
+  res.json(await armarDetalle(db, buseta, colpass, rango(req.query), req.usuario));
 });
 
 // ---- Admin --------------------------------------------------------------------
 router.use(autenticar, requiereRol('admin'));
 
-// Busetas activas, con Colpass o no (para activarlo), y cuánto tienen por liquidar.
+// Busetas activas, con Colpass o no, y cuánto tienen pendiente por entregar.
 router.get('/', async (req, res) => {
   const db = req.app.locals.db;
   const [busetas, conColpass] = await Promise.all([listarBusetas(db), listarColpass(db)]);
   const desdeDe = new Map(conColpass.map((c) => [c.busetaId, c.desde]));
-  const hoy = hoyBogota();
 
   res.json({
     busetas: await Promise.all(
@@ -108,7 +182,7 @@ router.get('/', async (req, res) => {
             placa: b.placa,
             conductor: b.conductor?.nombre ?? null,
             colpass: desde && { desde },
-            pendiente: desde && (await pendiente(db, { busetaId: b.id, desde, hasta: hoy })),
+            pendiente: desde && (await estadoDeCuenta(db, b.id, { desde })).pendiente,
           };
         }),
     ),
@@ -134,10 +208,10 @@ router.put('/:busetaId', async (req, res) => {
   const { desde } = validar(activarEsquema, req.body);
   if (desde > hoyBogota()) throw new ErrorHttp(400, 'La fecha no puede ser futura', { desde: 'Fecha futura' });
   await activarColpass(db, buseta.id, desde);
-  res.json(await armarDetalle(db, buseta, { desde }, rango(req.query)));
+  res.json(await armarDetalle(db, buseta, { desde }, rango(req.query), req.usuario));
 });
 
-// Quitar el Colpass. Las liquidaciones hechas se conservan.
+// Quitar el Colpass. Las entregas hechas se conservan.
 router.delete('/:busetaId', async (req, res) => {
   const buseta = await busetaDeRuta(req);
   await quitarColpass(req.app.locals.db, buseta.id);
@@ -152,51 +226,32 @@ router.get('/:busetaId', async (req, res) => {
   const consulta = rango(req.query);
   const colpass = await obtenerColpass(db, buseta.id);
   if (!colpass) return res.json({ buseta: { id: buseta.id, numeroInterno: buseta.numeroInterno }, colpass: null });
-  res.json(await armarDetalle(db, buseta, colpass, consulta));
+  res.json(await armarDetalle(db, buseta, colpass, consulta, req.usuario));
 });
 
-// Liquidar: el conductor le entregó al admin la plata de los peajes de esos días.
-router.post('/:busetaId/liquidaciones', async (req, res) => {
+// El admin también puede registrar una entrega (por ejemplo, si el conductor no lo hizo).
+router.post('/:busetaId/entregas', async (req, res) => {
   const db = req.app.locals.db;
   const buseta = await busetaDeRuta(req);
   const colpass = await colpassDe(db, buseta);
-  const datos = validar(liquidacionEsquema, req.body);
-
-  if (datos.desde < colpass.desde) {
-    throw new ErrorHttp(400, `El Colpass empezó el ${fechaCorta(colpass.desde)}; antes no hay nada que liquidar`, {
-      desde: 'Antes del Colpass',
-    });
-  }
-  if (datos.hasta > hoyBogota()) {
-    throw new ErrorHttp(400, 'No se pueden liquidar días que no han pasado', { hasta: 'Fecha futura' });
-  }
-  const cruce = await liquidacionQueSeCruza(db, buseta.id, datos.desde, datos.hasta);
-  if (cruce) {
-    throw new ErrorHttp(
-      409,
-      `Esos días se cruzan con la liquidación del ${fechaCorta(cruce.desde)} al ${fechaCorta(cruce.hasta)}`,
-    );
-  }
-  const valor = await sumaPeajes(db, buseta.id, datos.desde, datos.hasta);
-  if (valor === 0) throw new ErrorHttp(400, 'No hay peajes registrados en esos días');
-
-  await crearLiquidacion(db, {
-    ...datos,
-    busetaId: buseta.id,
+  const datos = validar(entregaEsquema, req.body);
+  await registrarEntrega(db, {
+    buseta,
+    colpass,
+    datos,
     conductorId: buseta.conductor?.id ?? null,
-    valor,
     registradoPor: req.usuario.id,
   });
-  res.status(201).json(await armarDetalle(db, buseta, colpass, rango(req.query)));
+  res.status(201).json(await armarDetalle(db, buseta, colpass, rango(req.query), req.usuario));
 });
 
-router.delete('/:busetaId/liquidaciones/:id', async (req, res) => {
+router.delete('/:busetaId/entregas/:id', async (req, res) => {
   const db = req.app.locals.db;
   const buseta = await busetaDeRuta(req);
-  const liquidacion = await obtenerLiquidacion(db, idDeRuta(req));
-  if (!liquidacion || liquidacion.busetaId !== buseta.id) throw noEncontrado('La liquidación');
-  await borrarLiquidacion(db, liquidacion.id);
-  res.json(await armarDetalle(db, buseta, await colpassDe(db, buseta), rango(req.query)));
+  const entrega = await obtenerEntrega(db, idDeRuta(req));
+  if (!entrega || entrega.busetaId !== buseta.id) throw noEncontrado('La entrega');
+  await borrarEntrega(db, entrega.id);
+  res.json(await armarDetalle(db, buseta, await colpassDe(db, buseta), rango(req.query), req.usuario));
 });
 
 export default router;
