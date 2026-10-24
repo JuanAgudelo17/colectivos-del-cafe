@@ -21,6 +21,11 @@ export async function obtenerHash(db, id) {
   return rows[0]?.passwordHash ?? null;
 }
 
+// Mismo password con otro costo de bcrypt: no cierra sesiones ni cambia nada más.
+export async function actualizarHash(db, id, passwordHash) {
+  await db.query('UPDATE usuario SET password_hash = $2 WHERE id = $1', [id, passwordHash]);
+}
+
 // Contraseña elegida por el usuario. Sube sesion_version: las demás sesiones se cierran.
 export async function guardarPasswordPropia(db, id, passwordHash) {
   const { rows } = await db.query(

@@ -4,17 +4,13 @@ import { z } from 'zod';
 import { ErrorHttp } from '../../compartido/http/errores.js';
 import { validar } from '../../compartido/http/validacion.js';
 import { autenticar, requiereRol } from '../../compartido/seguridad/middleware.js';
-import { hashPassword, passwordNueva } from '../../compartido/seguridad/passwords.js';
+import { HASH_RELLENO, hashPassword, necesitaRehash, passwordNueva } from '../../compartido/seguridad/passwords.js';
 import { borrarCookieSesion, ponerCookieSesion } from '../../compartido/seguridad/sesion.js';
 import { limpiarFallos, minutosDeBloqueo, registrarFallo } from './intentos.js';
 import { crearSolicitud, listarPendientes } from './recuperacion.js';
-import { buscarParaLogin, guardarPasswordPropia, obtenerHash } from './repositorio.js';
+import { actualizarHash, buscarParaLogin, guardarPasswordPropia, obtenerHash } from './repositorio.js';
 
 const router = Router();
-
-// Hash de relleno para comparar cuando el usuario no existe, de modo que la
-// respuesta tarde lo mismo y no revele qué usuarios existen.
-let hashRelleno;
 
 // Netlify pone la IP real del cliente en este encabezado (no se puede falsificar).
 const ipCliente = (req) => req.headers['x-nf-client-connection-ip'] ?? req.ip ?? null;
@@ -40,8 +36,7 @@ router.post('/login', async (req, res) => {
   await verificarBloqueo(db, usuario, ip);
 
   const encontrado = await buscarParaLogin(db, usuario);
-  hashRelleno ??= await bcrypt.hash('relleno', 12);
-  const valida = await bcrypt.compare(password, encontrado?.passwordHash ?? hashRelleno);
+  const valida = await bcrypt.compare(password, encontrado?.passwordHash ?? HASH_RELLENO);
 
   if (!encontrado || !valida) {
     await registrarFallo(db, usuario, ip);
@@ -51,6 +46,9 @@ router.post('/login', async (req, res) => {
     throw new ErrorHttp(401, 'Tu contraseña temporal venció. Pide una nueva al administrador.');
   }
 
+  if (necesitaRehash(encontrado.passwordHash)) {
+    await actualizarHash(db, encontrado.id, await hashPassword(password));
+  }
   await limpiarFallos(db, usuario);
   const { passwordHash: _, temporalVencida: __, sesionVersion, ...sesion } = encontrado;
   await ponerCookieSesion(res, sesion.id, sesionVersion);

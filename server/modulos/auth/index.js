@@ -4,6 +4,7 @@ import router from './rutas.js';
 
 export { limpiarFallos } from './intentos.js';
 export { asignarPasswordTemporal } from './repositorio.js';
+export { listarPendientes } from './recuperacion.js';
 
 export default {
   ruta: '/auth',
