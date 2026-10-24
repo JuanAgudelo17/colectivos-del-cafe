@@ -15,7 +15,6 @@ import {
   guardarLectura,
   kilometrajesActuales,
   lecturaDelDia,
-  limitesKilometraje,
   listarLecturas,
   listarRegistros,
   listarTipos,
@@ -27,7 +26,6 @@ import {
 const router = Router();
 router.use(autenticar, requiereRol('admin', 'conductor'));
 
-const kms = new Intl.NumberFormat('es-CO');
 const sinPermiso = () =>
   new ErrorHttp(403, `Solo puedes corregir o borrar lo que registraste en los últimos ${DIAS_EDICION} días`);
 
@@ -82,20 +80,6 @@ async function armarHoja(db, buseta, usuario) {
   };
 }
 
-// El odómetro no retrocede: un kilometraje no puede ser menor que el de una
-// fecha anterior ni mayor que el de una posterior.
-async function verificarKilometraje(db, busetaId, fecha, kilometraje, excluir) {
-  if (kilometraje === null) return;
-  const { maxAntes, minDespues } = await limitesKilometraje(db, busetaId, fecha, excluir);
-  let mensaje = null;
-  if (maxAntes !== null && kilometraje < maxAntes) {
-    mensaje = `No puede ser menor que el de un registro anterior (${kms.format(maxAntes)} km)`;
-  } else if (minDespues !== null && kilometraje > minDespues) {
-    mensaje = `No puede ser mayor que el de un registro posterior (${kms.format(minDespues)} km)`;
-  }
-  if (mensaje) throw new ErrorHttp(400, 'Revisa el kilometraje', { kilometraje: mensaje });
-}
-
 async function verificarTipos(db, claves, { permitirInactivo = null } = {}) {
   const tipos = new Map((await listarTipos(db)).map((t) => [t.clave, t]));
   for (const clave of claves) {
@@ -122,7 +106,6 @@ router.post('/:busetaId/kilometraje', async (req, res) => {
   if (existente && !puedeEditar(req.usuario, existente)) {
     throw new ErrorHttp(409, 'Ya hay un kilometraje de ese día. Pídele al administrador que lo corrija.');
   }
-  await verificarKilometraje(db, buseta.id, datos.fecha, datos.kilometraje, { lecturaId: existente?.id });
   await guardarLectura(db, { ...datos, busetaId: buseta.id, registradoPor: req.usuario.id });
   res.status(201).json(await armarHoja(db, buseta, req.usuario));
 });
@@ -143,7 +126,6 @@ router.post('/:busetaId/registros', async (req, res) => {
   const buseta = await busetaDeRuta(req);
   const datos = validar(registroCrear, req.body);
   await verificarTipos(db, datos.items.map((i) => i.tipo));
-  await verificarKilometraje(db, buseta.id, datos.fecha, datos.kilometraje);
   await crearRegistros(db, { ...datos, busetaId: buseta.id, registradoPor: req.usuario.id });
   res.status(201).json(await armarHoja(db, buseta, req.usuario));
 });
@@ -161,7 +143,6 @@ router.put('/:busetaId/registros/:id', async (req, res) => {
   const registro = await registroDeRuta(req, buseta);
   const datos = validar(registroEditar, req.body);
   await verificarTipos(db, [datos.tipo], { permitirInactivo: registro.tipo });
-  await verificarKilometraje(db, buseta.id, datos.fecha, datos.kilometraje, { registroId: registro.id });
   await actualizarRegistro(db, registro.id, datos);
   res.json(await armarHoja(db, buseta, req.usuario));
 });
