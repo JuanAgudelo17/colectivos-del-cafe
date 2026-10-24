@@ -1,113 +1,529 @@
-.mi-producido-filtros {
-  margin-bottom: 32px;
-}
+/* ---- Mi producido (conductor) ---- */
 
-.mi-producido-filtros .selector-mes {
-  max-width: 260px;
-}
-
-.mi-producido-mes::first-letter {
-  text-transform: uppercase;
-}
-
-.mi-producido-mes span {
-  color: var(--pizarra);
-}
-
-.mi-producido-totales {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
-  gap: var(--separacion);
-  margin-bottom: 40px;
-}
-
-.mi-producido-total {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  background: var(--niebla);
-  border-radius: var(--radio);
-  padding: 20px;
-}
-
-.mi-producido-total span,
-.mi-producido-total small {
+/* Número y placa de la buseta junto al título */
+.mp-buseta {
   font-size: var(--texto-sm);
-  color: var(--pizarra);
-}
-
-.mi-producido-total strong {
-  font-size: var(--titulo-sm);
-  font-weight: 400;
-  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  padding: 6px 12px;
+  border: 1px solid var(--negro);
+  border-radius: var(--radio);
   white-space: nowrap;
 }
 
-/* El producido del mes es la cifra principal: barra negra */
-.mi-producido-principal {
-  background: var(--negro);
-  color: var(--blanco);
+/* ‹ octubre de 2026 › */
+.mp-navegador {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 420px;
+  margin-bottom: 24px;
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
 }
 
-.mi-producido-principal span,
-.mi-producido-principal small {
+.mp-navegador-flecha {
+  width: 52px;
+  height: 52px;
+  border: none;
+  background: none;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: var(--radio);
+}
+
+.mp-navegador-flecha:hover:not(:disabled) {
+  background: var(--niebla);
+}
+
+.mp-navegador-flecha:disabled {
   color: var(--ceniza);
+  cursor: default;
 }
 
-.mi-producido-tabla th.numero,
-.mi-producido-tabla td.numero {
-  text-align: right;
+.mp-navegador-mes {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: var(--texto-sub);
+  font-weight: 500;
+  cursor: pointer;
 }
 
-.mi-producido-tabla .etiqueta {
-  margin-left: 8px;
+.mp-navegador-mes::first-letter {
+  text-transform: uppercase;
 }
 
-@media (max-width: 640px) {
-  .mi-producido-principal {
-    grid-column: 1 / -1;
-  }
-
-  .mi-producido-principal strong {
-    font-size: var(--titulo);
-  }
-
-  .mi-producido-total:not(.mi-producido-principal) strong {
-    font-size: var(--texto-sub);
-  }
-
-  .mi-producido-tabla td.numero {
-    text-align: left;
-  }
+.mp-navegador-mes small {
+  font-size: var(--texto-caption);
+  font-weight: 400;
+  color: var(--pizarra);
 }
 
-/* Resumen del mes a la derecha (en computador), días a la izquierda */
-.mi-producido-cuerpo {
+/* El selector nativo del mes: invisible, lo abre el botón del nombre */
+.mp-navegador-selector {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mp-vacio {
+  margin: 0;
+  padding: var(--relleno-tarjeta);
+  background: var(--niebla);
+  border-radius: var(--radio);
+  color: var(--pizarra);
+}
+
+/* ---- Distribución: en computador el resumen va a la derecha ---- */
+.mp-cuerpo {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 340px;
-  grid-template-areas: 'dias resumen';
-  gap: 40px;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  grid-template-areas:
+    'principal resumen'
+    'datos resumen'
+    'grafica resumen'
+    'dias resumen';
+  grid-template-rows: auto auto auto 1fr;
+  gap: 32px 40px;
   align-items: start;
 }
 
-.mi-producido-dias {
+.mp-principal {
+  grid-area: principal;
+}
+
+.mp-datos {
+  grid-area: datos;
+}
+
+.mp-grafica-seccion {
+  grid-area: grafica;
+  min-width: 0;
+}
+
+.mp-resumen {
+  grid-area: resumen;
+  position: sticky;
+  top: 24px;
+}
+
+.mp-resumen .resumen-mes {
+  position: static;
+}
+
+.mp-dias-seccion {
   grid-area: dias;
   min-width: 0;
 }
 
-.mi-producido-resumen {
-  grid-area: resumen;
+/* ---- Tarjeta principal ---- */
+.mp-principal {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 24px;
+  background: var(--negro);
+  color: var(--blanco);
+  border-radius: var(--radio);
 }
 
-/* En celular primero el resumen (lo más consultado) y luego los días */
+.mp-principal-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--texto-sm);
+  color: var(--ceniza);
+}
+
+.mp-principal-titulo .etiqueta {
+  background: none;
+  color: var(--blanco);
+  border-color: var(--carbon);
+}
+
+.mp-principal-valor {
+  font-size: var(--display);
+  font-weight: 400;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.mp-principal-datos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 40px;
+  margin: 16px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--carbon);
+}
+
+.mp-principal-datos dt {
+  font-size: var(--texto-sm);
+  color: var(--ceniza);
+}
+
+.mp-principal-datos dd {
+  margin: 0;
+  font-size: var(--titulo-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Datos rápidos ---- */
+.mp-datos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+/* Si sobra un cuadro en la última fila, ocupa el espacio que queda */
+.mp-dato:last-child:nth-child(3n + 2) {
+  grid-column: span 2;
+}
+
+.mp-dato {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 16px 18px;
+  background: var(--niebla);
+  border-radius: var(--radio);
+}
+
+.mp-dato span,
+.mp-dato small {
+  font-size: var(--texto-sm);
+  color: var(--pizarra);
+}
+
+.mp-dato strong {
+  font-size: var(--texto-sub);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ---- Gráfica: producido por día ---- */
+.mp-grafica-area {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--columnas), minmax(0, 1fr));
+  align-items: end;
+  height: 180px;
+  border-bottom: 1px solid var(--negro);
+}
+
+.mp-grafica-columna {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.mp-grafica-columna:hover,
+.mp-grafica-activa {
+  background: var(--niebla);
+}
+
+.mp-grafica-columna:focus-visible {
+  outline: 2px solid var(--negro);
+  outline-offset: -2px;
+}
+
+.mp-grafica-barra {
+  width: 70%;
+  max-width: 18px;
+  background: var(--ceniza);
+  border-radius: 3px 3px 0 0;
+}
+
+.mp-grafica-activa .mp-grafica-barra {
+  background: var(--carbon);
+}
+
+.mp-grafica-mejor,
+.mp-grafica-activa .mp-grafica-mejor {
+  background: var(--negro);
+}
+
+/* Relevo: rayada (trabajó el reemplazo) */
+.mp-grafica-relevo {
+  background: repeating-linear-gradient(135deg, var(--carbon) 0 2px, var(--ceniza) 2px 5px);
+}
+
+.mp-grafica-promedio {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px dashed var(--pizarra);
+  pointer-events: none;
+}
+
+.mp-grafica-promedio span {
+  position: absolute;
+  right: 0;
+  bottom: 2px;
+  padding: 0 4px;
+  background: var(--blanco);
+  font-size: var(--texto-caption);
+  color: var(--pizarra);
+}
+
+.mp-grafica-ejes {
+  display: grid;
+  grid-template-columns: repeat(var(--columnas), minmax(0, 1fr));
+  margin-top: 6px;
+  font-size: var(--texto-caption);
+  color: var(--pizarra);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.mp-grafica-detalle {
+  position: absolute;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 170px;
+  padding: 10px 12px;
+  background: var(--blanco);
+  border: 1px solid var(--negro);
+  border-radius: var(--radio);
+  font-size: var(--texto-sm);
+  pointer-events: none;
+}
+
+.mp-grafica-detalle strong {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.mp-grafica-detalle-dia {
+  text-transform: capitalize;
+}
+
+.mp-grafica-detalle-valor {
+  font-size: var(--texto-sub);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.mp-grafica-detalle small {
+  color: var(--pizarra);
+}
+
+/* ---- Día por día ---- */
+.mp-dias {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--negro);
+}
+
+.mp-dia {
+  display: grid;
+  grid-template-columns: 56px minmax(150px, 1fr) auto;
+  align-items: center;
+  gap: 8px 20px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--linea);
+}
+
+.mp-dia-fecha {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radio);
+  background: var(--niebla);
+  line-height: 1.1;
+}
+
+.mp-dia-fecha strong {
+  font-size: var(--texto-sub);
+  font-variant-numeric: tabular-nums;
+}
+
+.mp-dia-fecha small {
+  font-size: var(--texto-caption);
+  color: var(--pizarra);
+}
+
+.mp-dia-mejor .mp-dia-fecha {
+  background: var(--negro);
+  color: var(--blanco);
+}
+
+.mp-dia-mejor .mp-dia-fecha small {
+  color: var(--ceniza);
+}
+
+.mp-dia-producido {
+  display: flex;
+  flex-direction: column;
+}
+
+.mp-dia-producido small {
+  font-size: var(--texto-caption);
+  color: var(--pizarra);
+}
+
+.mp-dia-producido strong {
+  font-size: var(--texto-sub);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.mp-dia-etiquetas {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.mp-dia-gastos {
+  display: flex;
+  gap: 20px;
+  margin: 0;
+}
+
+.mp-dia-gastos div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 64px;
+}
+
+.mp-dia-gastos dt {
+  font-size: var(--texto-caption);
+  color: var(--pizarra);
+}
+
+.mp-dia-gastos dd {
+  margin: 0;
+  font-size: var(--texto-sm);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.mp-dia-cero dd {
+  color: var(--ceniza);
+}
+
+.mp-dias-total {
+  border-top: 1px solid var(--negro);
+  border-bottom: none;
+}
+
+.mp-dias-total .mp-dia-fecha {
+  background: var(--negro);
+  color: var(--blanco);
+}
+
+.mp-dias-total .mp-dia-fecha small {
+  color: var(--ceniza);
+}
+
+.mp-dias-total .mp-dia-gastos dd {
+  font-weight: 600;
+}
+
+/* ---- Tablet y celular: una sola columna; el resumen antes de los días ---- */
 @media (max-width: 1100px) {
-  .mi-producido-cuerpo {
-    grid-template-columns: 1fr;
-    grid-template-areas: 'resumen' 'dias';
+  .mp-cuerpo {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'principal' 'datos' 'grafica' 'resumen' 'dias';
+    grid-template-rows: none;
   }
 
-  .mi-producido-resumen .resumen-mes {
+  .mp-resumen {
     position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .mp-navegador {
+    max-width: none;
+  }
+
+  .mp-principal {
+    padding: 20px;
+  }
+
+  .mp-principal-valor {
+    font-size: var(--titulo);
+  }
+
+  .mp-principal-datos {
+    gap: 12px 24px;
+  }
+
+  .mp-principal-datos dd {
+    font-size: var(--texto-sub);
+  }
+
+  .mp-datos {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mp-dato {
+    padding: 14px 16px;
+  }
+
+  .mp-dato:last-child:nth-child(3n + 2) {
+    grid-column: auto;
+  }
+
+  .mp-dato:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  .mp-grafica-area {
+    height: 150px;
+  }
+
+  /* El día a la izquierda y, a su lado, el producido arriba y los gastos abajo */
+  .mp-dia {
+    grid-template-columns: 52px minmax(0, 1fr);
+    gap: 6px 14px;
+  }
+
+  .mp-dia-fecha {
+    grid-row: span 2;
+    align-self: start;
+  }
+
+  /* Columnas fijas para que peajes, salidas y ACPM queden alineados entre días */
+  .mp-dia-gastos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+    gap: 8px;
+  }
+
+  .mp-dia-gastos div {
+    align-items: flex-start;
+    min-width: 0;
   }
 }
 
