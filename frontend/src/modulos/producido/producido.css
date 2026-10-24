@@ -495,3 +495,58 @@
 .resumen-info-destacado dd {
   font-weight: 700;
 }
+
+/* ---- Liquidación de la cooperativa (mes cerrado con el documento) ---- */
+.liquidacion-grupo {
+  padding: 4px 0 6px;
+  font-size: var(--texto-caption);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-align: left;
+  text-transform: uppercase;
+  color: var(--pizarra);
+}
+
+.liquidacion-nota {
+  margin: 0;
+  font-size: var(--texto-caption);
+  color: var(--pizarra);
+}
+
+.liquidacion-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.liquidacion-acciones .boton-enlace {
+  padding: 0;
+  font-size: var(--texto-sm);
+}
+
+/* Formulario: los descuentos de a dos columnas */
+.liquidacion-cabeza,
+.liquidacion-campos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 16px;
+}
+
+.liquidacion-campos {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.liquidacion-campos legend {
+  grid-column: 1 / -1;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+@media (max-width: 520px) {
+  .liquidacion-cabeza,
+  .liquidacion-campos {
+    grid-template-columns: 1fr;
+  }
+}

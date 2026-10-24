@@ -67,6 +67,41 @@ describe('cálculo del año', () => {
     assert.equal(armarAnio({ ...base, anio: 2027, dias: [] }).ultimoMes, 0);
   });
 
+  test('un mes cerrado con la liquidación de la cooperativa usa sus valores, aunque no haya días', () => {
+    const cierre = {
+      busetaId: 2,
+      mes: 8,
+      origen: 'liquidacion',
+      bruto: 10_427_500,
+      empresa: 2_085_500,
+      reposicion: 42_500,
+      conductor: 2_553_691,
+      peajes: 1_867_400,
+      salidas: 425_800,
+      acpm: 0,
+      mantenimiento: 0,
+      arriendo: 0,
+      relevo: 0,
+      polizas: 0,
+      bono: 0,
+      prestamos: 306_540,
+      neto: 3_146_069,
+    };
+    const r = armarAnio({
+      anio: 2026,
+      mesActual: { anio: 2026, mes: 10 },
+      busetas,
+      dias: [dia(2, 9, 500_000)],
+      ajustes: [],
+      parametrosPorMes,
+      cierres: [cierre],
+    });
+    const b2 = r.busetas.find((b) => b.buseta.id === 2);
+    assert.deepEqual(b2.meses.map((m) => [m.mes, m.deLiquidacion ?? false]), [[8, true], [9, false]]);
+    assert.equal(b2.meses[0].neto, 3_146_069);
+    assert.equal(r.flota.meses[0].bruto, 10_427_500);
+  });
+
   test('acumular suma todos los campos y empieza en cero', () => {
     assert.equal(acumular([]).neto, 0);
     assert.equal(acumular([{ ...acumular([]), neto: 5, bruto: 7 }, { ...acumular([]), neto: -2, bruto: 1 }]).neto, 3);

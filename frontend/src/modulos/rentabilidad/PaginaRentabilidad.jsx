@@ -4,7 +4,7 @@ import { pesos } from '../../compartido/utilidades/formato.js';
 import { useDatos } from '../../compartido/utilidades/useDatos.js';
 import { DesgloseCostos } from './DesgloseCostos.jsx';
 import { GraficaMeses } from './GraficaMeses.jsx';
-import { mesLargo, porcentaje, promedio } from './utilidades.js';
+import { diasConRegistro, mesLargo, porDia, porcentaje, promedio } from './utilidades.js';
 import './rentabilidad.css';
 
 // Cuánto deja cada buseta: utilidad del año mes a mes, en qué se va la plata y
@@ -71,7 +71,7 @@ export function PaginaRentabilidad() {
             </p>
           )}
 
-          <Indicadores total={vista.total} meses={vista.meses.length} flota={!elegida} />
+          <Indicadores total={vista.total} listaMeses={vista.meses} flota={!elegida} />
 
           {enCurso && (
             <p className="aviso rentabilidad-aviso">
@@ -107,7 +107,9 @@ export function PaginaRentabilidad() {
   );
 }
 
-function Indicadores({ total, meses, flota }) {
+function Indicadores({ total, listaMeses, flota }) {
+  const meses = listaMeses.length;
+  const dias = diasConRegistro(listaMeses);
   return (
     <section className="rentabilidad-indicadores" aria-label="Totales del año">
       <div className="rentabilidad-indicador rentabilidad-principal">
@@ -127,8 +129,8 @@ function Indicadores({ total, meses, flota }) {
       <Dato texto="Promedio por mes" valor={pesos(promedio(total.neto, meses))} />
       <Dato
         texto="Por día trabajado"
-        valor={pesos(promedio(total.neto, total.diasTrabajados))}
-        nota={`${total.diasTrabajados} ${total.diasTrabajados === 1 ? 'día' : 'días'}`}
+        valor={pesos(porDia(listaMeses, 'neto'))}
+        nota={`${dias} ${dias === 1 ? 'día' : 'días'}`}
       />
     </section>
   );
@@ -160,7 +162,7 @@ function TablaMeses({ meses, total }) {
         {porcentaje(m.neto, m.bruto)}
       </td>
       <td className="numero" data-etiqueta="Días">
-        {m.diasTrabajados}
+        {m.deLiquidacion ? 'Liquidación' : m.diasTrabajados}
       </td>
     </>
   );
@@ -254,7 +256,7 @@ function TablaBusetas({ busetas, alElegir }) {
                     {pesos(promedio(b.total.neto, b.meses.length))}
                   </td>
                   <td className="numero" data-etiqueta="Por día">
-                    {pesos(promedio(b.total.neto, b.total.diasTrabajados))}
+                    {pesos(porDia(b.meses, 'neto'))}
                   </td>
                 </>
               )}

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { api } from '../../compartido/api.js';
 import { CampoSeleccion } from '../../compartido/ui/Campos.jsx';
 import { Dialogo } from '../../compartido/ui/Dialogo.jsx';
 import { SelectorMes } from '../../compartido/ui/SelectorMes.jsx';
@@ -7,6 +8,8 @@ import { useDatos } from '../../compartido/utilidades/useDatos.js';
 import { SeccionColpass } from '../colpass/index.js';
 import { CalculoVueltas } from './CalculoVueltas.jsx';
 import { CuadriculaMes } from './CuadriculaMes.jsx';
+import { FormularioLiquidacion } from './FormularioLiquidacion.jsx';
+import { LiquidacionCooperativa } from './LiquidacionCooperativa.jsx';
 import { PegarExcel } from './PegarExcel.jsx';
 import { ResumenMes } from './ResumenMes.jsx';
 import { TarifasRutas } from './TarifasRutas.jsx';
@@ -34,6 +37,18 @@ export function PaginaProducido() {
   const alActualizar = (nuevo) => setActualizado({ ruta, mes: nuevo });
   const cerrarDialogo = () => setDialogo(null);
 
+  // Quita la liquidación de la cooperativa: el mes vuelve a quedar abierto.
+  async function reabrir() {
+    if (!window.confirm('¿Quitar la liquidación? El mes vuelve a quedar abierto y se calcula con los días.')) return;
+    try {
+      alActualizar(
+        await api(`/producido/${mes.buseta.id}/liquidacion?anio=${mes.anio}&mes=${mes.mes}`, { method: 'DELETE' }),
+      );
+    } catch (err) {
+      window.alert(err.message);
+    }
+  }
+
   return (
     <>
       <div className="titulo-pagina">
@@ -57,6 +72,14 @@ export function PaginaProducido() {
             onClick={() => setDialogo({ tipo: 'tarifas' })}
           >
             Tarifas de rutas
+          </button>
+          <button
+            type="button"
+            className="boton-secundario-oscuro"
+            disabled={!mes || (mes.cerrado && !mes.liquidacion)}
+            onClick={() => setDialogo({ tipo: 'liquidacion' })}
+          >
+            Liquidación de la cooperativa
           </button>
         </div>
       </div>
@@ -99,7 +122,25 @@ export function PaginaProducido() {
               alActualizar={alActualizar}
               abrirVueltas={(info, aplicar) => setDialogo({ tipo: 'vueltas', info, aplicar })}
             />
-            <ResumenMes mes={mes} alActualizar={alActualizar} />
+            {mes.liquidacion ? (
+              <LiquidacionCooperativa
+                liquidacion={mes.liquidacion}
+                anio={mes.anio}
+                mes={mes.mes}
+                acciones={
+                  <div className="liquidacion-acciones">
+                    <button type="button" className="boton-enlace" onClick={() => setDialogo({ tipo: 'liquidacion' })}>
+                      Corregir
+                    </button>
+                    <button type="button" className="boton-enlace" onClick={reabrir}>
+                      Quitar la liquidación (reabrir el mes)
+                    </button>
+                  </div>
+                }
+              />
+            ) : (
+              <ResumenMes mes={mes} alActualizar={alActualizar} />
+            )}
           </div>
 
           <SeccionColpass key={mes.buseta.id} busetaId={mes.buseta.id} cambio={mes.resumen.peajes} />
@@ -124,6 +165,18 @@ export function PaginaProducido() {
 
       <Dialogo abierto={dialogo?.tipo === 'excel'} titulo="Pegar desde Excel" alCerrar={cerrarDialogo}>
         {mes && <PegarExcel mes={mes} alActualizar={alActualizar} alTerminar={cerrarDialogo} />}
+      </Dialogo>
+
+      <Dialogo abierto={dialogo?.tipo === 'liquidacion'} titulo="Liquidación de la cooperativa" alCerrar={cerrarDialogo}>
+        {mes && (
+          <FormularioLiquidacion
+            mes={mes}
+            alGuardar={(nuevo) => {
+              alActualizar(nuevo);
+              cerrarDialogo();
+            }}
+          />
+        )}
       </Dialogo>
 
       <Dialogo abierto={dialogo?.tipo === 'tarifas'} titulo="Tarifas de rutas" alCerrar={cerrarDialogo}>

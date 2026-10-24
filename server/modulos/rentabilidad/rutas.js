@@ -14,7 +14,7 @@ const router = Router();
 // tienen datos (del primero al actual, el más reciente primero) para el selector.
 async function calcularAnio(db, anio, mesActual, filtro = () => true) {
   const meses = Array.from({ length: 12 }, (_, i) => i + 1);
-  const [busetas, { dias, ajustes }, parametros, primero] = await Promise.all([
+  const [busetas, { dias, ajustes, cierres }, parametros, primero] = await Promise.all([
     listarBusetas(db),
     datosDelAnio(db, anio),
     Promise.all(meses.map((mes) => parametrosDelMes(db, rangoDelMes(anio, mes).hasta))),
@@ -27,6 +27,7 @@ async function calcularAnio(db, anio, mesActual, filtro = () => true) {
     busetas: busetas.filter(filtro),
     dias,
     ajustes,
+    cierres,
     parametrosPorMes: Object.fromEntries(meses.map((mes, i) => [mes, parametros[i]])),
   });
 

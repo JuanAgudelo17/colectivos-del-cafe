@@ -5,18 +5,22 @@ import { hoyBogota } from '../../compartido/fecha.js';
 import { alcance, autenticar, requiereRol } from '../../compartido/seguridad/middleware.js';
 import { obtenerBuseta } from '../busetas/index.js';
 import { calcularResumen } from './calculo.js';
-import { ajusteEsquema, diaEsquema, mesConsulta, rutaEsquema } from './esquemas.js';
+import { cierreDeLiquidacion, netoDeLiquidacion, resumenDeCierre } from './liquidacion.js';
+import { ajusteEsquema, diaEsquema, liquidacionEsquema, mesConsulta, rutaEsquema } from './esquemas.js';
 import {
   actualizarRuta,
   borrarAjuste,
+  borrarCierreLiquidacion,
   borrarDia,
   crearAjuste,
+  guardarCierreLiquidacion,
   guardarDia,
   listarAjustes,
   listarDias,
   listarRutas,
   mesCerrado,
   obtenerAjuste,
+  obtenerCierre,
   parametrosDelMes,
   rangoDelMes,
 } from './repositorio.js';
@@ -61,6 +65,8 @@ router.get('/mio', autenticar, requiereRol('conductor'), async (req, res) => {
     porcentajeEmpresa: completo.porcentajeEmpresa,
     porcentajeReposicion: completo.porcentajeReposicion,
     valorRelevo: completo.valorRelevo,
+    // Si el mes se cerró con la liquidación de la cooperativa, el documento.
+    liquidacion: completo.liquidacion,
     totales: {
       ingreso: sumar('ingreso'),
       peajes: sumar('peajes'),
@@ -99,14 +105,16 @@ async function verificarMesAbierto(db, busetaId, anio, mes) {
   }
 }
 
-// Todo lo del mes de una buseta: días, ajustes y el resumen calculado.
+// Todo lo del mes de una buseta: días, ajustes y el resumen. Si el mes se cerró
+// con la liquidación de la cooperativa, el resumen sale de ella (y se devuelve
+// el documento en `liquidacion`).
 async function armarMes(db, buseta, anio, mes) {
   const { desde, hasta } = rangoDelMes(anio, mes);
-  const [dias, ajustes, parametros, cerrado] = await Promise.all([
+  const [dias, ajustes, parametros, cierre] = await Promise.all([
     listarDias(db, buseta.id, desde, hasta),
     listarAjustes(db, buseta.id, anio, mes),
     parametrosDelMes(db, hasta),
-    mesCerrado(db, buseta.id, anio, mes),
+    obtenerCierre(db, buseta.id, anio, mes),
   ]);
 
   return {
@@ -120,16 +128,55 @@ async function armarMes(db, buseta, anio, mes) {
     },
     anio,
     mes,
-    cerrado,
+    cerrado: Boolean(cierre),
     dias,
     ajustes,
     valorRelevo: Number(parametros.valor_relevo ?? 0),
     porcentajeEmpresa: Number(parametros.porcentaje_empresa ?? 0),
     porcentajeReposicion: Number(parametros.porcentaje_reposicion ?? 0),
     fondoFijoArriendo: Number(parametros.fondo_fijo_arriendo ?? 0),
-    resumen: calcularResumen({ dias, ajustes, parametros, buseta, mes }),
+    resumen: cierre ? resumenDeCierre(cierre, dias) : calcularResumen({ dias, ajustes, parametros, buseta, mes }),
+    liquidacion: cierre?.origen === 'liquidacion' ? cierre.liquidacion : null,
   };
 }
+
+// ---- Liquidación de la cooperativa: cierra el mes con sus valores --------------
+// (van antes de /:busetaId/:fecha para que "liquidacion" no se tome como fecha).
+const enPesos = (valor) => `$ ${new Intl.NumberFormat('es-CO').format(valor)}`;
+
+router.put('/:busetaId/liquidacion', async (req, res) => {
+  const db = req.app.locals.db;
+  const buseta = await busetaDeRuta(req);
+  const datos = validar(liquidacionEsquema, req.body);
+  const neto = netoDeLiquidacion(datos);
+  if (neto !== datos.netoAPagar) {
+    throw new ErrorHttp(400, `El neto a pagar no cuadra: con estos valores da ${enPesos(neto)}`, {
+      netoAPagar: `Con estos valores da ${enPesos(neto)}`,
+    });
+  }
+  const { anio, mes, ...liquidacion } = datos;
+  const existente = await obtenerCierre(db, buseta.id, anio, mes);
+  if (existente && existente.origen !== 'liquidacion') throw new ErrorHttp(409, 'Ese mes ya está cerrado');
+
+  await guardarCierreLiquidacion(db, {
+    busetaId: buseta.id,
+    anio,
+    mes,
+    cierre: cierreDeLiquidacion(datos),
+    liquidacion,
+    cerradoPor: req.usuario.id,
+  });
+  res.json(await armarMes(db, buseta, anio, mes));
+});
+
+// Quita la liquidación y el mes vuelve a quedar abierto.
+router.delete('/:busetaId/liquidacion', async (req, res) => {
+  const db = req.app.locals.db;
+  const buseta = await busetaDeRuta(req);
+  const { anio, mes } = validar(mesConsulta, req.query);
+  if (!(await borrarCierreLiquidacion(db, buseta.id, anio, mes))) throw noEncontrado('La liquidación');
+  res.json(await armarMes(db, buseta, anio, mes));
+});
 
 router.get('/', async (req, res) => {
   const { anio, mes } = validar(mesConsulta, req.query);
