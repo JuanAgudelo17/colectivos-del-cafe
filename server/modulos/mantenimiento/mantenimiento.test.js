@@ -64,14 +64,14 @@ test('el conductor reporta el kilometraje; el mismo día lo corrige', async () =
   assert.equal(r.cuerpo.lecturas[0].editable, true);
 });
 
-test('el odómetro no retrocede ni acepta fechas futuras', async () => {
+test('el kilometraje se guarda aunque no vaya en orden; el actual es el más reciente', async () => {
+  // Menor que el de un día anterior (dato corregido u odómetro cambiado): se acepta.
   let r = await pedir('POST', '/1/kilometraje', pedro, { fecha: enDias(-5, hoy), kilometraje: 117000 });
-  assert.equal(r.status, 400);
-  assert.match(r.cuerpo.campos.kilometraje, /menor.*118\.000/);
-
-  r = await pedir('POST', '/1/kilometraje', pedro, { fecha: enDias(-5, hoy), kilometraje: 122000 });
-  assert.equal(r.status, 400);
-  assert.match(r.cuerpo.campos.kilometraje, /mayor.*121\.500/);
+  assert.equal(r.status, 201);
+  // Mayor que el de un día posterior: también. El actual sigue siendo el de hoy.
+  r = await pedir('POST', '/1/kilometraje', pedro, { fecha: enDias(-4, hoy), kilometraje: 125000 });
+  assert.equal(r.status, 201);
+  assert.deepEqual(r.cuerpo.kilometraje, { actual: 121500, fecha: hoy });
 
   r = await pedir('POST', '/1/kilometraje', pedro, { fecha: enDias(1, hoy), kilometraje: 122000 });
   assert.equal(r.status, 400);
@@ -118,18 +118,8 @@ test('validaciones del registro', async () => {
   assert.equal(r.status, 400);
   assert.ok(r.cuerpo.campos.tipo);
 
-  r = await pedir('POST', '/1/registros', pedro, { ...base, items: [{ tipo: 'correas', proximoKm: 100 }] });
+  r = await pedir('POST', '/1/registros', pedro, { ...base, items: [{ tipo: 'correas', proximoKm: -1 }] });
   assert.equal(r.status, 400);
-  assert.ok(r.cuerpo.campos['items.0.proximoKm']);
-
-  r = await pedir('POST', '/1/registros', pedro, { ...base, items: [{ tipo: 'correas', proximaFecha: hoy }] });
-  assert.equal(r.status, 400);
-  assert.ok(r.cuerpo.campos['items.0.proximaFecha']);
-
-  // El kilometraje del mantenimiento también respeta el odómetro.
-  r = await pedir('POST', '/1/registros', pedro, { fecha: hoy, kilometraje: 90000, items: [{ tipo: 'correas' }] });
-  assert.equal(r.status, 400);
-  assert.ok(r.cuerpo.campos.kilometraje);
 });
 
 test('el último registro de cada tipo manda; el kilometraje actual incluye mantenimientos', async () => {
@@ -232,4 +222,18 @@ test('flota (solo admin): estado de cada buseta activa', async () => {
   const b2 = cuerpo.busetas.find((b) => b.id === 2);
   assert.equal(b2.kilometraje, null);
   assert.equal(estadoDe(b2, 'bateria').estado, 'al_dia');
+});
+
+test('sin restricciones de orden: el próximo y el kilometraje se guardan como se escriban', async () => {
+  const r = await pedir('POST', '/1/registros', admin, {
+    fecha: enDias(-20, hoy),
+    kilometraje: 90000, // menor que lecturas anteriores
+    items: [{ tipo: 'correas', proximoKm: 80000, proximaFecha: enDias(-30, hoy) }], // próximo "antes" del registro
+  });
+  assert.equal(r.status, 201);
+  const correas = estadoDe(r.cuerpo, 'correas');
+  assert.equal(correas.ultimo.proximoKm, 80000);
+  assert.equal(correas.estado, 'vencido');
+  // El kilometraje actual sigue siendo el del reporte más reciente.
+  assert.equal(r.cuerpo.kilometraje.actual, 122000);
 });

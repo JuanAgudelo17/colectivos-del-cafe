@@ -144,29 +144,17 @@ const KILOMETRAJES = `
    WHERE kilometraje IS NOT NULL
 `;
 
-// Kilometraje actual (la lectura más alta) de una buseta o de toda la flota.
+// Kilometraje actual (el del reporte más reciente; el mismo día, el más alto) de
+// una buseta o de toda la flota. No se valida que el odómetro vaya en orden: se
+// puede corregir un dato mal puesto o un odómetro cambiado.
 export async function kilometrajesActuales(db, busetaId = null) {
   const { rows } = await db.query(
     `SELECT DISTINCT ON (buseta_id) buseta_id AS "busetaId", kilometraje AS actual, fecha
        FROM (${KILOMETRAJES}) k
       WHERE $1::bigint IS NULL OR buseta_id = $1
-      ORDER BY buseta_id, kilometraje DESC, fecha DESC`,
+      ORDER BY buseta_id, fecha DESC, kilometraje DESC`,
     [busetaId],
   );
   return rows;
 }
 
-// Lo más alto registrado antes de `fecha` y lo más bajo después, sin contar el
-// registro que se está editando: así el odómetro nunca retrocede.
-export async function limitesKilometraje(db, busetaId, fecha, { lecturaId = null, registroId = null } = {}) {
-  const { rows } = await db.query(
-    `SELECT max(kilometraje) FILTER (WHERE fecha < $2) AS "maxAntes",
-            min(kilometraje) FILTER (WHERE fecha > $2) AS "minDespues"
-       FROM (${KILOMETRAJES}) k
-      WHERE buseta_id = $1
-        AND ($3::bigint IS NULL OR lectura_id  IS DISTINCT FROM $3)
-        AND ($4::bigint IS NULL OR registro_id IS DISTINCT FROM $4)`,
-    [busetaId, fecha, lecturaId, registroId],
-  );
-  return rows[0];
-}
