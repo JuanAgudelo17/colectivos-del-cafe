@@ -1,6 +1,13 @@
 /* ---- Mi producido (conductor) ---- */
 
 /* Número y placa de la buseta junto al título */
+.mp-cabeza-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
 .mp-buseta {
   font-size: var(--texto-sm);
   font-weight: 600;

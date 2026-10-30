@@ -49,6 +49,12 @@ export function FormularioLiquidacion({ mes, alGuardar }) {
         {mes.buseta.numeroInterno} · {nombreMes(mes.anio, mes.mes)}. Copia los valores del documento; los vacíos
         quedan en $ 0.
       </p>
+      {mes.cierre?.origen === 'calculado' && (
+        <p className="aviso">
+          Este mes ya está cerrado con la planilla. La liquidación lo reemplaza (manda) y abajo de ella vas a ver
+          la comparación con la planilla.
+        </p>
+      )}
       {error && <p className="error">{error}</p>}
       <div className="liquidacion-cabeza">
         <CampoPesos etiqueta="Total bruto" valor={datos.totalBruto} alCambiar={cambiar('totalBruto')} error={campos.totalBruto} />

@@ -95,14 +95,81 @@ test('reabrir quita la liquidación; sin liquidación 404', async () => {
   assert.equal((await pedir('DELETE', '/1/liquidacion?anio=2026&mes=8', admin)).status, 404);
 });
 
-test('no reemplaza un cierre hecho por la app', async () => {
-  await db.query(
-    `INSERT INTO cierre_mensual (buseta_id, anio, mes, bruto, reposicion, empresa, conductor, peajes, salidas,
-       mantenimiento, arriendo, acpm, neto, estado, cerrado_por, cerrado_en)
-     VALUES (2, 2026, 7, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 'cerrado', $1, now())`,
-    [admin.id],
-  );
-  const r = await pedir('PUT', '/2/liquidacion', admin, { ...AGOSTO, mes: 7 });
-  assert.equal(r.status, 409);
-  assert.equal((await pedir('DELETE', '/2/liquidacion?anio=2026&mes=7', admin)).status, 404);
+// ---- Cierre con la planilla (botón "Cerrar el mes") ------------------------------
+
+test('cerrar el mes: solo el admin, con el mes terminado y con producido', async () => {
+  assert.equal((await pedir('POST', '/2/cierre', carlos, { anio: 2026, mes: 7 })).status, 403);
+  const futuro = await pedir('POST', '/2/cierre', admin, { anio: 2099, mes: 1 });
+  assert.equal(futuro.status, 400);
+  assert.match(futuro.cuerpo.error, /cuando termine/);
+  const vacio = await pedir('POST', '/2/cierre', admin, { anio: 2026, mes: 6 });
+  assert.equal(vacio.status, 400);
+  assert.match(vacio.cuerpo.error, /No hay producido/);
+});
+
+test('cerrar el mes guarda la planilla y lo bloquea', async () => {
+  await crearUsuario(db, { usuario: 'nico', rol: 'conductor', busetaId: 2 });
+  await pedir('PUT', '/2/2026-07-01', admin, { ingreso: 500000, peajes: 42400, acpm: 50000, acpmCredito: 30000 });
+  const abierto = (await pedir('PUT', '/2/2026-07-02', admin, { ingreso: 400000, relevo: true })).cuerpo;
+  assert.equal(abierto.mesTerminado, true);
+
+  const { status, cuerpo } = await pedir('POST', '/2/cierre', admin, { anio: 2026, mes: 7 });
+  assert.equal(status, 201);
+  assert.equal(cuerpo.cerrado, true);
+  assert.equal(cuerpo.cierre.origen, 'calculado');
+  // El resumen guardado es el mismo que se veía abierto (incluido el detalle del ACPM).
+  for (const campo of ['bruto', 'empresa', 'reposicion', 'conductor', 'peajes', 'acpm', 'relevo', 'neto']) {
+    assert.equal(cuerpo.resumen[campo], abierto.resumen[campo], campo);
+  }
+  assert.equal(cuerpo.resumen.acpmCredito, 30000);
+  assert.equal(cuerpo.resumen.acpmConductor, 50000);
+  assert.equal(cuerpo.resumen.deLiquidacion, false);
+  assert.equal(cuerpo.conciliacion, null);
+
+  assert.equal((await pedir('PUT', '/2/2026-07-03', admin, { ingreso: 1 })).status, 409);
+  assert.equal((await pedir('POST', '/2/cierre', admin, { anio: 2026, mes: 7 })).status, 409);
+});
+
+test('la liquidación reemplaza el cierre de la planilla y se concilia con los días', async () => {
+  const { status, cuerpo } = await pedir('PUT', '/2/liquidacion', admin, {
+    ...AGOSTO,
+    mes: 7,
+    totalBruto: 950000,
+    administracion: 190000,
+    fondoReposicion: 9500,
+    salidas: 0,
+    peajes: 42400,
+    prestamos: 0,
+    salarioConductor: 0,
+    prestacionesConductor: 0,
+    seguridadSocialConductor: 0,
+    netoAPagar: 708100,
+  });
+  assert.equal(status, 200);
+  assert.equal(cuerpo.cierre.origen, 'liquidacion');
+  assert.equal(cuerpo.resumen.neto, 708100);
+
+  const linea = (clave) => cuerpo.conciliacion.lineas.find((l) => l.clave === clave);
+  assert.deepEqual(linea('bruto'), { clave: 'bruto', nombre: 'Producido', planilla: 900000, cooperativa: 950000, diferencia: 50000 });
+  assert.equal(linea('peajes').diferencia, 0);
+  assert.equal(linea('acpm').planilla, 80000);
+  assert.equal(linea('acpm').cooperativa, 0);
+  assert.equal(cuerpo.conciliacion.neto.cooperativa, 708100);
+  assert.equal(cuerpo.conciliacion.cuadra, false);
+
+  // Ya no es un cierre de la planilla: se reabre quitando la liquidación.
+  assert.equal((await pedir('DELETE', '/2/cierre?anio=2026&mes=7', admin)).status, 404);
+  const reabierto = await pedir('DELETE', '/2/liquidacion?anio=2026&mes=7', admin);
+  assert.equal(reabierto.cuerpo.cerrado, false);
+  assert.equal(reabierto.cuerpo.resumen.bruto, 900000);
+});
+
+test('reabrir un mes cerrado con la planilla', async () => {
+  assert.equal((await pedir('POST', '/2/cierre', admin, { anio: 2026, mes: 7 })).status, 201);
+  assert.equal((await pedir('DELETE', '/2/cierre?anio=2026&mes=7', carlos)).status, 403);
+  const r = await pedir('DELETE', '/2/cierre?anio=2026&mes=7', admin);
+  assert.equal(r.status, 200);
+  assert.equal(r.cuerpo.cerrado, false);
+  assert.equal(r.cuerpo.cierre, null);
+  assert.equal((await pedir('PUT', '/2/2026-07-03', admin, { ingreso: 1000 })).status, 200);
 });

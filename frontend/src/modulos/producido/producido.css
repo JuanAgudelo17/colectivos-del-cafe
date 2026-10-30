@@ -42,13 +42,43 @@
   margin-top: 12px;
 }
 
+/* Cerrar el mes y avisarle al conductor, en una fila */
+.producido-acciones-mes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 24px;
+  margin-top: 12px;
+}
+
+.cierre-mes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.cierre-mes .detalle,
+.cierre-mes .error {
+  margin: 0;
+  font-size: var(--texto-sm);
+}
+
+.cierre-mes-estado {
+  font-weight: 600;
+}
+
+.cierre-mes .boton-enlace {
+  padding: 0;
+  font-size: var(--texto-sm);
+}
+
 /* Avisarle al conductor que ya está su producido */
 .producido-avisar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px 12px;
-  margin-top: 12px;
 }
 
 .producido-avisar .ok,
@@ -579,5 +609,60 @@
 
   .producido-herramientas > :last-child:nth-child(odd) {
     grid-column: 1 / -1;
+  }
+}
+
+/* Conciliación planilla vs. cooperativa */
+.conciliacion {
+  margin-top: 40px;
+}
+
+.conciliacion h2 {
+  margin-bottom: 4px;
+}
+
+.conciliacion > .detalle {
+  margin-bottom: 16px;
+}
+
+.conciliacion-tabla small {
+  color: var(--pizarra);
+}
+
+.conciliacion-tabla .numero {
+  text-align: right;
+}
+
+.conciliacion-distinta td:first-child {
+  font-weight: 600;
+}
+
+.conciliacion-cuadra {
+  color: var(--pizarra);
+}
+
+.conciliacion-tabla tfoot td {
+  padding-top: 14px;
+  border-top: 1px solid var(--negro);
+  border-bottom: none;
+  font-weight: 700;
+}
+
+.conciliacion .ayuda {
+  margin-top: 12px;
+}
+
+@media (max-width: 640px) {
+  .conciliacion-tabla .numero {
+    text-align: left;
+  }
+
+  .conciliacion-tabla tfoot tr {
+    border-top: 1px solid var(--negro);
+  }
+
+  .conciliacion-tabla tfoot td {
+    padding: 0;
+    border: none;
   }
 }
