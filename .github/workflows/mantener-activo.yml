@@ -1,0 +1,39 @@
+name: Mantener activo
+
+# Todos los días a las 8 a. m. (Bogotá):
+# 1. Hace una consulta a la base para que Supabase (plan gratis) no pause el
+#    proyecto por inactividad, aunque nadie use la app ni corra la revisión
+#    diaria de Netlify (ej. si el sitio se pausa por falta de créditos).
+# 2. Vuelve a habilitar este workflow y el del respaldo: GitHub apaga los
+#    programados de un repositorio sin cambios en 60 días.
+
+on:
+  schedule:
+    - cron: '0 13 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  mantener:
+    name: Consultar la base y mantener los programados
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Consulta a Supabase
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          [ -n "$DATABASE_URL" ] || { echo "::error::Falta el secreto DATABASE_URL"; exit 1; }
+          USUARIOS=$(psql "$DATABASE_URL" -tAc "SELECT count(*) FROM usuario")
+          echo "✅ Supabase respondió ($USUARIOS usuarios)." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Mantener habilitados los programados
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for flujo in mantener-activo.yml respaldo.yml; do
+            gh api -X PUT "repos/${{ github.repository }}/actions/workflows/$flujo/enable"
+          done

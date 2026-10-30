@@ -24,7 +24,7 @@ Ciclo mensual: se registra día a día durante el mes y se cierra el consolidado
 - **Base de datos:** PostgreSQL en **Supabase** (plan gratis). Conectar con la cadena del **pooler en modo transacción**, no la directa.
 - **Archivos:** Supabase Storage, buckets **privados** `busetas` (fotos) y `facturas` (se crean con `npm run crear-buckets`). Mostrar imágenes solo con URLs firmadas (el backend redirige a una firmada de 10 min). Acceso por `server/compartido/almacen.js` (`req.app.locals.almacen`; en pruebas, `crearAlmacenMemoria()`).
 - **Hosting:** Netlify (plan gratis por créditos: 300/mes, ~15 por despliegue a producción; si se acaban se pausa el sitio). Producción se despliega desde la rama `produccion`, que solo avanza con el workflow manual "Publicar a producción", que exige la aprobación de JuanAgudelo17 (ambiente `produccion` de GitHub). `main` = ambiente de pruebas gratis (main--el-producido.netlify.app). Netlify salta el build si no cambió la app (`netlify/ignorar-build.sh`).
-- **Respaldos:** GitHub Action semanal con `pg_dump` + consulta diaria para que Supabase no pause el proyecto.
+- **Respaldos:** `respaldo.yml` (domingos 3 a. m. Bogotá): `pg_dump` del esquema `public` **cifrado** con `BACKUP_PASSPHRASE` (gpg; el repo es público) y guardado 90 días como artifact. `mantener-activo.yml` (diario): consulta a la base para que Supabase no pause el proyecto y re-habilita los programados. Secretos de GitHub: `DATABASE_URL`, `BACKUP_PASSPHRASE`. Restaurar: `docs/RESPALDOS.md`.
 
 No usar Vercel (su plan gratis prohíbe uso comercial).
 
@@ -48,7 +48,7 @@ No usar Vercel (su plan gratis prohíbe uso comercial).
 ├── netlify/functions/api.js   # envuelve server/app.js con serverless-http
 ├── db/migrations/         # SQL numerado: 001_inicial.sql, 002_...
 ├── netlify.toml
-└── .github/workflows/     # ci.yml (backup y keepalive en Fase 4)
+└── .github/workflows/     # ci.yml, publicar.yml, respaldo.yml, mantener-activo.yml
 ```
 
 Un módulo solo usa otro a través de lo que este exporta en su `index.js` (nunca sus archivos internos).
@@ -144,7 +144,7 @@ neto         = bruto − costos
 
 **Fase 2:** ✅ producido diario (admin: cuadrícula del mes, pegar desde Excel, vueltas, relevo, ACPM La Guaca, mantenimiento, bono, préstamos y resumen; conductor: "Mi producido" con sus días y el resumen del mes, de solo lectura). Pendiente: facturas (sin foto primero; la foto en otra fase).
 **Fase 3:** cierre mensual, resumen financiero, exportar PDF/imagen (generado en el navegador).
-**Fase 4:** respaldos automáticos, keep-alive y pulido.
+**Fase 4:** ✅ respaldos automáticos cifrados y keep-alive (`docs/RESPALDOS.md`). Pendiente: pulido.
 
 ## Decisiones pendientes (preguntar antes de asumir)
 

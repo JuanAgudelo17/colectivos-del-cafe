@@ -1,0 +1,86 @@
+name: Respaldo semanal de la base
+
+# Cada domingo a las 3 a. m. (Bogotá) saca un pg_dump de la base de Supabase,
+# lo cifra con la clave BACKUP_PASSPHRASE (gpg, AES-256) y lo guarda como
+# artifact de esta ejecución durante 90 días (unos 12 respaldos).
+# El repositorio es público: el respaldo SIEMPRE va cifrado (tiene cédulas).
+# También se puede correr a mano: Actions → Respaldo semanal de la base → Run workflow.
+# Cómo restaurar: docs/RESPALDOS.md.
+#
+# Secretos del repositorio: DATABASE_URL (la misma de Netlify) y BACKUP_PASSPHRASE.
+
+on:
+  schedule:
+    - cron: '0 8 * * 0'
+  workflow_dispatch:
+
+concurrency:
+  group: respaldo
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  respaldo:
+    name: Sacar y cifrar el respaldo
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+    outputs:
+      archivo: ${{ steps.respaldo.outputs.archivo }}
+    steps:
+      - name: Verificar los secretos
+        run: |
+          [ -n "$DATABASE_URL" ] || { echo "::error::Falta el secreto DATABASE_URL"; exit 1; }
+          [ -n "$BACKUP_PASSPHRASE" ] || { echo "::error::Falta el secreto BACKUP_PASSPHRASE"; exit 1; }
+
+      # Supabase está en Postgres 17: pg_dump tiene que ser de esa versión o más nueva.
+      - name: Instalar pg_dump 17
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-common > /dev/null
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y > /dev/null
+          sudo apt-get install -y -qq postgresql-client-17 > /dev/null
+          /usr/lib/postgresql/17/bin/pg_dump --version
+
+      - name: Sacar el respaldo y cifrarlo
+        id: respaldo
+        run: |
+          set -euo pipefail
+          # La app usa el pooler en modo transacción (puerto 6543); pg_dump necesita
+          # el modo sesión, que es el mismo pooler en el puerto 5432.
+          URL_SESION="${DATABASE_URL/:6543\//:5432/}"
+          ARCHIVO="respaldo-$(TZ=America/Bogota date +%F).dump"
+
+          /usr/lib/postgresql/17/bin/pg_dump "$URL_SESION" \
+            --format=custom --no-owner --no-privileges --schema=public --file="$ARCHIVO"
+
+          # Que no salga vacío: debe tener los datos de las tablas.
+          TABLAS=$(/usr/lib/postgresql/17/bin/pg_restore --list "$ARCHIVO" | grep -c "TABLE DATA" || true)
+          if [ "$TABLAS" -lt 10 ]; then
+            echo "::error::El respaldo salió con solo $TABLAS tablas con datos"
+            exit 1
+          fi
+          TAMANO=$(du -h "$ARCHIVO" | cut -f1)
+
+          gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 \
+            --symmetric --cipher-algo AES256 --output "$ARCHIVO.gpg" "$ARCHIVO" <<< "$BACKUP_PASSPHRASE"
+          shred -u "$ARCHIVO"
+
+          echo "archivo=$ARCHIVO.gpg" >> "$GITHUB_OUTPUT"
+          {
+            echo "## Respaldo de la base"
+            echo "- Archivo: \`$ARCHIVO.gpg\` (cifrado)"
+            echo "- Tablas con datos: $TABLAS · tamaño sin cifrar: $TAMANO"
+            echo "- Se guarda 90 días en los artifacts de esta ejecución."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.respaldo.outputs.archivo }}
+          path: ${{ steps.respaldo.outputs.archivo }}
+          if-no-files-found: error
+          retention-days: 90
