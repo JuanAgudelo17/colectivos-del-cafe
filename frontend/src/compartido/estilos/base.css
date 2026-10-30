@@ -159,6 +159,21 @@ small.error {
   color: var(--pizarra);
 }
 
+/* Cuando una pantalla se rompe (LimiteErrores) */
+.pantalla-error {
+  display: grid;
+  gap: 16px;
+  justify-items: start;
+  max-width: 480px;
+  margin: 20vh auto 0;
+  padding: 0 16px;
+}
+
+.pantalla-error p {
+  margin: 0;
+  color: var(--pizarra);
+}
+
 .vacio {
   color: var(--pizarra);
   padding: 32px 0;

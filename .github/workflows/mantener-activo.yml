@@ -4,7 +4,11 @@ name: Mantener activo
 # 1. Hace una consulta a la base para que Supabase (plan gratis) no pause el
 #    proyecto por inactividad, aunque nadie use la app ni corra la revisión
 #    diaria de Netlify (ej. si el sitio se pausa por falta de créditos).
-# 2. Vuelve a habilitar este workflow y el del respaldo: GitHub apaga los
+# 2. Revisa que producción responda (el sitio y su conexión a la base). Si
+#    falla, la ejecución queda en rojo y GitHub le manda un correo al dueño:
+#    cubre lo que el registro de errores de la app no puede avisar (sitio
+#    pausado, base caída).
+# 3. Vuelve a habilitar este workflow y el del respaldo: GitHub apaga los
 #    programados de un repositorio sin cambios en 60 días.
 
 on:
@@ -30,7 +34,19 @@ jobs:
           USUARIOS=$(psql "$DATABASE_URL" -tAc "SELECT count(*) FROM usuario")
           echo "✅ Supabase respondió ($USUARIOS usuarios)." >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Revisar que producción responda
+        if: always()
+        run: |
+          RESPUESTA=$(curl -fsS --max-time 30 --retry 2 --retry-delay 20 https://el-producido.netlify.app/api/salud) || {
+            echo "::error::El sitio de producción no responde"; exit 1; }
+          if [ "$(echo "$RESPUESTA" | jq -r .ok)" != "true" ]; then
+            echo "::error::Producción responde con problemas: $(echo "$RESPUESTA" | jq -c '{jwt, baseDatos}')"
+            exit 1
+          fi
+          echo "✅ Producción responde bien." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Mantener habilitados los programados
+        if: always()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
