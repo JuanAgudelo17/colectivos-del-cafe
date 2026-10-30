@@ -17,7 +17,9 @@ async function buscarUsuarioSesion(db, id) {
 }
 
 // Exige una sesión válida y deja el usuario en req.usuario.
-// Renueva la cookie en cada petición (expiración por inactividad).
+// Renueva la cookie en cada petición (expiración por inactividad), salvo las que
+// el navegador hace solo en segundo plano (encabezado X-Segundo-Plano: 1, ej. la
+// campanita cada 5 min): si no, con la app abierta la sesión nunca vencería.
 export async function autenticar(req, res, next) {
   const token = leerCookie(req, COOKIE_SESION);
   const sesion = token && (await verificarToken(token));
@@ -31,7 +33,7 @@ export async function autenticar(req, res, next) {
 
   const { sesionVersion, ...usuario } = encontrado;
   req.usuario = usuario;
-  await ponerCookieSesion(res, usuario.id, sesionVersion);
+  if (req.get('x-segundo-plano') !== '1') await ponerCookieSesion(res, usuario.id, sesionVersion);
   next();
 }
 

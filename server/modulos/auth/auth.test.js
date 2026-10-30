@@ -152,3 +152,12 @@ test('logout borra la cookie', async () => {
   assert.equal(status, 204);
   assert.match(res.headers.getSetCookie()[0], /^sesion=;/);
 });
+
+test('las consultas en segundo plano no renuevan la sesión (vence igual por inactividad)', async () => {
+  const cookie = cookieDe((await login('pedro', 'clave-correcta')).res);
+  const res = await fetch(`${servidor.base}/api/auth/yo`, {
+    headers: { Cookie: cookie, 'X-Segundo-Plano': '1' },
+  });
+  assert.equal(res.status, 200);
+  assert.equal(cookieDe(res), null, 'no debe renovar la cookie');
+});

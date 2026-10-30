@@ -21,9 +21,6 @@ export function PaginaMiColpass() {
     <>
       <div className="titulo-pagina">
         <div>
-          <Link to="/conductor/mi-producido" className="colpass-volver">
-            ← Mi producido
-          </Link>
           <h1>Peajes Colpass</h1>
           <p className="subtitulo">
             La plata de los peajes que te da la empresa y guardas para el propietario, porque el Colpass los paga.

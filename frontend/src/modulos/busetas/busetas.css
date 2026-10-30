@@ -6,17 +6,6 @@
   object-fit: cover;
 }
 
-.enlace-volver {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  margin-bottom: 8px;
-  color: var(--negro);
-  font-size: var(--texto-sm);
-  font-weight: 500;
-  text-underline-offset: 3px;
-}
-
 /* Hoja de vida: datos a la izquierda, foto a la derecha */
 .hoja-tarjeta {
   display: grid;
