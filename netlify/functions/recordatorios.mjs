@@ -1,4 +1,5 @@
 import { crearPool } from '../../server/compartido/bd/pool.js';
+import { registrarError } from '../../server/modulos/errores/index.js';
 import { revisarRecordatorios } from '../../server/modulos/notificaciones/index.js';
 
 // Revisión diaria de recordatorios: todos los días a las 7:00 a. m. de Bogotá
@@ -12,6 +13,10 @@ export default async () => {
     const resultado = await revisarRecordatorios(db);
     console.log(`Recordatorios: ${resultado.creadas} nuevos, ${resultado.enviadas} enviados al celular`);
     return new Response('ok');
+  } catch (err) {
+    // Que el admin se entere (registro de errores y aviso) y Netlify lo marque como fallida.
+    await registrarError(db, { origen: 'programada', mensaje: err.message, detalle: err.stack, ruta: 'Revisión diaria' });
+    throw err;
   } finally {
     await db.end();
   }

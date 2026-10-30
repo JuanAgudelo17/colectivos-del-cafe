@@ -7,6 +7,7 @@ import busetas from './busetas/index.js';
 import conductores from './conductores/index.js';
 import dashboard from './dashboard/index.js';
 import documentos from './documentos/index.js';
+import errores from './errores/index.js';
 import miBuseta from './mi-buseta/index.js';
 import miProducido from './mi-producido/index.js';
 import miRentabilidad from './mi-rentabilidad/index.js';
@@ -19,12 +20,11 @@ export const menuAdmin = [
   { grupo: 'General', modulos: [dashboard] },
   { grupo: 'Contabilidad', modulos: [producido, rentabilidad, ranking] },
   { grupo: 'Flota', modulos: [busetas, conductores] },
+  { grupo: 'Sistema', modulos: [errores] },
   {
     grupo: 'Próximamente',
-    modulos: [
-      { id: 'facturas', titulo: 'Facturas', icono: 'factura', fase: 2 },
-      { id: 'cierre', titulo: 'Cierre mensual', icono: 'cierre', fase: 3 },
-    ],
+    // El cierre mensual ya está en Producido (botón "Cerrar el mes").
+    modulos: [{ id: 'facturas', titulo: 'Facturas', icono: 'factura', fase: 2 }],
   },
 ];
 

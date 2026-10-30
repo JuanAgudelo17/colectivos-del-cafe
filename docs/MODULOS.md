@@ -20,6 +20,7 @@ Así dos personas pueden trabajar al mismo tiempo sin pisarse: cada quien toca s
 | Colpass (plata de peajes por liquidar) | `colpass/` | `colpass/` (sin menú: apartado "Peajes Colpass" en Producido para el admin y subpágina `mi-producido/peajes` del conductor) | ambos | ✅ |
 | Notificaciones (campanita, push y recordatorios diarios) | `notificaciones/` (usa busetas, mantenimiento y colpass) | `notificaciones/` (la `Campana` va en el Panel desde `App.jsx`) | ambos | ✅ |
 | Ranking (producido del mes y días trabajados) | `ranking/` (usa `producidoPorBuseta` de producido) | `ranking/` | ambos | ✅ |
+| Errores (registro de errores de producción y avisos al admin) | `errores/` (usa `notificar`; `registrarError` lo usan `app.js` y la revisión diaria) | `errores/` (+ `compartido/errores.js` y `LimiteErrores`) | admin | ✅ |
 | Rentabilidad (utilidad por buseta y flota) | `rentabilidad/` (usa `calcularResumen` y `datosDelAnio` de producido) | `rentabilidad/` | admin | ✅ |
 | Rentabilidad del conductor (solo su buseta) | `rentabilidad/` (`GET /mia`) | `mi-rentabilidad/` (usa la gráfica y el desglose de `rentabilidad`) | conductor | ✅ |
 | Mantenimiento y kilometraje (hoja de vida) | `mantenimiento/` | `mantenimiento/` (sin menú: lo usan `mi-buseta` y `busetas/:id`) | ambos | ✅ |
