@@ -32,7 +32,9 @@ function cuando(iso) {
 export function Campana() {
   const navegar = useNavigate();
   const [abierta, setAbierta] = useState(false);
-  const { datos, recargar } = useDatos('/notificaciones');
+  // En segundo plano: consultar los avisos no cuenta como actividad, así la sesión
+  // igual vence a los 30 minutos sin usar la app. (Marcar leídos sí cuenta.)
+  const { datos, recargar } = useDatos('/notificaciones', { segundoPlano: true });
   const noLeidas = datos?.noLeidas ?? 0;
 
   // Se actualiza cada cinco minutos mientras la app está abierta.

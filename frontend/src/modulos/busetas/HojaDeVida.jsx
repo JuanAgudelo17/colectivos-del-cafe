@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { useParams } from 'react-router';
 import { Dialogo } from '../../compartido/ui/Dialogo.jsx';
 import { EstadoDocumento } from '../../compartido/ui/EstadoDocumento.jsx';
 import { Icono } from '../../compartido/ui/Iconos.jsx';
@@ -21,10 +21,6 @@ export function HojaDeVida() {
 
   return (
     <>
-      <Link to=".." relative="path" className="enlace-volver">
-        ← Busetas
-      </Link>
-
       {error && <p className="error">{error}</p>}
       {!datos && !error && <p className="vacio">Cargando…</p>}
 

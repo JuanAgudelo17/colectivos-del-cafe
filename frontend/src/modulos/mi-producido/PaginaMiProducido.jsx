@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { mesActual, nombreMes, pesos } from '../../compartido/utilidades/formato.js';
 import { useDatos } from '../../compartido/utilidades/useDatos.js';
@@ -9,17 +8,24 @@ import { ListaDias } from './ListaDias.jsx';
 import { NavegadorMes } from './NavegadorMes.jsx';
 import './mi-producido.css';
 
+// Mes de la dirección (?anio=2026&mes=9, como lo traen los avisos); si no es
+// válido o es futuro, el actual.
+function mesDelEnlace(parametros) {
+  const anio = Number(parametros.get('anio'));
+  const mes = Number(parametros.get('mes'));
+  const hoy = mesActual();
+  const valido = anio >= 2020 && mes >= 1 && mes <= 12 && anio * 12 + mes <= hoy.anio * 12 + hoy.mes;
+  return valido ? { anio, mes } : hoy;
+}
+
 // El conductor consulta lo que hizo cada día y el resumen del mes de su buseta
 // (en qué se gastó), todo de solo lectura. Lo de La Guaca solo aparece si ese
-// mes tanqueó allá.
+// mes tanqueó allá. El mes vive en la dirección: cambiarlo con las flechas la
+// actualiza, así un aviso siempre lleva al mes que dice.
 export function PaginaMiProducido() {
-  // Si llega desde un aviso (?anio=2026&mes=9), abre ese mes; si no, el actual.
-  const [parametros] = useSearchParams();
-  const [periodo, setPeriodo] = useState(() => {
-    const anio = Number(parametros.get('anio'));
-    const mes = Number(parametros.get('mes'));
-    return anio >= 2020 && mes >= 1 && mes <= 12 ? { anio, mes } : mesActual();
-  });
+  const [parametros, setParametros] = useSearchParams();
+  const periodo = mesDelEnlace(parametros);
+  const setPeriodo = ({ anio, mes }) => setParametros({ anio: String(anio), mes: String(mes) }, { replace: true });
   const { datos, error, cargando } = useDatos(`/producido/mio?anio=${periodo.anio}&mes=${periodo.mes}`);
   const vigente = datos && datos.anio === periodo.anio && datos.mes === periodo.mes ? datos : null;
   const hoy = mesActual();

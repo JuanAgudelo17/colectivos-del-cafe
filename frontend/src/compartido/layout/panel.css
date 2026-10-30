@@ -164,6 +164,9 @@
 /* ---- Contenido ---- */
 .panel-contenido {
   width: 100%;
+  /* Celda de la cuadrícula del panel: sin esto se estira al ancho de la tabla más
+     ancha (en vez de que la tabla se desplace dentro de su contenedor). */
+  min-width: 0;
   max-width: 1160px;
   padding: 48px 48px var(--separacion-seccion);
 }
@@ -255,4 +258,53 @@
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+/* ---- Marca con el logo y flecha para volver ---- */
+.lateral-marca .marca,
+.barra-movil .marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.barra-movil-marca {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+
+.boton-volver {
+  margin-left: -12px;
+  font-size: 32px;
+  line-height: 1;
+}
+
+/* En el computador la flecha va arriba del contenido */
+.volver-escritorio {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 36px;
+  margin: -24px 0 16px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--pizarra);
+  font: inherit;
+  font-size: var(--texto-sm);
+  cursor: pointer;
+}
+
+.volver-escritorio:hover {
+  color: var(--negro);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 1024px) {
+  .volver-escritorio {
+    display: none;
+  }
 }

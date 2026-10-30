@@ -1,11 +1,3 @@
-.colpass-volver {
-  display: inline-block;
-  margin-bottom: 8px;
-  font-size: var(--texto-sm);
-  color: var(--pizarra);
-  text-underline-offset: 3px;
-}
-
 /* ---- Lo pendiente por liquidar: barra negra, la cifra principal ---- */
 .colpass-pendiente {
   display: flex;
