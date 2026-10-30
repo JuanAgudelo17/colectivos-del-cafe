@@ -1,13 +1,29 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router';
+import { api } from '../../compartido/api.js';
 import { useSesion } from '../../compartido/sesion/contexto.js';
 import { IlustracionBuseta } from '../../compartido/ui/Ilustraciones.jsx';
 import { DOCUMENTOS } from '../../compartido/utilidades/documentos.js';
-import { fecha, fechaLargaHoy, kilometros, textoDocumento } from '../../compartido/utilidades/formato.js';
+import { fecha, fechaLargaHoy, kilometros, mesActual, textoDocumento } from '../../compartido/utilidades/formato.js';
 import { useDatos } from '../../compartido/utilidades/useDatos.js';
 import { FotoBuseta } from '../busetas/index.js';
 import { PanelMantenimiento, requiereAtencion as mantenimientoRequiereAtencion, textoEstado } from '../mantenimiento/index.js';
 import { ResumenMiProducido } from '../mi-producido/index.js';
 import './mi-buseta.css';
+
+// Para verlo sin señal (en carretera): al abrir el inicio con internet se dejan
+// guardados los dos meses anteriores de Mi producido y la rentabilidad (el mes
+// actual, la buseta y el mantenimiento ya se cargan aquí). Las rutas tienen que
+// ser idénticas a las de esas páginas: lo guardado se busca por dirección.
+function precargarSinConexion() {
+  if (!navigator.onLine) return;
+  const { anio, mes } = mesActual();
+  const rutas = [1, 2].map((atras) => {
+    const fecha = new Date(Date.UTC(anio, mes - 1 - atras, 1));
+    return `/producido/mio?anio=${fecha.getUTCFullYear()}&mes=${fecha.getUTCMonth() + 1}`;
+  });
+  for (const ruta of [...rutas, '/rentabilidad/mia']) api(ruta, { segundoPlano: true }).catch(() => {});
+}
 
 // Inicio del conductor: el producido del mes, su buseta con el estado de un
 // vistazo (documentos, kilometraje, mantenimiento), lo que requiere atención y
@@ -17,6 +33,11 @@ export function MiBuseta() {
   const { datos, error, cargando } = useDatos('/mi-buseta');
   const buseta = datos?.buseta;
   const primerNombre = usuario.nombre.split(' ')[0];
+
+  useEffect(() => {
+    const espera = setTimeout(precargarSinConexion, 2000);
+    return () => clearTimeout(espera);
+  }, []);
 
   return (
     <>

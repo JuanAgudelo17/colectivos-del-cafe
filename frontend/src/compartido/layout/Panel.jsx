@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { useSesion } from '../sesion/contexto.js';
+import { AvisoSinConexion } from '../ui/AvisoSinConexion.jsx';
 import { Icono } from '../ui/Iconos.jsx';
 import { Logo } from '../ui/Logo.jsx';
 import './panel.css';
@@ -166,6 +167,7 @@ export function Panel({ menu, base, acciones = null }) {
       </div>
 
       <main className="panel-contenido">
+        <AvisoSinConexion />
         {!enInicio && (
           <button type="button" className="volver-escritorio" onClick={volver}>
             ‹ Atrás
