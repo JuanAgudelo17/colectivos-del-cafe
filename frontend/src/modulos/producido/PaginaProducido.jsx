@@ -8,7 +8,10 @@ import { useDatos } from '../../compartido/utilidades/useDatos.js';
 import { SeccionColpass } from '../colpass/index.js';
 import { AvisarConductor } from './AvisarConductor.jsx';
 import { CalculoVueltas } from './CalculoVueltas.jsx';
+import { CierreMes } from './CierreMes.jsx';
+import { Conciliacion } from './Conciliacion.jsx';
 import { CuadriculaMes } from './CuadriculaMes.jsx';
+import { DescargarPdf } from './DescargarPdf.jsx';
 import { FormularioLiquidacion } from './FormularioLiquidacion.jsx';
 import { LiquidacionCooperativa } from './LiquidacionCooperativa.jsx';
 import { PegarExcel } from './PegarExcel.jsx';
@@ -77,11 +80,12 @@ export function PaginaProducido() {
           <button
             type="button"
             className="boton-secundario-oscuro"
-            disabled={!mes || (mes.cerrado && !mes.liquidacion)}
+            disabled={!mes}
             onClick={() => setDialogo({ tipo: 'liquidacion' })}
           >
             Liquidación de la cooperativa
           </button>
+          <DescargarPdf mes={mes} />
         </div>
       </div>
 
@@ -112,7 +116,10 @@ export function PaginaProducido() {
               Conductor: {mes.buseta.conductor?.nombre ?? 'sin asignar'}
               {mes.cerrado && <span className="etiqueta etiqueta-oscura">Mes cerrado</span>}
             </p>
-            <AvisarConductor key={`${mes.buseta.id}-${mes.anio}-${mes.mes}`} mes={mes} />
+            <div className="producido-acciones-mes">
+              <CierreMes key={`cierre-${mes.buseta.id}-${mes.anio}-${mes.mes}`} mes={mes} alActualizar={alActualizar} />
+              <AvisarConductor key={`${mes.buseta.id}-${mes.anio}-${mes.mes}`} mes={mes} />
+            </div>
             {!mes.buseta.conductor && !mes.cerrado && (
               <p className="aviso">Asigna un conductor a esta buseta (módulo Conductores) para poder registrar su producido.</p>
             )}
@@ -144,6 +151,8 @@ export function PaginaProducido() {
               <ResumenMes mes={mes} alActualizar={alActualizar} />
             )}
           </div>
+
+          {mes.conciliacion && <Conciliacion conciliacion={mes.conciliacion} />}
 
           <SeccionColpass key={mes.buseta.id} busetaId={mes.buseta.id} cambio={mes.resumen.peajes} />
         </>

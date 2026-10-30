@@ -6,15 +6,16 @@ import { alcance, autenticar, requiereRol } from '../../compartido/seguridad/mid
 import { obtenerBuseta } from '../busetas/index.js';
 import { enviadorDesdeEntorno, notificar } from '../notificaciones/index.js';
 import { calcularResumen } from './calculo.js';
-import { cierreDeLiquidacion, netoDeLiquidacion, resumenDeCierre } from './liquidacion.js';
+import { conciliar } from './conciliacion.js';
+import { cierreDeLiquidacion, cierreDeResumen, netoDeLiquidacion, resumenDeCierre } from './liquidacion.js';
 import { ajusteEsquema, diaEsquema, liquidacionEsquema, mesConsulta, rutaEsquema } from './esquemas.js';
 import {
   actualizarRuta,
   borrarAjuste,
-  borrarCierreLiquidacion,
+  borrarCierre,
   borrarDia,
   crearAjuste,
-  guardarCierreLiquidacion,
+  guardarCierre,
   guardarDia,
   listarAjustes,
   listarDias,
@@ -106,9 +107,10 @@ async function verificarMesAbierto(db, busetaId, anio, mes) {
   }
 }
 
-// Todo lo del mes de una buseta: días, ajustes y el resumen. Si el mes se cerró
-// con la liquidación de la cooperativa, el resumen sale de ella (y se devuelve
-// el documento en `liquidacion`).
+// Todo lo del mes de una buseta: días, ajustes y el resumen. Si el mes está
+// cerrado, el resumen sale del cierre guardado; si se cerró con la liquidación de
+// la cooperativa, se devuelve el documento en `liquidacion` y, si hay días, la
+// conciliación con la planilla (lo que da calcularResumen con esos días).
 async function armarMes(db, buseta, anio, mes) {
   const { desde, hasta } = rangoDelMes(anio, mes);
   const [dias, ajustes, parametros, cierre] = await Promise.all([
@@ -117,6 +119,9 @@ async function armarMes(db, buseta, anio, mes) {
     parametrosDelMes(db, hasta),
     obtenerCierre(db, buseta.id, anio, mes),
   ]);
+
+  const planilla = calcularResumen({ dias, ajustes, parametros, buseta, mes });
+  const liquidacion = cierre?.origen === 'liquidacion' ? cierre.liquidacion : null;
 
   return {
     buseta: {
@@ -130,14 +135,18 @@ async function armarMes(db, buseta, anio, mes) {
     anio,
     mes,
     cerrado: Boolean(cierre),
+    cierre: cierre && { origen: cierre.origen, cerradoEn: cierre.cerradoEn },
+    // Se puede cerrar cuando el mes ya terminó (hora Bogotá).
+    mesTerminado: rangoDelMes(anio, mes).hasta < hoyBogota(),
     dias,
     ajustes,
     valorRelevo: Number(parametros.valor_relevo ?? 0),
     porcentajeEmpresa: Number(parametros.porcentaje_empresa ?? 0),
     porcentajeReposicion: Number(parametros.porcentaje_reposicion ?? 0),
     fondoFijoArriendo: Number(parametros.fondo_fijo_arriendo ?? 0),
-    resumen: cierre ? resumenDeCierre(cierre, dias) : calcularResumen({ dias, ajustes, parametros, buseta, mes }),
-    liquidacion: cierre?.origen === 'liquidacion' ? cierre.liquidacion : null,
+    resumen: cierre ? resumenDeCierre(cierre, dias) : planilla,
+    liquidacion,
+    conciliacion: liquidacion && dias.length > 0 ? conciliar(planilla, liquidacion) : null,
   };
 }
 
@@ -156,17 +165,50 @@ router.put('/:busetaId/liquidacion', async (req, res) => {
     });
   }
   const { anio, mes, ...liquidacion } = datos;
-  const existente = await obtenerCierre(db, buseta.id, anio, mes);
-  if (existente && existente.origen !== 'liquidacion') throw new ErrorHttp(409, 'Ese mes ya está cerrado');
 
-  await guardarCierreLiquidacion(db, {
+  // Manda sobre un cierre calculado por la app: lo reemplaza (la planilla se
+  // sigue viendo en la conciliación, porque los días no cambian).
+  await guardarCierre(db, {
     busetaId: buseta.id,
     anio,
     mes,
     cierre: cierreDeLiquidacion(datos),
+    origen: 'liquidacion',
     liquidacion,
     cerradoPor: req.usuario.id,
   });
+  res.json(await armarMes(db, buseta, anio, mes));
+});
+
+// ---- Cierre del mes con la planilla (los días de la cuadrícula) ----------------
+// Guarda lo que da calcularResumen y el mes queda sin poder editarse.
+router.post('/:busetaId/cierre', async (req, res) => {
+  const db = req.app.locals.db;
+  const buseta = await busetaDeRuta(req);
+  const { anio, mes } = validar(mesConsulta, req.body);
+  const actual = await armarMes(db, buseta, anio, mes);
+  if (actual.cerrado) throw new ErrorHttp(409, 'Ese mes ya está cerrado');
+  if (!actual.mesTerminado) throw new ErrorHttp(400, 'El mes se puede cerrar cuando termine');
+  if (actual.resumen.bruto === 0) throw new ErrorHttp(400, 'No hay producido registrado en ese mes');
+
+  const guardado = await guardarCierre(db, {
+    busetaId: buseta.id,
+    anio,
+    mes,
+    cierre: cierreDeResumen(actual.resumen),
+    origen: 'calculado',
+    cerradoPor: req.usuario.id,
+  });
+  if (!guardado) throw new ErrorHttp(409, 'Ese mes ya está cerrado');
+  res.status(201).json(await armarMes(db, buseta, anio, mes));
+});
+
+// Reabre un mes cerrado con la planilla (para corregir algo y volver a cerrarlo).
+router.delete('/:busetaId/cierre', async (req, res) => {
+  const db = req.app.locals.db;
+  const buseta = await busetaDeRuta(req);
+  const { anio, mes } = validar(mesConsulta, req.query);
+  if (!(await borrarCierre(db, buseta.id, anio, mes, 'calculado'))) throw noEncontrado('El cierre');
   res.json(await armarMes(db, buseta, anio, mes));
 });
 
@@ -210,7 +252,7 @@ router.delete('/:busetaId/liquidacion', async (req, res) => {
   const db = req.app.locals.db;
   const buseta = await busetaDeRuta(req);
   const { anio, mes } = validar(mesConsulta, req.query);
-  if (!(await borrarCierreLiquidacion(db, buseta.id, anio, mes))) throw noEncontrado('La liquidación');
+  if (!(await borrarCierre(db, buseta.id, anio, mes, 'liquidacion'))) throw noEncontrado('La liquidación');
   res.json(await armarMes(db, buseta, anio, mes));
 });
 

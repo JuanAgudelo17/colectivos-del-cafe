@@ -148,7 +148,10 @@ function FilaDia({ info, indice, registro, busetaId, bloqueada, alActualizar, ab
 // Cuadrícula del mes: un día por fila, como la planilla, con totales abajo.
 export function CuadriculaMes({ mes, alActualizar, abrirVueltas }) {
   const porFecha = Object.fromEntries(mes.dias.map((d) => [d.fecha, d]));
-  const { resumen } = mes;
+  // Totales de los días que se ven (no del resumen: con la liquidación de la
+  // cooperativa el resumen trae sus valores, que pueden ser otros).
+  const total = (campo) => mes.dias.reduce((t, d) => t + Number(d[campo] ?? 0), 0);
+  const diasRelevo = mes.dias.filter((d) => d.relevo).length;
 
   return (
     <div className="cuadricula-contenedor">
@@ -188,12 +191,12 @@ export function CuadriculaMes({ mes, alActualizar, abrirVueltas }) {
         <tfoot>
           <tr>
             <th scope="row">Total</th>
-            <td>{numero(resumen.bruto)}</td>
-            <td>{numero(resumen.peajes)}</td>
-            <td>{numero(resumen.salidas)}</td>
-            <td>{numero(resumen.acpmConductor)}</td>
-            <td>{numero(resumen.acpmCredito)}</td>
-            <td className="col-relevo">{resumen.diasRelevo || ''}</td>
+            <td>{numero(total('ingreso'))}</td>
+            <td>{numero(total('peajes'))}</td>
+            <td>{numero(total('salidas'))}</td>
+            <td>{numero(total('acpm'))}</td>
+            <td>{numero(total('acpmCredito'))}</td>
+            <td className="col-relevo">{diasRelevo || ''}</td>
             <td />
           </tr>
         </tfoot>
