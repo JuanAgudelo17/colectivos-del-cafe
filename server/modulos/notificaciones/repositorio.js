@@ -83,3 +83,18 @@ export async function suscripcionesDe(db, usuarioIds) {
   );
   return rows;
 }
+
+// Días de producido que el admin cargó en las últimas `horas`, por buseta (para
+// avisarle al conductor). Se lee la tabla del producido directamente: importar
+// el módulo producido aquí haría un ciclo (producido usa `notificar`).
+export async function producidoCargadoDesde(db, horas) {
+  const { rows } = await db.query(
+    `SELECT buseta_id AS "busetaId", count(*)::int AS dias, min(fecha) AS desde, max(fecha) AS hasta,
+            SUM(ingreso)::bigint AS producido
+       FROM producido_diario
+      WHERE creado_en >= now() - make_interval(hours => $1)
+      GROUP BY buseta_id`,
+    [horas],
+  );
+  return rows;
+}

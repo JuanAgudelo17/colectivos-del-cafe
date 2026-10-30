@@ -6,6 +6,7 @@
 //   Mantenimiento: cuando un tipo pasa a "pronto" y cuando pasa a "vencido".
 //   Kilometraje: una vez por semana si no se reporta hace más de 7 días (solo conductor).
 //   Colpass: una vez por semana si hay peajes por entregar al propietario.
+//   Producido: si el admin cargó días en las últimas 24 h (solo al conductor).
 //
 // Le llegan al conductor de la buseta y a todos los admin activos.
 import { diasEntre } from '../../compartido/fecha.js';
@@ -63,8 +64,9 @@ function textoMantenimiento({ estado, kmRestantes, dias }) {
  * @param {Array<{id, numeroInterno, activo, documentos}>} p.busetas
  * @param {Array<{id, kilometraje, estados}>} p.flota  estado de mantenimiento por buseta
  * @param {Array<{busetaId, total}>} p.colpass  peajes pendientes por entregar
+ * @param {Array<{busetaId, dias, desde, hasta, producido}>} [p.producidoNuevo]  días cargados en las últimas 24 h
  */
-export function armarRecordatorios({ hoy, usuarios, busetas, flota, colpass }) {
+export function armarRecordatorios({ hoy, usuarios, busetas, flota, colpass, producidoNuevo = [] }) {
   const admins = usuarios.filter((u) => u.rol === 'admin');
   const conductorDe = (busetaId) => usuarios.find((u) => u.rol === 'conductor' && u.busetaId === busetaId);
   const semana = lunesDe(hoy);
@@ -141,6 +143,24 @@ export function armarRecordatorios({ hoy, usuarios, busetas, flota, colpass }) {
             : 'Todavía no lo has reportado. Así sabemos cuándo toca cada mantenimiento.',
         },
         urlConductor: '/conductor#mantenimiento',
+        soloConductor: true,
+      });
+    }
+
+    // ---- Producido cargado ayer (solo al conductor, una vez por día)
+    const cargado = producidoNuevo.find((p) => p.busetaId === buseta.id);
+    if (cargado) {
+      const rango =
+        cargado.desde === cargado.hasta
+          ? `del ${fechaCorta(cargado.desde)}`
+          : `del ${fechaCorta(cargado.desde)} al ${fechaCorta(cargado.hasta)}`;
+      avisar({
+        buseta,
+        clave: `producido:${buseta.id}:${hoy}`,
+        tipo: 'producido',
+        titulo: cargado.dias === 1 ? 'Se cargó tu producido de 1 día' : `Se cargó tu producido de ${cargado.dias} días`,
+        cuerpo: { conductor: `Producido ${rango}: ${pesos(cargado.producido)}. Mira el detalle y en qué se gastó.` },
+        urlConductor: `/conductor/mi-producido?anio=${cargado.hasta.slice(0, 4)}&mes=${Number(cargado.hasta.slice(5, 7))}`,
         soloConductor: true,
       });
     }
