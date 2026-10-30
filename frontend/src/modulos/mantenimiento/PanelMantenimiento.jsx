@@ -14,8 +14,7 @@ import './mantenimiento.css';
 // Kilometraje, estado de cada mantenimiento e historial de una buseta.
 // Lo usan el conductor (Mi buseta) y el admin (hoja de vida). Los permisos los
 // decide el backend: cada registro trae `editable`.
-// `accionFija`: en celular, "Registrar kilometraje" va en la barra negra de abajo.
-export function PanelMantenimiento({ busetaId, accionFija = false, resumido = false }) {
+export function PanelMantenimiento({ busetaId, resumido = false }) {
   const ruta = `/mantenimiento/${busetaId}`;
   const consulta = useDatos(ruta);
   // Cada cambio devuelve la hoja completa: se muestra sin volver a pedirla.
@@ -64,7 +63,7 @@ export function PanelMantenimiento({ busetaId, accionFija = false, resumido = fa
           <div className="mantenimiento-km-acciones">
             <button
               type="button"
-              className={accionFija ? 'boton-principal accion-fija' : 'boton-principal'}
+              className="boton-principal"
               onClick={() => setDialogo({ tipo: 'km' })}
             >
               Registrar kilometraje

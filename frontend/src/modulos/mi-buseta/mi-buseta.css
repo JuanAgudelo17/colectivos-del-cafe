@@ -187,12 +187,18 @@
 }
 
 @media (max-width: 640px) {
-  .mi-buseta-tarjeta,
+  /* Tarjeta compacta: la foto pequeña al lado, así el Estado se ve sin bajar */
+  .mi-buseta-tarjeta {
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 16px;
+    padding: 16px;
+  }
+
   .mi-buseta-sin {
     grid-template-columns: 1fr;
   }
 
-  .mi-buseta-ilustracion {
+  .mi-buseta-sin .mi-buseta-ilustracion {
     aspect-ratio: 16 / 8;
   }
 

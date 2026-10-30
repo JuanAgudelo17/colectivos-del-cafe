@@ -173,7 +173,7 @@ function ConBuseta({ buseta }) {
       )}
 
       <div id="mantenimiento">
-        <PanelMantenimiento busetaId={buseta.id} accionFija resumido />
+        <PanelMantenimiento busetaId={buseta.id} resumido />
       </div>
     </>
   );

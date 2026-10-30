@@ -42,7 +42,7 @@ export function PaginaConductores() {
           <h1>Conductores</h1>
           <p className="subtitulo">Cuentas de acceso, datos de contacto y buseta asignada.</p>
         </div>
-        <button type="button" className="boton-principal accion-fija" onClick={() => setEditando(NUEVO)}>
+        <button type="button" className="boton-principal" onClick={() => setEditando(NUEVO)}>
           + Nuevo conductor
         </button>
       </div>

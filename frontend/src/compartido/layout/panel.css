@@ -206,8 +206,8 @@
   .panel-menu-abierto .cortina {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    gap: 32px;
+    justify-content: flex-start;
+    gap: 24px;
     position: fixed;
     inset: 56px 0 0 0;
     z-index: 19;
@@ -226,12 +226,20 @@
   .panel-contenido {
     padding: 28px 20px 48px;
   }
+
+  /* Cuenta arriba del menú: separada de las opciones por una línea abajo */
+  .cortina .lateral-usuario {
+    padding: 4px 12px 20px;
+    border-top: none;
+    border-bottom: 1px solid var(--carbon);
+  }
 }
 
-/* La barra fija de acción (base.css) no debe tapar el final del contenido */
+/* Espacio al final en celular: ninguna barra flotante (ej. la de Netlify en el
+   sitio de pruebas) tapa lo último de la página. */
 @media (max-width: 640px) {
-  .panel-contenido:has(.accion-fija) {
-    padding-bottom: 104px;
+  .panel-contenido {
+    padding-bottom: 96px;
   }
 }
 

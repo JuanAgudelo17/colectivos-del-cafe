@@ -57,7 +57,7 @@ export function PaginaMiColpass() {
                 hayPendiente && (
                   <button
                     type="button"
-                    className="boton-principal accion-fija colpass-registrar"
+                    className="boton-principal colpass-registrar"
                     onClick={() => setRegistrando(true)}
                   >
                     Registrar lo que entregué

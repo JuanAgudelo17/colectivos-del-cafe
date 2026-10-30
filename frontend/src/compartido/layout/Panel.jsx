@@ -121,9 +121,10 @@ export function Panel({ menu, base, acciones = null }) {
           </button>
         </span>
       </header>
+      {/* En el celular la cuenta (y Salir) va arriba: abajo la tapan otras barras. */}
       <div className="cortina">
-        {navegacion}
         {cuenta}
+        {navegacion}
       </div>
 
       <main className="panel-contenido">
