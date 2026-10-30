@@ -8,6 +8,11 @@ import { LimiteErrores } from './compartido/ui/LimiteErrores.jsx';
 
 escucharErrores();
 
+// Service worker: notificaciones push y la app sin señal (ver public/sw.js).
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <LimiteErrores>
