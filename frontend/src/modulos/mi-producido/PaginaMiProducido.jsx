@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router';
 import { mesActual, nombreMes, pesos } from '../../compartido/utilidades/formato.js';
 import { useDatos } from '../../compartido/utilidades/useDatos.js';
 import { AvisoColpass } from '../colpass/index.js';
@@ -12,7 +13,13 @@ import './mi-producido.css';
 // (en qué se gastó), todo de solo lectura. Lo de La Guaca solo aparece si ese
 // mes tanqueó allá.
 export function PaginaMiProducido() {
-  const [periodo, setPeriodo] = useState(mesActual);
+  // Si llega desde un aviso (?anio=2026&mes=9), abre ese mes; si no, el actual.
+  const [parametros] = useSearchParams();
+  const [periodo, setPeriodo] = useState(() => {
+    const anio = Number(parametros.get('anio'));
+    const mes = Number(parametros.get('mes'));
+    return anio >= 2020 && mes >= 1 && mes <= 12 ? { anio, mes } : mesActual();
+  });
   const { datos, error, cargando } = useDatos(`/producido/mio?anio=${periodo.anio}&mes=${periodo.mes}`);
   const vigente = datos && datos.anio === periodo.anio && datos.mes === periodo.mes ? datos : null;
   const hoy = mesActual();

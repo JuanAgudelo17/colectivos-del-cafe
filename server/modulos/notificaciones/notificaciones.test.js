@@ -154,3 +154,25 @@ describe('revisión diaria', () => {
     assert.equal((await pedir('POST', '/prueba', pedro)).status, 400);
   });
 });
+
+test('la revisión diaria avisa al conductor el producido que se cargó en las últimas 24 h', async () => {
+  await db.query(
+    `INSERT INTO producido_diario (buseta_id, conductor_id, fecha, ingreso, creado_por)
+     VALUES (1, $1, $2, 650000, $3), (1, $1, $4, 700000, $3)`,
+    [pedro.id, enDias(-2, hoy), admin.id, enDias(-1, hoy)],
+  );
+  // Un día cargado hace más de 24 h no cuenta.
+  await db.query(
+    `INSERT INTO producido_diario (buseta_id, conductor_id, fecha, ingreso, creado_por, creado_en)
+     VALUES (1, $1, $2, 999000, $3, now() - interval '2 days')`,
+    [pedro.id, enDias(-9, hoy), admin.id],
+  );
+  await revisarRecordatorios(db, { enviador: { configurado: false }, hoy });
+  const { rows } = await db.query(
+    `SELECT titulo, cuerpo FROM notificacion WHERE usuario_id = $1 AND tipo = 'producido'`,
+    [pedro.id],
+  );
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].titulo, 'Se cargó tu producido de 2 días');
+  assert.match(rows[0].cuerpo, /\$ 1\.350\.000/);
+});

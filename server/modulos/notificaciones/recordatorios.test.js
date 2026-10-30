@@ -117,3 +117,16 @@ test('Colpass: con peajes pendientes, una vez por semana', () => {
   assert.equal(avisos[0].url, '/conductor/mi-producido/peajes');
   assert.equal(armar({ colpass: [{ busetaId: 10, total: 0 }] }).length, 0);
 });
+
+test('producido cargado en las últimas 24 h: solo al conductor, una vez por día', () => {
+  const producidoNuevo = [{ busetaId: 10, dias: 3, desde: '2026-10-21', hasta: '2026-10-23', producido: 2_450_000 }];
+  const avisos = armar({ producidoNuevo });
+  assert.deepEqual(avisos.map((a) => [a.usuarioId, a.clave, a.tipo]), [[2, 'producido:10:2026-10-24', 'producido']]);
+  assert.equal(avisos[0].titulo, 'Se cargó tu producido de 3 días');
+  assert.match(avisos[0].cuerpo, /del 21\/10\/2026 al 23\/10\/2026: \$ 2\.450\.000/);
+  assert.equal(avisos[0].url, '/conductor/mi-producido?anio=2026&mes=10');
+  // Un solo día
+  const uno = armar({ producidoNuevo: [{ busetaId: 10, dias: 1, desde: '2026-10-23', hasta: '2026-10-23', producido: 500_000 }] });
+  assert.equal(uno[0].titulo, 'Se cargó tu producido de 1 día');
+  assert.match(uno[0].cuerpo, /^Producido del 23\/10\/2026:/);
+});

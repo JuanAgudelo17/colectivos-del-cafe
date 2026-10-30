@@ -4,6 +4,7 @@ import { idDeRuta, validar } from '../../compartido/http/validacion.js';
 import { hoyBogota } from '../../compartido/fecha.js';
 import { alcance, autenticar, requiereRol } from '../../compartido/seguridad/middleware.js';
 import { obtenerBuseta } from '../busetas/index.js';
+import { enviadorDesdeEntorno, notificar } from '../notificaciones/index.js';
 import { calcularResumen } from './calculo.js';
 import { cierreDeLiquidacion, netoDeLiquidacion, resumenDeCierre } from './liquidacion.js';
 import { ajusteEsquema, diaEsquema, liquidacionEsquema, mesConsulta, rutaEsquema } from './esquemas.js';
@@ -167,6 +168,41 @@ router.put('/:busetaId/liquidacion', async (req, res) => {
     cerradoPor: req.usuario.id,
   });
   res.json(await armarMes(db, buseta, anio, mes));
+});
+
+// Avisarle al conductor que ya está su producido del mes (campanita y push al
+// celular), con el resumen: días, producido y total neto.
+const nombreDelMes = (anio, mes) =>
+  new Intl.DateTimeFormat('es-CO', { month: 'long', timeZone: 'UTC' }).format(new Date(Date.UTC(anio, mes - 1, 1)));
+
+router.post('/:busetaId/avisar', async (req, res) => {
+  const db = req.app.locals.db;
+  const buseta = await busetaDeRuta(req);
+  const { anio, mes } = validar(mesConsulta, req.body);
+  if (!buseta.conductor) throw new ErrorHttp(400, 'Esta buseta no tiene conductor asignado');
+
+  const { resumen, liquidacion } = await armarMes(db, buseta, anio, mes);
+  if (resumen.bruto === 0) throw new ErrorHttp(400, 'Todavía no hay producido en ese mes');
+
+  const dias = liquidacion
+    ? 'Liquidación de la cooperativa'
+    : `${resumen.diasTrabajados} ${resumen.diasTrabajados === 1 ? 'día' : 'días'}`;
+  const resultado = await notificar(
+    db,
+    [
+      {
+        usuarioId: buseta.conductor.id,
+        // Cada aviso es nuevo (se puede volver a avisar si se corrige algo).
+        clave: `producido-aviso:${buseta.id}:${anio}-${mes}:${Date.now()}`,
+        tipo: 'producido',
+        titulo: `Ya está tu producido de ${nombreDelMes(anio, mes)}`,
+        cuerpo: `${dias} · Producido ${enPesos(resumen.bruto)} · Total neto ${enPesos(resumen.neto)}`,
+        url: `/conductor/mi-producido?anio=${anio}&mes=${mes}`,
+      },
+    ],
+    { enviador: (req.app.locals.enviador ??= enviadorDesdeEntorno()) },
+  );
+  res.json({ ...resultado, conductor: buseta.conductor.nombre });
 });
 
 // Quita la liquidación y el mes vuelve a quedar abierto.

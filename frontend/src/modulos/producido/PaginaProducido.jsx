@@ -6,6 +6,7 @@ import { SelectorMes } from '../../compartido/ui/SelectorMes.jsx';
 import { mesActual, nombreMes } from '../../compartido/utilidades/formato.js';
 import { useDatos } from '../../compartido/utilidades/useDatos.js';
 import { SeccionColpass } from '../colpass/index.js';
+import { AvisarConductor } from './AvisarConductor.jsx';
 import { CalculoVueltas } from './CalculoVueltas.jsx';
 import { CuadriculaMes } from './CuadriculaMes.jsx';
 import { FormularioLiquidacion } from './FormularioLiquidacion.jsx';
@@ -111,6 +112,7 @@ export function PaginaProducido() {
               Conductor: {mes.buseta.conductor?.nombre ?? 'sin asignar'}
               {mes.cerrado && <span className="etiqueta etiqueta-oscura">Mes cerrado</span>}
             </p>
+            <AvisarConductor key={`${mes.buseta.id}-${mes.anio}-${mes.mes}`} mes={mes} />
             {!mes.buseta.conductor && !mes.cerrado && (
               <p className="aviso">Asigna un conductor a esta buseta (módulo Conductores) para poder registrar su producido.</p>
             )}
