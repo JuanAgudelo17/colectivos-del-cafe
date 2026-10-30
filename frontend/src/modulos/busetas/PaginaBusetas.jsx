@@ -39,7 +39,7 @@ export function PaginaBusetas() {
           <button type="button" className="boton-secundario-oscuro" onClick={() => setVerIntervalos(true)}>
             Intervalos de mantenimiento
           </button>
-          <button type="button" className="boton-principal accion-fija" onClick={() => setEditando(NUEVA)}>
+          <button type="button" className="boton-principal" onClick={() => setEditando(NUEVA)}>
             + Nueva buseta
           </button>
         </div>

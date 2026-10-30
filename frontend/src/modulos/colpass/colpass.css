@@ -253,10 +253,3 @@
     grid-template-columns: 1fr;
   }
 }
-
-@media (max-width: 640px) {
-  /* La barra fija de "Registrar lo que entregué" no tapa el final */
-  .colpass-cuerpo-conductor {
-    padding-bottom: 72px;
-  }
-}

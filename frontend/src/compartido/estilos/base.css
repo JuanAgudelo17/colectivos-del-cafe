@@ -307,18 +307,28 @@ select {
   outline-offset: 2px;
 }
 
-/* En celular la acción principal de una página es la barra negra fija de abajo */
+/* En celular las acciones de la página van debajo del título, a todo el ancho:
+   visibles apenas abre la página (nada fijo abajo, donde las tapan otras barras). */
 @media (max-width: 640px) {
-  .accion-fija {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 15;
+  .titulo-pagina {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .titulo-pagina > .boton-principal,
+  .titulo-pagina > .boton-secundario-oscuro,
+  .titulo-pagina > .acciones {
     width: 100%;
-    min-height: 56px;
-    border-radius: 0;
-    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .titulo-pagina > .acciones {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+
+  .titulo-pagina > .acciones > button {
+    width: 100%;
   }
 }
 
@@ -785,6 +795,22 @@ legend {
 
 .dialogo .formulario > .boton-principal {
   width: 100%;
+}
+
+/* En los formularios largos de los diálogos (nueva buseta, liquidación…) el
+   botón de guardar queda siempre a la vista, pegado al borde de abajo del
+   diálogo mientras se baja: no hay que buscarlo al final. */
+.dialogo .formulario > button[type='submit'],
+.dialogo .formulario > .acciones:last-child {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  box-shadow: 0 0 0 12px var(--blanco);
+}
+
+.dialogo .formulario > .acciones:last-child {
+  background: var(--blanco);
+  padding: 4px 0 8px;
 }
 
 /* ---- Contraseña mostrada una sola vez ---- */

@@ -119,6 +119,11 @@
   .indicador-valor {
     font-size: var(--titulo-sm);
   }
+
+  /* Si sobra un indicador al final, ocupa toda la fila */
+  .indicador:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
 }
 
 /* Segundo bloque dentro de la misma columna (mantenimiento bajo documentos) */
