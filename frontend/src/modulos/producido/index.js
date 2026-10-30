@@ -1,6 +1,7 @@
 import { PaginaProducido } from './PaginaProducido.jsx';
 
 // Lo que otros módulos pueden usar de este (ver docs/MODULOS.md).
+export { DescargarPdf } from './DescargarPdf.jsx';
 export { LiquidacionCooperativa } from './LiquidacionCooperativa.jsx';
 export { ResumenMes } from './ResumenMes.jsx';
 

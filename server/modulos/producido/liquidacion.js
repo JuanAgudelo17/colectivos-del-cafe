@@ -52,8 +52,11 @@ export function cierreDeLiquidacion(l) {
 }
 
 // El cierre con la misma forma que calcularResumen. `dias` = los del producido
-// de ese mes (si hay), solo para contar días trabajados.
+// de ese mes (si hay): para contar días trabajados y, en un cierre de la app,
+// separar el ACPM del conductor del de La Guaca (los días no cambian con el mes cerrado).
 export function resumenDeCierre(cierre, dias = []) {
+  const deLiquidacion = cierre.origen === 'liquidacion';
+  const acpmCredito = deLiquidacion ? 0 : dias.reduce((t, d) => t + Number(d.acpmCredito ?? 0), 0);
   const costos =
     cierre.empresa +
     cierre.reposicion +
@@ -81,14 +84,33 @@ export function resumenDeCierre(cierre, dias = []) {
     seguroContractual: cierre.polizas,
     bono: cierre.bono,
     prestamos: cierre.prestamos,
-    acpmConductor: cierre.acpm,
-    acpmCredito: 0,
-    fondoFijo: false,
+    acpmConductor: cierre.acpm - acpmCredito,
+    acpmCredito,
+    // Sin cupo (paga arriendo) el fondo es fijo; la liquidación no tiene arriendo.
+    fondoFijo: cierre.arriendo > 0,
     diasTrabajados: dias.filter((d) => Number(d.ingreso) > 0).length,
     diasRelevo: dias.filter((d) => d.relevo).length,
     costos,
     netoAntesAcpm: cierre.bruto - (costos - cierre.acpm),
     neto: cierre.neto,
-    deLiquidacion: cierre.origen === 'liquidacion',
+    deLiquidacion,
   };
 }
+
+// Columnas de cierre_mensual a partir de calcularResumen (cierre hecho por la app).
+export const cierreDeResumen = (r) => ({
+  bruto: r.bruto,
+  reposicion: r.reposicion,
+  empresa: r.empresa,
+  conductor: r.conductor,
+  peajes: r.peajes,
+  salidas: r.salidas,
+  mantenimiento: r.mantenimiento,
+  arriendo: r.arriendo,
+  acpm: r.acpm,
+  neto: r.neto,
+  polizas: r.seguroContractual,
+  prestamos: r.prestamos,
+  relevo: r.relevo,
+  bono: r.bono,
+});

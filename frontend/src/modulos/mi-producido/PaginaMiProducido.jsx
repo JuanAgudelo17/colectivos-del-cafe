@@ -1,8 +1,9 @@
 import { useSearchParams } from 'react-router';
+import { useSesion } from '../../compartido/sesion/contexto.js';
 import { mesActual, nombreMes, pesos } from '../../compartido/utilidades/formato.js';
 import { useDatos } from '../../compartido/utilidades/useDatos.js';
 import { AvisoColpass } from '../colpass/index.js';
-import { LiquidacionCooperativa, ResumenMes } from '../producido/index.js';
+import { DescargarPdf, LiquidacionCooperativa, ResumenMes } from '../producido/index.js';
 import { GraficaDias } from './GraficaDias.jsx';
 import { ListaDias } from './ListaDias.jsx';
 import { NavegadorMes } from './NavegadorMes.jsx';
@@ -23,6 +24,7 @@ function mesDelEnlace(parametros) {
 // mes tanqueó allá. El mes vive en la dirección: cambiarlo con las flechas la
 // actualiza, así un aviso siempre lleva al mes que dice.
 export function PaginaMiProducido() {
+  const { usuario } = useSesion();
   const [parametros, setParametros] = useSearchParams();
   const periodo = mesDelEnlace(parametros);
   const setPeriodo = ({ anio, mes }) => setParametros({ anio: String(anio), mes: String(mes) }, { replace: true });
@@ -39,9 +41,14 @@ export function PaginaMiProducido() {
           <p className="subtitulo">Lo que hiciste cada día y en qué se gastó lo producido.</p>
         </div>
         {vigente?.buseta && (
-          <span className="mp-buseta">
-            {vigente.buseta.numeroInterno} · {vigente.buseta.placa}
-          </span>
+          <div className="mp-cabeza-acciones">
+            <span className="mp-buseta">
+              {vigente.buseta.numeroInterno} · {vigente.buseta.placa}
+            </span>
+            {(vigente.dias.length > 0 || vigente.liquidacion) && (
+              <DescargarPdf mes={vigente} conductor={usuario.nombre} />
+            )}
+          </div>
         )}
       </div>
 
