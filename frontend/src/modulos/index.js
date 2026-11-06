@@ -7,6 +7,7 @@ import busetas from './busetas/index.js';
 import conductores from './conductores/index.js';
 import dashboard from './dashboard/index.js';
 import documentos from './documentos/index.js';
+import facturas, { misFacturas } from './facturas/index.js';
 import errores from './errores/index.js';
 import miBuseta from './mi-buseta/index.js';
 import miProducido from './mi-producido/index.js';
@@ -18,24 +19,13 @@ import rentabilidad from './rentabilidad/index.js';
 // Menú lateral de cada rol, agrupado por secciones.
 export const menuAdmin = [
   { grupo: 'General', modulos: [dashboard] },
-  { grupo: 'Contabilidad', modulos: [producido, rentabilidad, ranking] },
+  { grupo: 'Contabilidad', modulos: [producido, facturas, rentabilidad, ranking] },
   { grupo: 'Flota', modulos: [busetas, conductores] },
   { grupo: 'Sistema', modulos: [errores] },
-  {
-    grupo: 'Próximamente',
-    // El cierre mensual ya está en Producido (botón "Cerrar el mes").
-    modulos: [{ id: 'facturas', titulo: 'Facturas', icono: 'factura', fase: 2 }],
-  },
 ];
 
 export const menuConductor = [
-  { grupo: 'Mi trabajo', modulos: [miBuseta, miProducido, miRentabilidad, documentos, ranking] },
-  {
-    grupo: 'Próximamente',
-    modulos: [
-      { id: 'mis-facturas', titulo: 'Mis facturas', icono: 'factura', fase: 2 },
-    ],
-  },
+  { grupo: 'Mi trabajo', modulos: [miBuseta, miProducido, misFacturas, miRentabilidad, documentos, ranking] },
 ];
 
 // Lista plana de cada rol (para armar las rutas).

@@ -1,0 +1,147 @@
+.facturas-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.facturas-filtros .campo {
+  min-width: 220px;
+}
+
+/* Total del mes y por categoría */
+.facturas-resumen {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 40px;
+  margin-bottom: 24px;
+  padding: var(--relleno-tarjeta);
+  background: var(--niebla);
+  border-radius: var(--radio);
+}
+
+.facturas-resumen > div {
+  display: grid;
+  gap: 2px;
+}
+
+.facturas-resumen small {
+  color: var(--pizarra);
+}
+
+.facturas-resumen strong {
+  font-size: var(--titulo-sm);
+}
+
+.facturas-resumen dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  margin: 0;
+}
+
+.facturas-resumen dt {
+  font-size: var(--texto-caption);
+  color: var(--pizarra);
+}
+
+.facturas-resumen dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+/* Lista */
+.facturas-lista {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.factura {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px 16px;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+}
+
+.factura-datos {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.factura-datos strong {
+  overflow-wrap: anywhere;
+}
+
+.factura-fecha,
+.factura-detalle {
+  font-size: var(--texto-sm);
+  color: var(--pizarra);
+}
+
+.factura-detalle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+}
+
+.factura-precio {
+  font-size: var(--texto-sub);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.factura-acciones {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+
+.factura-acciones .boton-enlace {
+  padding: 0;
+}
+
+.factura .error {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+/* Formulario: la foto */
+.factura-foto {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.factura-foto .detalle {
+  margin: 0;
+  font-size: var(--texto-sm);
+  overflow-wrap: anywhere;
+}
+
+.factura-imagen {
+  display: block;
+  max-width: 100%;
+  max-height: 70vh;
+  margin: 0 auto;
+  border-radius: var(--radio);
+}
+
+@media (max-width: 640px) {
+  .facturas-filtros .campo {
+    min-width: 0;
+    width: 100%;
+  }
+}

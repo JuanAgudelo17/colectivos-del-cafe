@@ -7,6 +7,7 @@ export { resumenDeCierre } from './liquidacion.js';
 export {
   cierresDelMes,
   datosDelAnio,
+  mesCerrado,
   parametrosDelMes,
   primerAnio,
   producidoPorBuseta,
