@@ -1,6 +1,6 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { armarRecordatorios, lunesDe } from './recordatorios.js';
+import { armarRecordatorios, lunesDe, mesAnteriorA } from './recordatorios.js';
 
 const HOY = '2026-10-24'; // sábado
 const documento = (dias, fecha = '2026-11-01') => ({ fecha, dias, estado: dias < 0 ? 'vencido' : 'por_vencer' });
@@ -129,4 +129,39 @@ test('producido cargado en las últimas 24 h: solo al conductor, una vez por dí
   const uno = armar({ producidoNuevo: [{ busetaId: 10, dias: 1, desde: '2026-10-23', hasta: '2026-10-23', producido: 500_000 }] });
   assert.equal(uno[0].titulo, 'Se cargó tu producido de 1 día');
   assert.match(uno[0].cuerpo, /^Producido del 23\/10\/2026:/);
+});
+
+describe('cierre del mes anterior', () => {
+  const porCerrar = { anio: 2026, mes: 10, busetas: [{ busetaId: 10, numeroInterno: '2033' }, { busetaId: 11, numeroInterno: '2007' }] };
+  const cierre = (hoy, cambios = {}) =>
+    armar({ hoy, porCerrar, ...cambios }).filter((a) => a.clave.startsWith('cierre:'));
+
+  test('mes anterior a una fecha', () => {
+    assert.deepEqual(mesAnteriorA('2026-11-03'), { anio: 2026, mes: 10 });
+    assert.deepEqual(mesAnteriorA('2027-01-02'), { anio: 2026, mes: 12 });
+  });
+
+  test('del 1 al 4 avisa una vez (misma clave) solo a los admin, con las busetas pendientes', () => {
+    const [aviso, ...otros] = cierre('2026-11-02');
+    assert.equal(otros.length, 0);
+    assert.equal(aviso.usuarioId, 1);
+    assert.equal(aviso.clave, 'cierre:2026-10:primero');
+    assert.equal(aviso.titulo, 'Falta cerrar octubre');
+    assert.match(aviso.cuerpo, /2033 y 2007 tienen producido de octubre sin cerrar/);
+    assert.equal(aviso.url, '/admin/producido?busetaId=10&anio=2026&mes=10');
+    assert.equal(cierre('2026-11-04')[0].clave, 'cierre:2026-10:primero');
+  });
+
+  test('el día 5 recuerda otra vez; después del 5 o sin pendientes, nada', () => {
+    const [aviso] = cierre('2026-11-05');
+    assert.equal(aviso.clave, 'cierre:2026-10:ultimo');
+    assert.match(aviso.titulo, /recordatorio/);
+    assert.equal(cierre('2026-11-06').length, 0);
+    assert.equal(cierre('2026-11-02', { porCerrar: { ...porCerrar, busetas: [] } }).length, 0);
+  });
+
+  test('con una sola buseta lo dice en singular', () => {
+    const [aviso] = cierre('2026-11-01', { porCerrar: { ...porCerrar, busetas: [porCerrar.busetas[1]] } });
+    assert.match(aviso.cuerpo, /^La 2007 tiene producido de octubre sin cerrar/);
+  });
 });

@@ -51,16 +51,10 @@ function constancia(doc, x, y, ancho, datos) {
   doc.line(division, y + ALTO_TITULO, division, y + alto);
 }
 
-/**
- * @param {object} mes  el mes de /producido (admin): buseta (con conductor) y días
- */
-export function exportarConstancias(mes) {
-  const doc = new jsPDF({ unit: 'mm', format: 'letter' });
-  const anchoHoja = doc.internal.pageSize.getWidth();
-  const ancho = (anchoHoja - MARGEN_X * 2 - SEPARACION_X * (COLUMNAS - 1)) / COLUMNAS;
-  const alto = ALTO_TITULO + ALTO_FILA * CAMPOS.length;
-  const porHoja = COLUMNAS * FILAS;
+const POR_HOJA = COLUMNAS * FILAS;
 
+// Las constancias de una buseta en un mes, completando la última hoja con repuestos.
+function constanciasDe(mes) {
   const fijos = {
     NOMBRE: mes.buseta.conductor?.nombre ?? '',
     PLACA: mes.buseta.placa,
@@ -81,10 +75,22 @@ export function exportarConstancias(mes) {
     };
   });
   // Repuestos sin fecha hasta completar la última hoja.
-  while (constancias.length % porHoja !== 0) constancias.push({ ...fijos });
+  while (constancias.length % POR_HOJA !== 0) constancias.push({ ...fijos });
+  return constancias;
+}
 
-  constancias.forEach((datos, i) => {
-    const enHoja = i % porHoja;
+/**
+ * @param {object[]} meses  el mes de /producido (admin) de cada buseta: buseta (con conductor) y días.
+ *   Cada buseta empieza en hoja nueva.
+ */
+export function exportarConstancias(meses) {
+  const doc = new jsPDF({ unit: 'mm', format: 'letter' });
+  const anchoHoja = doc.internal.pageSize.getWidth();
+  const ancho = (anchoHoja - MARGEN_X * 2 - SEPARACION_X * (COLUMNAS - 1)) / COLUMNAS;
+  const alto = ALTO_TITULO + ALTO_FILA * CAMPOS.length;
+
+  meses.flatMap(constanciasDe).forEach((datos, i) => {
+    const enHoja = i % POR_HOJA;
     if (i > 0 && enHoja === 0) doc.addPage();
     const columna = enHoja % COLUMNAS;
     const fila = Math.floor(enHoja / COLUMNAS);
@@ -97,5 +103,7 @@ export function exportarConstancias(mes) {
     );
   });
 
-  doc.save(`constancias-${mes.buseta.numeroInterno}-${mes.anio}-${String(mes.mes).padStart(2, '0')}.pdf`);
+  const { anio, mes } = meses[0];
+  const quien = meses.length === 1 ? meses[0].buseta.numeroInterno : 'flota';
+  doc.save(`constancias-${quien}-${anio}-${String(mes).padStart(2, '0')}.pdf`);
 }
