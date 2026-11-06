@@ -2,6 +2,8 @@ import { useSearchParams } from 'react-router';
 import { useSesion } from '../../compartido/sesion/contexto.js';
 import { mesActual, nombreMes, pesos } from '../../compartido/utilidades/formato.js';
 import { useDatos } from '../../compartido/utilidades/useDatos.js';
+import { useMesVigente } from '../../compartido/utilidades/useMesVigente.js';
+import { rutaMio, tieneDatos } from './mesMio.js';
 import { AvisoColpass } from '../colpass/index.js';
 import { DescargarPdf, LiquidacionCooperativa, ResumenMes } from '../producido/index.js';
 import { GraficaDias } from './GraficaDias.jsx';
@@ -9,26 +11,30 @@ import { ListaDias } from './ListaDias.jsx';
 import { NavegadorMes } from './NavegadorMes.jsx';
 import './mi-producido.css';
 
-// Mes de la dirección (?anio=2026&mes=9, como lo traen los avisos); si no es
-// válido o es futuro, el actual.
+// Mes de la dirección (?anio=2026&mes=9, como lo traen los avisos); null si no
+// viene o no es válido (es futuro).
 function mesDelEnlace(parametros) {
   const anio = Number(parametros.get('anio'));
   const mes = Number(parametros.get('mes'));
   const hoy = mesActual();
   const valido = anio >= 2020 && mes >= 1 && mes <= 12 && anio * 12 + mes <= hoy.anio * 12 + hoy.mes;
-  return valido ? { anio, mes } : hoy;
+  return valido ? { anio, mes } : null;
 }
 
 // El conductor consulta lo que hizo cada día y el resumen del mes de su buseta
 // (en qué se gastó), todo de solo lectura. Lo de La Guaca solo aparece si ese
 // mes tanqueó allá. El mes vive en la dirección: cambiarlo con las flechas la
-// actualiza, así un aviso siempre lleva al mes que dice.
+// actualiza, así un aviso siempre lleva al mes que dice. Sin mes en la
+// dirección: el actual o, los primeros 15 días con el mes nuevo vacío, el anterior.
 export function PaginaMiProducido() {
   const { usuario } = useSesion();
   const [parametros, setParametros] = useSearchParams();
-  const periodo = mesDelEnlace(parametros);
+  const delEnlace = mesDelEnlace(parametros);
+  const porDefecto = useMesVigente(rutaMio, tieneDatos, { activo: !delEnlace });
+  const elegido = useDatos(delEnlace ? rutaMio(delEnlace) : null);
+  const periodo = delEnlace ?? porDefecto.periodo;
   const setPeriodo = ({ anio, mes }) => setParametros({ anio: String(anio), mes: String(mes) }, { replace: true });
-  const { datos, error, cargando } = useDatos(`/producido/mio?anio=${periodo.anio}&mes=${periodo.mes}`);
+  const { datos, error, cargando } = delEnlace ? elegido : porDefecto;
   const vigente = datos && datos.anio === periodo.anio && datos.mes === periodo.mes ? datos : null;
   const hoy = mesActual();
   const enCurso = periodo.anio === hoy.anio && periodo.mes === hoy.mes;

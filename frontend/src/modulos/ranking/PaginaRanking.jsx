@@ -1,14 +1,22 @@
 import { useState } from 'react';
 import { SelectorMes } from '../../compartido/ui/SelectorMes.jsx';
-import { mesActual, nombreMes, pesos } from '../../compartido/utilidades/formato.js';
+import { nombreMes, pesos } from '../../compartido/utilidades/formato.js';
 import { useDatos } from '../../compartido/utilidades/useDatos.js';
+import { useMesVigente } from '../../compartido/utilidades/useMesVigente.js';
 import './ranking.css';
 
 // Las busetas ordenadas por lo producido en el mes (sin descontar nada) y los
 // días trabajados. La barra es el producido comparado con el de la primera.
+// Por defecto el mes actual o, los primeros 15 días sin producido, el anterior.
+const rutaRanking = ({ anio, mes }) => `/ranking?anio=${anio}&mes=${mes}`;
+const hayProducido = (datos) => datos.busetas.some((b) => b.bruto > 0);
+
 export function PaginaRanking() {
-  const [periodo, setPeriodo] = useState(mesActual);
-  const { datos, error, cargando } = useDatos(`/ranking?anio=${periodo.anio}&mes=${periodo.mes}`);
+  const [elegido, setPeriodo] = useState(null);
+  const porDefecto = useMesVigente(rutaRanking, hayProducido, { activo: !elegido });
+  const delElegido = useDatos(elegido ? rutaRanking(elegido) : null);
+  const periodo = elegido ?? porDefecto.periodo;
+  const { datos, error, cargando } = elegido ? delElegido : porDefecto;
   const vigente = datos && datos.anio === periodo.anio && datos.mes === periodo.mes ? datos : null;
   const maximo = Math.max(1, ...(vigente?.busetas.map((b) => b.bruto) ?? []));
   const nadie = vigente && vigente.busetas.every((b) => b.bruto === 0);
