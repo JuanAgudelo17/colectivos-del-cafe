@@ -1,9 +1,10 @@
 import { hoyBogota } from '../../compartido/fecha.js';
 import { listarBusetas } from '../busetas/index.js';
 import { pendientesColpass } from '../colpass/index.js';
+import { pendientesDeCierre } from '../producido/index.js';
 import { estadoDeLaFlota } from '../mantenimiento/index.js';
 import { enviadorDesdeEntorno } from './envio.js';
-import { armarRecordatorios } from './recordatorios.js';
+import { armarRecordatorios, mesAnteriorA } from './recordatorios.js';
 import {
   borrarSuscripcion,
   guardarNotificaciones,
@@ -58,12 +59,18 @@ export async function notificar(db, avisos, { enviador = enviadorDesdeEntorno() 
 // Revisión diaria: genera los recordatorios y los notifica. La corre la función
 // programada de Netlify (7 a. m. Bogotá) o `npm run recordatorios`.
 export async function revisarRecordatorios(db, { enviador = enviadorDesdeEntorno(), hoy = hoyBogota() } = {}) {
-  const [usuarios, busetas, flota, colpass, producidoNuevo] = await Promise.all([
+  const anterior = mesAnteriorA(hoy);
+  const [usuarios, busetas, flota, colpass, producidoNuevo, porCerrar] = await Promise.all([
     usuariosActivos(db),
     listarBusetas(db),
     estadoDeLaFlota(db),
     pendientesColpass(db),
     producidoCargadoDesde(db, 24),
+    pendientesDeCierre(db, anterior.anio, anterior.mes),
   ]);
-  return notificar(db, armarRecordatorios({ hoy, usuarios, busetas, flota, colpass, producidoNuevo }), { enviador });
+  return notificar(
+    db,
+    armarRecordatorios({ hoy, usuarios, busetas, flota, colpass, producidoNuevo, porCerrar: { ...anterior, busetas: porCerrar } }),
+    { enviador },
+  );
 }

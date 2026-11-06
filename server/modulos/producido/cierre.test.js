@@ -2,6 +2,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { crearApp } from '../../app.js';
 import { crearBdPrueba, crearUsuario, iniciarServidor } from '../../compartido/test/helpers.js';
+import { pendientesDeCierre } from './repositorio.js';
 
 let db;
 let servidor;
@@ -172,4 +173,12 @@ test('reabrir un mes cerrado con la planilla', async () => {
   assert.equal(r.cuerpo.cerrado, false);
   assert.equal(r.cuerpo.cierre, null);
   assert.equal((await pedir('PUT', '/2/2026-07-03', admin, { ingreso: 1000 })).status, 200);
+});
+
+test('pendientes de cierre: con producido y sin cerrar', async () => {
+  const pendientes = await pendientesDeCierre(db, 2026, 7);
+  assert.deepEqual(pendientes, [{ busetaId: 2, numeroInterno: '2033' }]);
+  await pedir('POST', '/2/cierre', admin, { anio: 2026, mes: 7 });
+  assert.deepEqual(await pendientesDeCierre(db, 2026, 7), []);
+  assert.deepEqual(await pendientesDeCierre(db, 2026, 6), [], 'sin producido no hay nada que cerrar');
 });

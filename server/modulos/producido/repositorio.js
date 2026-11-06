@@ -255,3 +255,21 @@ export async function borrarCierre(db, busetaId, anio, mes, origen = null) {
   );
   return rowCount > 0;
 }
+
+// Busetas activas con producido en el mes y sin cerrar (ni con la planilla ni
+// con la liquidación de la cooperativa): para recordarle al admin que las cierre.
+export async function pendientesDeCierre(db, anio, mes) {
+  const { desde, hasta } = rangoDelMes(anio, mes);
+  const { rows } = await db.query(
+    `SELECT b.id AS "busetaId", b.numero_interno AS "numeroInterno"
+       FROM buseta b
+      WHERE b.activo
+        AND EXISTS (SELECT 1 FROM producido_diario p
+                     WHERE p.buseta_id = b.id AND p.fecha BETWEEN $1 AND $2 AND p.ingreso > 0)
+        AND NOT EXISTS (SELECT 1 FROM cierre_mensual c
+                         WHERE c.buseta_id = b.id AND c.anio = $3 AND c.mes = $4 AND c.estado = 'cerrado')
+      ORDER BY b.numero_interno`,
+    [desde, hasta, anio, mes],
+  );
+  return rows;
+}

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router';
 import { api } from '../../compartido/api.js';
 import { CampoSeleccion } from '../../compartido/ui/Campos.jsx';
 import { Dialogo } from '../../compartido/ui/Dialogo.jsx';
@@ -22,11 +23,20 @@ import './producido.css';
 
 // Registro del producido: el admin elige buseta y mes, digita cada día en la
 // cuadrícula (o pega la planilla de Excel) y ve el resumen del mes al lado.
+// Con ?busetaId=&anio=&mes= (ej. el aviso de "Falta cerrar octubre") abre esa buseta y ese mes.
+function delEnlace(parametros) {
+  const busetaId = Number(parametros.get('busetaId')) || null;
+  const anio = Number(parametros.get('anio'));
+  const mes = Number(parametros.get('mes'));
+  return { busetaId, periodo: anio >= 2020 && mes >= 1 && mes <= 12 ? { anio, mes } : null };
+}
+
 export function PaginaProducido() {
+  const [parametros] = useSearchParams();
   const busetas = useDatos('/busetas').datos?.busetas.filter((b) => b.activo);
   const rutas = useDatos('/producido/rutas');
-  const [busetaElegida, setBusetaElegida] = useState(null);
-  const [periodo, setPeriodo] = useState(mesActual);
+  const [busetaElegida, setBusetaElegida] = useState(() => delEnlace(parametros).busetaId);
+  const [periodo, setPeriodo] = useState(() => delEnlace(parametros).periodo ?? mesActual());
   const [dialogo, setDialogo] = useState(null); // { tipo: 'vueltas' | 'excel' | 'tarifas', ... }
 
   const busetaId = busetaElegida ?? busetas?.[0]?.id ?? null;
@@ -87,7 +97,7 @@ export function PaginaProducido() {
             Liquidación de la cooperativa
           </button>
           <DescargarPdf mes={mes} />
-          <ImprimirConstancias mes={mes} />
+          <ImprimirConstancias busetas={busetas ?? []} periodo={periodo} />
         </div>
       </div>
 
