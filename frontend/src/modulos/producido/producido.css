@@ -666,3 +666,31 @@
     border: none;
   }
 }
+
+/* Liquidación: cargar desde el PDF de la cooperativa */
+.liquidacion-pdf {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.liquidacion-pdf label {
+  position: relative;
+  cursor: pointer;
+}
+
+.liquidacion-pdf label:focus-within {
+  outline: 2px solid var(--negro);
+  outline-offset: 2px;
+}
+
+.liquidacion-pdf .deshabilitado {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.liquidacion-pdf .detalle {
+  margin: 0;
+  font-size: var(--texto-sm);
+}
