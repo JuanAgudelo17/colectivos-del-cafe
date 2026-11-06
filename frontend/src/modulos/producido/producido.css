@@ -607,8 +607,16 @@
     width: 100%;
   }
 
-  .producido-herramientas > :last-child:nth-child(odd) {
+  /* Se cuentan solo los botones: los diálogos y mensajes de error también son hijos. */
+  .producido-herramientas > button:last-of-type:nth-of-type(odd),
+  .producido-herramientas > .error {
     grid-column: 1 / -1;
+  }
+
+  /* Los textos largos ("Liquidación de la cooperativa") bajan de línea en vez de cortarse. */
+  .producido-herramientas > button {
+    white-space: normal;
+    line-height: 1.25;
   }
 }
 
@@ -693,6 +701,7 @@
 .liquidacion-pdf .detalle {
   margin: 0;
   font-size: var(--texto-sm);
+}
 
 /* Constancias para imprimir: elegir las busetas */
 .constancias-busetas {
