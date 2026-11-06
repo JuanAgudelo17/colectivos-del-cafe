@@ -13,6 +13,7 @@ import { Conciliacion } from './Conciliacion.jsx';
 import { CuadriculaMes } from './CuadriculaMes.jsx';
 import { DescargarPdf } from './DescargarPdf.jsx';
 import { FormularioLiquidacion } from './FormularioLiquidacion.jsx';
+import { ImprimirConstancias } from './ImprimirConstancias.jsx';
 import { LiquidacionCooperativa } from './LiquidacionCooperativa.jsx';
 import { PegarExcel } from './PegarExcel.jsx';
 import { ResumenMes } from './ResumenMes.jsx';
@@ -86,6 +87,7 @@ export function PaginaProducido() {
             Liquidación de la cooperativa
           </button>
           <DescargarPdf mes={mes} />
+          <ImprimirConstancias mes={mes} />
         </div>
       </div>
 
