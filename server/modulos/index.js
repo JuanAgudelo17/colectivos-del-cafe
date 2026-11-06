@@ -8,6 +8,7 @@ import colpass from './colpass/index.js';
 import conductores from './conductores/index.js';
 import dashboard from './dashboard/index.js';
 import errores from './errores/index.js';
+import facturas from './facturas/index.js';
 import mantenimiento from './mantenimiento/index.js';
 import miBuseta from './mi-buseta/index.js';
 import notificaciones from './notificaciones/index.js';
@@ -16,4 +17,4 @@ import ranking from './ranking/index.js';
 import rentabilidad from './rentabilidad/index.js';
 import salud from './salud/index.js';
 
-export const modulos = [salud, auth, busetas, conductores, dashboard, miBuseta, producido, mantenimiento, rentabilidad, colpass, ranking, notificaciones, errores];
+export const modulos = [salud, auth, busetas, conductores, dashboard, miBuseta, producido, mantenimiento, rentabilidad, colpass, ranking, notificaciones, errores, facturas];
