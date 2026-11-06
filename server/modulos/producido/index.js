@@ -8,6 +8,7 @@ export {
   cierresDelMes,
   datosDelAnio,
   mesCerrado,
+  pendientesDeCierre,
   parametrosDelMes,
   primerAnio,
   producidoPorBuseta,

@@ -666,3 +666,70 @@
     border: none;
   }
 }
+
+/* Liquidación: cargar desde el PDF de la cooperativa */
+.liquidacion-pdf {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.liquidacion-pdf label {
+  position: relative;
+  cursor: pointer;
+}
+
+.liquidacion-pdf label:focus-within {
+  outline: 2px solid var(--negro);
+  outline-offset: 2px;
+}
+
+.liquidacion-pdf .deshabilitado {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.liquidacion-pdf .detalle {
+  margin: 0;
+  font-size: var(--texto-sm);
+
+/* Constancias para imprimir: elegir las busetas */
+.constancias-busetas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 2px 16px;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.constancias-busetas legend {
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.constancias-casilla {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.constancias-casilla input {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  min-height: 0;
+  padding: 0;
+  accent-color: var(--negro);
+}
+
+.constancias-todas {
+  grid-column: 1 / -1;
+  font-weight: 600;
+  border-bottom: 1px solid var(--linea);
+}

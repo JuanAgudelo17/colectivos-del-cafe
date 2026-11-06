@@ -7,6 +7,8 @@
 //   Kilometraje: una vez por semana si no se reporta hace más de 7 días (solo conductor).
 //   Colpass: una vez por semana si hay peajes por entregar al propietario.
 //   Producido: si el admin cargó días en las últimas 24 h (solo al conductor).
+//   Cierre del mes: del 1 al 5, si el mes anterior tiene producido sin cerrar
+//   (solo a los admin): el primer día que se revise y otra vez el día 5.
 //
 // Le llegan al conductor de la buseta y a todos los admin activos.
 import { diasEntre } from '../../compartido/fecha.js';
@@ -21,10 +23,24 @@ const NOMBRES_DOCUMENTO = {
 };
 
 const DIAS_KILOMETRAJE = 7;
+const DIA_ULTIMO_RECORDATORIO_CIERRE = 5;
 
 const fechaCorta = (iso) => iso.split('-').reverse().join('/');
 const pesos = (valor) => `$ ${new Intl.NumberFormat('es-CO').format(valor)}`;
 const km = (valor) => `${new Intl.NumberFormat('es-CO').format(valor)} km`;
+
+// Mes anterior al de `hoy` ('YYYY-MM-DD'): { anio, mes }.
+export function mesAnteriorA(hoy) {
+  const [anio, mes] = hoy.split('-').map(Number);
+  return mes === 1 ? { anio: anio - 1, mes: 12 } : { anio, mes: mes - 1 };
+}
+
+const nombreDelMes = (anio, mes) =>
+  new Intl.DateTimeFormat('es-CO', { month: 'long', timeZone: 'UTC' }).format(new Date(Date.UTC(anio, mes - 1, 1)));
+
+// "2033", "2033 y 2007", "2033, 2007 y 2041"
+const enLista = (nombres) =>
+  nombres.length === 1 ? nombres[0] : `${nombres.slice(0, -1).join(', ')} y ${nombres[nombres.length - 1]}`;
 
 // Lunes de la semana de `hoy` ('YYYY-MM-DD'): los avisos semanales usan la semana en la clave.
 export function lunesDe(hoy) {
@@ -65,8 +81,9 @@ function textoMantenimiento({ estado, kmRestantes, dias }) {
  * @param {Array<{id, kilometraje, estados}>} p.flota  estado de mantenimiento por buseta
  * @param {Array<{busetaId, total}>} p.colpass  peajes pendientes por entregar
  * @param {Array<{busetaId, dias, desde, hasta, producido}>} [p.producidoNuevo]  días cargados en las últimas 24 h
+ * @param {{anio, mes, busetas: Array<{busetaId, numeroInterno}>}} [p.porCerrar]  mes anterior con producido sin cerrar
  */
-export function armarRecordatorios({ hoy, usuarios, busetas, flota, colpass, producidoNuevo = [] }) {
+export function armarRecordatorios({ hoy, usuarios, busetas, flota, colpass, producidoNuevo = [], porCerrar = null }) {
   const admins = usuarios.filter((u) => u.rol === 'admin');
   const conductorDe = (busetaId) => usuarios.find((u) => u.rol === 'conductor' && u.busetaId === busetaId);
   const semana = lunesDe(hoy);
@@ -179,6 +196,28 @@ export function armarRecordatorios({ hoy, usuarios, busetas, flota, colpass, pro
         },
         urlConductor: '/conductor/mi-producido/peajes',
         urlAdmin: '/admin/producido',
+      });
+    }
+  }
+
+  // ---- Cierre del mes anterior (solo admin): del 1 al 5, si quedó algo sin cerrar
+  const dia = Number(hoy.slice(8));
+  if (porCerrar?.busetas.length && dia <= DIA_ULTIMO_RECORDATORIO_CIERRE) {
+    const { anio, mes } = porCerrar;
+    const nombre = nombreDelMes(anio, mes);
+    const numeros = porCerrar.busetas.map((b) => b.numeroInterno);
+    const vez = dia === DIA_ULTIMO_RECORDATORIO_CIERRE ? 'ultimo' : 'primero';
+    for (const admin of admins) {
+      avisos.push({
+        usuarioId: admin.id,
+        clave: `cierre:${anio}-${mes}:${vez}`,
+        tipo: 'producido',
+        titulo: `Falta cerrar ${nombre}${vez === 'ultimo' ? ' (recordatorio)' : ''}`,
+        cuerpo:
+          numeros.length === 1
+            ? `La ${numeros[0]} tiene producido de ${nombre} sin cerrar. Revísalo y toca "Cerrar el mes".`
+            : `${enLista(numeros)} tienen producido de ${nombre} sin cerrar. Revísalos y toca "Cerrar el mes".`,
+        url: `/admin/producido?busetaId=${porCerrar.busetas[0].busetaId}&anio=${anio}&mes=${mes}`,
       });
     }
   }
