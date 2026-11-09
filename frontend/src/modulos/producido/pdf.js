@@ -139,11 +139,12 @@ export function exportarMesPdf(mes, { conductor } = {}) {
 
   // ---- Cifras principales
   y += 19;
-  const neto = mes.liquidacion ? mes.liquidacion.netoAPagar : r.neto;
+  const laGuaca = mes.liquidacion?.combustibleLaGuaca ?? 0;
+  const neto = mes.liquidacion ? mes.liquidacion.netoAPagar - laGuaca : r.neto;
   const cifras = [
     ['Producido del mes', enPesos(r.bruto)],
     ['Días trabajados', mes.liquidacion && r.diasTrabajados === 0 ? '-' : String(r.diasTrabajados)],
-    [mes.liquidacion ? 'Neto a pagar' : 'Total neto', enPesos(neto)],
+    [!mes.liquidacion ? 'Total neto' : laGuaca > 0 ? 'Producido neto' : 'Neto a pagar', enPesos(neto)],
   ];
   const anchoCifra = (ancho - MARGEN * 2 - 8) / 3;
   cifras.forEach(([etiqueta, valor], i) => {
@@ -169,6 +170,12 @@ export function exportarMesPdf(mes, { conductor } = {}) {
       ...lineas(OPERATIVOS),
       ...lineas(NOMINA),
       ['Neto a pagar', enPesos(l.netoAPagar), true],
+      ...(laGuaca > 0
+        ? [
+            ['Combustible La Guaca (cuenta de cobro)', menos(laGuaca)],
+            ['Producido neto', enPesos(neto), true],
+          ]
+        : []),
     ]);
   } else {
     const { descuentos, acpm } = lineasResumen(mes);

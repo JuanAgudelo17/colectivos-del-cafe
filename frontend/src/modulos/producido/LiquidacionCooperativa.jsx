@@ -2,10 +2,13 @@ import { fecha, nombreMes, numero, pesos } from '../../compartido/utilidades/for
 import { NOMINA, OPERATIVOS } from './liquidacion.js';
 
 // La liquidación mensual de la cooperativa, como el documento: total bruto,
-// descuentos operativos y de nómina, y el neto a pagar. Los conceptos en cero
-// no se muestran. `acciones`: botones del admin (corregir, reabrir).
+// descuentos operativos y de nómina, y el neto a pagar; si se cargó la cuenta de
+// La Guaca, se descuenta y queda el producido neto. Los conceptos en cero no se muestran. `acciones`: botones del admin (corregir, reabrir).
 export function LiquidacionCooperativa({ liquidacion: l, anio, mes, acciones = null }) {
   const lineas = (grupo) => grupo.filter(([clave]) => l[clave] > 0);
+  // El combustible de La Guaca no es de la cooperativa: se descuenta después de su neto.
+  const laGuaca = l.combustibleLaGuaca ?? 0;
+  const neto = l.netoAPagar - laGuaca;
 
   return (
     <aside className="resumen-mes liquidacion" aria-label="Liquidación de la cooperativa">
@@ -37,9 +40,24 @@ export function LiquidacionCooperativa({ liquidacion: l, anio, mes, acciones = n
           ),
       )}
 
-      <div className={l.netoAPagar < 0 ? 'resumen-neto resumen-neto-negativo' : 'resumen-neto'}>
-        <span>Neto a pagar</span>
-        <strong>{pesos(l.netoAPagar)}</strong>
+      {laGuaca > 0 && (
+        <table className="resumen-tabla">
+          <tbody>
+            <tr className="resumen-subtotal">
+              <th scope="row">Neto a pagar (cooperativa)</th>
+              <td>{numero(l.netoAPagar)}</td>
+            </tr>
+            <tr>
+              <th scope="row">Combustible La Guaca</th>
+              <td>− {numero(laGuaca)}</td>
+            </tr>
+          </tbody>
+        </table>
+      )}
+
+      <div className={neto < 0 ? 'resumen-neto resumen-neto-negativo' : 'resumen-neto'}>
+        <span>{laGuaca > 0 ? 'Producido neto' : 'Neto a pagar'}</span>
+        <strong>{pesos(neto)}</strong>
       </div>
 
       <p className="liquidacion-nota">

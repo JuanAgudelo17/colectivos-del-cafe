@@ -4,6 +4,8 @@
 // derecha (dos columnas: descuentos operativos y de nómina). El texto del PDF
 // viene desordenado, así que se ubica por posición y no por orden.
 
+import { textosDelPdf } from './textosPdf.js';
+
 // Etiqueta del documento (sin tildes, puntos ni espacios de más) → campo del formulario.
 const ETIQUETAS = {
   'TOTAL BRUTO': 'totalBruto',
@@ -118,21 +120,7 @@ export function interpretarLiquidacion(itemsPdf) {
   };
 }
 
-// Textos de la primera hoja del PDF con su posición. pdf.js se carga solo al usarlo.
+// Lee la primera hoja del PDF y la interpreta.
 export async function leerLiquidacionPdf(archivo) {
-  const [pdfjs, { default: trabajador }] = await Promise.all([
-    import('pdfjs-dist/legacy/build/pdf.mjs'),
-    import('pdfjs-dist/legacy/build/pdf.worker.min.mjs?url'),
-  ]);
-  pdfjs.GlobalWorkerOptions.workerSrc = trabajador;
-  const tarea = pdfjs.getDocument({ data: new Uint8Array(await archivo.arrayBuffer()) });
-  try {
-    const documento = await tarea.promise;
-    const { items } = await (await documento.getPage(1)).getTextContent();
-    return interpretarLiquidacion(
-      items.map((it) => ({ texto: it.str, x: it.transform[4], y: it.transform[5], ancho: it.width })),
-    );
-  } finally {
-    tarea.destroy();
-  }
+  return interpretarLiquidacion(await textosDelPdf(archivo));
 }

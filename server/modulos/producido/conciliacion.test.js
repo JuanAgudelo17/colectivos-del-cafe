@@ -74,3 +74,16 @@ test('cuadra si todo coincide', () => {
   assert.equal(conciliar(igual, cooperativa).cuadra, true);
   assert.equal(conciliar(igual, cooperativa).neto.diferencia, 0);
 });
+
+test('La Guaca: se compara aparte y el neto de la cooperativa ya lo descuenta', () => {
+  const conGuaca = { ...planilla, acpmCredito: 585506 };
+  const { lineas, neto } = conciliar(conGuaca, { ...cooperativa, combustibleLaGuaca: 585506 });
+  const de = (clave) => lineas.find((l) => l.clave === clave);
+  assert.equal(de('acpm'), undefined, 'sin ACPM del conductor ni combustibles de la cooperativa');
+  assert.equal(de('acpmCredito').diferencia, 0);
+  assert.equal(neto.cooperativa, 3146069 - 585506);
+
+  const sinCargar = conciliar(conGuaca, cooperativa);
+  assert.equal(sinCargar.lineas.find((l) => l.clave === 'acpmCredito').diferencia, -585506, 'falta la cuenta de La Guaca');
+  assert.equal(sinCargar.neto.cooperativa, 3146069);
+});
