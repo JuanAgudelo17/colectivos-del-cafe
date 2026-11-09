@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { cierreDeLiquidacion, netoDeLiquidacion, resumenDeCierre } from './liquidacion.js';
+import { cierreDeLiquidacion, netoDeLiquidacion, netoFinalDeLiquidacion, resumenDeCierre } from './liquidacion.js';
 
 // Liquidación real de la cooperativa: microbús 2007, agosto de 2026.
 const AGOSTO_2007 = {
@@ -43,4 +43,25 @@ test('del cierre al resumen: misma forma que calcularResumen y los costos cuadra
   assert.equal(r.netoAntesAcpm, 3_146_069); // sin combustible en la liquidación
   assert.equal(r.diasTrabajados, 0);
   assert.equal(r.deLiquidacion, true);
+});
+
+test('La Guaca: no cambia el neto a pagar de la cooperativa, pero se descuenta para el producido neto', () => {
+  const conGuaca = { ...AGOSTO_2007, combustibleLaGuaca: 585_506 };
+  assert.equal(netoDeLiquidacion(conGuaca), 3_146_069);
+  assert.equal(netoFinalDeLiquidacion(conGuaca), 2_560_563);
+  const cierre = cierreDeLiquidacion(conGuaca);
+  assert.equal(cierre.acpm, 585_506);
+  assert.equal(cierre.neto, 2_560_563);
+  const r = resumenDeCierre({ ...cierre, origen: 'liquidacion', liquidacion: conGuaca });
+  assert.equal(r.acpmCredito, 585_506);
+  assert.equal(r.acpmConductor, 0);
+  assert.equal(r.netoAntesAcpm, 3_146_069);
+  assert.equal(r.bruto - r.costos, r.neto);
+  assert.equal(r.neto, 2_560_563);
+});
+
+test('una liquidación guardada antes (sin La Guaca) queda igual', () => {
+  const r = resumenDeCierre({ ...cierreDeLiquidacion(AGOSTO_2007), origen: 'liquidacion', liquidacion: AGOSTO_2007 });
+  assert.equal(r.acpmCredito, 0);
+  assert.equal(r.neto, 3_146_069);
 });

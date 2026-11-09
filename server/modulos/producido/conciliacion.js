@@ -10,6 +10,7 @@ const nominaConductor = (l) => l.salarioConductor + l.prestacionesConductor + l.
 const nominaRelevo = (l) => l.salarioRelevo + l.prestacionesRelevo + l.seguridadSocialRelevo + l.vacacionesRelevo;
 
 const SOLO_PLANILLA = 'La cooperativa no lo descuenta';
+const laGuaca = (l) => l.combustibleLaGuaca ?? 0;
 
 export const LINEAS_CONCILIACION = [
   { clave: 'bruto', nombre: 'Producido', planilla: (r) => r.bruto, cooperativa: (l) => l.totalBruto },
@@ -19,7 +20,9 @@ export const LINEAS_CONCILIACION = [
   { clave: 'relevo', nombre: 'Relevo', planilla: (r) => r.relevo, cooperativa: nominaRelevo },
   { clave: 'peajes', nombre: 'Peajes', planilla: (r) => r.peajes, cooperativa: (l) => l.peajes },
   { clave: 'salidas', nombre: 'Salidas', planilla: (r) => r.salidas, cooperativa: (l) => l.salidas },
-  { clave: 'acpm', nombre: 'Combustible (ACPM)', planilla: (r) => r.acpm, cooperativa: (l) => l.combustibles },
+  { clave: 'acpm', nombre: 'Combustible (ACPM)', planilla: (r) => r.acpm - (r.acpmCredito ?? 0), cooperativa: (l) => l.combustibles },
+  // No es de la cooperativa: se carga con la cuenta de cobro de la bomba.
+  { clave: 'acpmCredito', nombre: 'ACPM La Guaca', planilla: (r) => r.acpmCredito ?? 0, cooperativa: laGuaca, nota: 'Cuenta de cobro de La Guaca' },
   { clave: 'polizas', nombre: 'Pólizas / seguro', planilla: (r) => r.seguroContractual, cooperativa: (l) => l.polizas },
   { clave: 'prestamos', nombre: 'Préstamos', planilla: (r) => r.prestamos, cooperativa: (l) => l.prestamos },
   { clave: 'mantenimiento', nombre: 'Mantenimiento', planilla: (r) => r.mantenimiento, cooperativa: () => 0, nota: SOLO_PLANILLA },
@@ -42,14 +45,12 @@ export function conciliar(planilla, liquidacion) {
       planilla: deLaPlanilla,
       cooperativa: deLaCooperativa,
       diferencia: deLaCooperativa - deLaPlanilla,
-      ...(nota && deLaPlanilla !== 0 && { nota }),
+      ...(nota && (deLaPlanilla !== 0 || deLaCooperativa !== 0) && { nota }),
     };
   }).filter((l) => l.planilla !== 0 || l.cooperativa !== 0);
 
-  const neto = {
-    planilla: planilla.neto,
-    cooperativa: liquidacion.netoAPagar,
-    diferencia: liquidacion.netoAPagar - planilla.neto,
-  };
+  // El neto de la cooperativa, ya sin el combustible de La Guaca (como la planilla).
+  const netoFinal = liquidacion.netoAPagar - laGuaca(liquidacion);
+  const neto = { planilla: planilla.neto, cooperativa: netoFinal, diferencia: netoFinal - planilla.neto };
   return { lineas, neto, cuadra: lineas.every((l) => l.diferencia === 0) };
 }

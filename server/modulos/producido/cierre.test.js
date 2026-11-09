@@ -73,6 +73,18 @@ test('cierra el mes con la liquidación aunque no haya días registrados', async
   assert.equal(cuerpo.liquidacion.fecha, '2026-09-23');
 });
 
+test('el combustible de La Guaca no entra en el cuadre de la cooperativa pero sí descuenta del neto', async () => {
+  const { status, cuerpo } = await pedir('PUT', '/1/liquidacion', admin, { ...AGOSTO, combustibleLaGuaca: 2931759 });
+  assert.equal(status, 200, 'el neto a pagar del documento sigue cuadrando');
+  assert.equal(cuerpo.liquidacion.combustibleLaGuaca, 2931759);
+  assert.equal(cuerpo.liquidacion.netoAPagar, 3146069);
+  assert.equal(cuerpo.resumen.acpmCredito, 2931759);
+  assert.equal(cuerpo.resumen.neto, 3146069 - 2931759);
+  assert.equal(cuerpo.resumen.bruto - cuerpo.resumen.costos, cuerpo.resumen.neto);
+  // Se deja como estaba (sin La Guaca) para las pruebas que siguen.
+  assert.equal((await pedir('PUT', '/1/liquidacion', admin, AGOSTO)).cuerpo.resumen.neto, 3146069);
+});
+
 test('el mes cerrado no se edita', async () => {
   const dia = await pedir('PUT', '/1/2026-08-10', admin, { ingreso: 500000 });
   assert.equal(dia.status, 409);
@@ -153,8 +165,11 @@ test('la liquidación reemplaza el cierre de la planilla y se concilia con los d
   const linea = (clave) => cuerpo.conciliacion.lineas.find((l) => l.clave === clave);
   assert.deepEqual(linea('bruto'), { clave: 'bruto', nombre: 'Producido', planilla: 900000, cooperativa: 950000, diferencia: 50000 });
   assert.equal(linea('peajes').diferencia, 0);
-  assert.equal(linea('acpm').planilla, 80000);
+  // ACPM del conductor y La Guaca se comparan por separado.
+  assert.equal(linea('acpm').planilla, 50000);
   assert.equal(linea('acpm').cooperativa, 0);
+  assert.equal(linea('acpmCredito').planilla, 30000);
+  assert.equal(linea('acpmCredito').cooperativa, 0);
   assert.equal(cuerpo.conciliacion.neto.cooperativa, 708100);
   assert.equal(cuerpo.conciliacion.cuadra, false);
 

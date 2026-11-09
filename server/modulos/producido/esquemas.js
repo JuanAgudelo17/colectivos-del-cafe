@@ -56,5 +56,7 @@ export const liquidacionEsquema = z.object({
   prestacionesRelevo: pesosDia,
   seguridadSocialRelevo: pesosDia,
   vacacionesRelevo: pesosDia,
+  // No es del documento de la cooperativa: la cuenta de cobro de La Guaca.
+  combustibleLaGuaca: pesosDia,
   netoAPagar: z.coerce.number({ message: 'Valor inválido' }).int('Sin decimales'),
 });

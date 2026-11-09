@@ -342,6 +342,11 @@
   font-variant-numeric: tabular-nums;
 }
 
+.resumen-tabla .resumen-subtotal th,
+.resumen-tabla .resumen-subtotal td {
+  font-weight: 600;
+}
+
 .boton-quitar {
   margin-left: 6px;
   border: none;
@@ -701,6 +706,39 @@
 .liquidacion-pdf .detalle {
   margin: 0;
   font-size: var(--texto-sm);
+}
+
+/* Liquidación: combustible de La Guaca (aparte del documento) y producido neto */
+.liquidacion-guaca {
+  grid-template-columns: 1fr;
+  padding-top: 12px;
+  border-top: 1px solid var(--linea);
+}
+
+.liquidacion-guaca > p {
+  margin: 0;
+}
+
+.liquidacion-neto-final {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 16px;
+  border: 1.5px solid var(--negro);
+  border-radius: 8px;
+}
+
+.liquidacion-neto-final span,
+.liquidacion-neto-final small {
+  font-size: var(--texto-sm);
+  color: var(--pizarra);
+}
+
+.liquidacion-neto-final strong {
+  font-size: var(--titulo);
+  font-weight: 400;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Constancias para imprimir: elegir las busetas */
