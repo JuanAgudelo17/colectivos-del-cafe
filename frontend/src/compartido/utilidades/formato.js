@@ -4,10 +4,16 @@ const formatoPesos = new Intl.NumberFormat('es-CO', {
   maximumFractionDigits: 0,
 });
 
-// 1200000 → "$ 1.200.000"
+// Signo menos tipográfico (−) en vez del guion: se lee mejor y alinea con el $.
+const conMenos = (texto) => texto.replace(/^-\s?/, '−');
+
+// 1200000 → "$ 1.200.000"; -1200000 → "−$ 1.200.000"
 export function pesos(valor) {
-  return valor == null ? '—' : formatoPesos.format(valor);
+  return valor == null ? '—' : conMenos(formatoPesos.format(valor));
 }
+
+// De cada $ 100 producidos: 18 → "$ 18"; -18 → "−$ 18".
+export const deCada100 = (neto, bruto) => (bruto > 0 ? pesos(Math.round((neto / bruto) * 100)) : '—');
 
 // 'YYYY-MM-DD' → 'DD/MM/AAAA'. Se hace con texto para no correr la fecha por zona horaria.
 export function fecha(iso) {
@@ -24,7 +30,7 @@ export function fechaLargaHoy() {
 // 1200000 → "1.200.000" (sin signo de pesos, para tablas y celdas).
 const formatoNumero = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 0 });
 export function numero(valor) {
-  return valor == null || valor === '' ? '' : formatoNumero.format(valor);
+  return valor == null || valor === '' ? '' : conMenos(formatoNumero.format(valor));
 }
 
 // 121500 → "121.500 km"

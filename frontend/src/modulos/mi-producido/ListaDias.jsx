@@ -2,7 +2,8 @@ import { diasDelMes, numero, pesos } from '../../compartido/utilidades/formato.j
 
 // Cada día trabajado como una fila: el día grande, el producido destacado y lo
 // que se gastó ese día (peajes, salidas y ACPM; La Guaca solo si tanqueó allá).
-// Al final, el total del mes.
+// Al final, el total del mes. En el celular las etiquetas van una sola vez
+// arriba (la cabecera) y cada día queda en dos líneas cortas.
 export function ListaDias({ anio, mes, dias, totales, mejor }) {
   const semana = Object.fromEntries(diasDelMes(anio, mes).map((d) => [d.fecha, d.semana]));
   const conGuaca = totales.acpmCredito > 0;
@@ -14,8 +15,19 @@ export function ListaDias({ anio, mes, dias, totales, mejor }) {
       conGuaca && ['ACPM Guaca', d.acpmCredito],
     ].filter(Boolean);
 
+  const columnas = gastos(totales).map(([texto]) => texto);
+
   return (
-    <>
+    <div className="mp-dias-lista" style={{ '--columnas': columnas.length }}>
+      <div className="mp-dias-cabeza" aria-hidden="true">
+        <span>Día</span>
+        <span>Producido</span>
+        <span className="mp-dias-cabeza-gastos">
+          {columnas.map((texto) => (
+            <span key={texto}>{texto}</span>
+          ))}
+        </span>
+      </div>
       <ol className="mp-dias">
         {dias.map((d) => (
           <li key={d.fecha} className={d === mejor ? 'mp-dia mp-dia-mejor' : 'mp-dia'}>
@@ -65,6 +77,6 @@ export function ListaDias({ anio, mes, dias, totales, mejor }) {
           ))}
         </dl>
       </div>
-    </>
+    </div>
   );
 }

@@ -1,13 +1,12 @@
 import { textoDocumento } from '../utilidades/formato.js';
-
-const ICONOS = { vencido: '⛔', por_vencer: '⚠️', vigente: '✅', sin_fecha: '❔' };
+import { IconoEstado } from './Iconos.jsx';
 
 // Alerta visual del SOAT o la tecnomecánica: rojo vencido, ámbar ≤ 30 días.
 // Siempre lleva icono y texto, nunca solo color.
 export function EstadoDocumento({ nombre, documento, compacto = false }) {
   return (
     <span className={`documento documento-${documento.estado}`} title={compacto ? textoDocumento(documento) : undefined}>
-      <span aria-hidden="true">{ICONOS[documento.estado]}</span>
+      <IconoEstado estado={documento.estado} />
       {nombre && <strong>{nombre}:</strong>} {compacto ? textoCorto(documento) : textoDocumento(documento)}
     </span>
   );

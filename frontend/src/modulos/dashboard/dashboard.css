@@ -7,17 +7,21 @@
 }
 
 .indicador {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
+  display: grid;
+  grid-row: span 3;
+  grid-template-rows: subgrid;
+  justify-items: start;
+  align-items: start;
+  row-gap: 8px;
   background: var(--niebla);
   border-radius: var(--radio);
   padding: var(--relleno-tarjeta);
 }
 
 .indicador-etiqueta {
+  align-self: end;
   font-size: var(--texto-sm);
+  line-height: 1.4;
   color: var(--pizarra);
 }
 
@@ -79,8 +83,7 @@
 /* ---- Solicitudes de recuperación de contraseña ---- */
 .solicitudes {
   margin-bottom: 32px;
-  border-left: 4px solid var(--negro);
-  border-radius: 0 var(--radio) var(--radio) 0;
+  border: 1.5px solid var(--negro);
 }
 
 .solicitudes h2 {

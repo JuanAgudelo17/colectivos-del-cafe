@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { CampoSeleccion } from '../../compartido/ui/Campos.jsx';
-import { pesos } from '../../compartido/utilidades/formato.js';
+import { deCada100, pesos } from '../../compartido/utilidades/formato.js';
 import { useDatos } from '../../compartido/utilidades/useDatos.js';
 import { DesgloseCostos } from './DesgloseCostos.jsx';
 import { GraficaMeses } from './GraficaMeses.jsx';
@@ -124,7 +124,7 @@ function Indicadores({ total, listaMeses, flota }) {
       <Dato
         texto="Margen"
         valor={porcentaje(total.neto, total.bruto)}
-        nota={total.bruto > 0 && `Quedan $ ${Math.round((total.neto / total.bruto) * 100)} de cada $ 100`}
+        nota={total.bruto > 0 && `Quedan ${deCada100(total.neto, total.bruto)} de cada $ 100`}
       />
       <Dato texto="Promedio por mes" valor={pesos(promedio(total.neto, meses))} />
       <Dato

@@ -1,5 +1,5 @@
 import { EstadoDocumento } from '../../compartido/ui/EstadoDocumento.jsx';
-import { Icono } from '../../compartido/ui/Iconos.jsx';
+import { Icono, IconoEstado } from '../../compartido/ui/Iconos.jsx';
 import { DOCUMENTOS } from '../../compartido/utilidades/documentos.js';
 import { fecha } from '../../compartido/utilidades/formato.js';
 import { useDatos } from '../../compartido/utilidades/useDatos.js';
@@ -19,10 +19,10 @@ const EXPLICACION = {
 const ORDEN = { vencido: 0, por_vencer: 1, vigente: 2, sin_fecha: 3 };
 
 const RESUMEN = [
-  { estado: 'vencido', texto: 'Vencidos', icono: '⛔' },
-  { estado: 'por_vencer', texto: 'Por vencer', icono: '⚠️' },
-  { estado: 'vigente', texto: 'Al día', icono: '✅' },
-  { estado: 'sin_fecha', texto: 'Sin fecha', icono: '❔' },
+  { estado: 'vencido', texto: 'Vencidos' },
+  { estado: 'por_vencer', texto: 'Por vencer' },
+  { estado: 'vigente', texto: 'Al día' },
+  { estado: 'sin_fecha', texto: 'Sin fecha' },
 ];
 
 // Documentos de la buseta del conductor: cuáles requieren atención y cuándo
@@ -59,11 +59,11 @@ export function PaginaDocumentos() {
       {buseta && (
         <>
           <ul className="doc-resumen" aria-label="Resumen de documentos">
-            {RESUMEN.map(({ estado, texto, icono }) => (
+            {RESUMEN.map(({ estado, texto }) => (
               <li key={estado} className={`doc-resumen-${estado}`}>
                 <strong>{cuantos(estado)}</strong>
                 <span>
-                  <span aria-hidden="true">{icono}</span> {texto}
+                  <IconoEstado estado={estado} /> {texto}
                 </span>
               </li>
             ))}

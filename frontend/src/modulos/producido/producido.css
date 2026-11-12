@@ -20,6 +20,22 @@
   min-width: 200px;
 }
 
+/* En celular, los filtros a todo el ancho, como los botones de arriba. */
+@media (max-width: 640px) {
+  .producido-filtros {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .producido-filtros label,
+  .producido-filtros .selector-mes input {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
 .producido-contexto {
   margin-bottom: 24px;
 }

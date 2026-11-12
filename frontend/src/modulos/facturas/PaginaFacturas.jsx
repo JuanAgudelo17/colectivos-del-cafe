@@ -3,6 +3,7 @@ import { api } from '../../compartido/api.js';
 import { useSesion } from '../../compartido/sesion/contexto.js';
 import { CampoSeleccion } from '../../compartido/ui/Campos.jsx';
 import { Dialogo } from '../../compartido/ui/Dialogo.jsx';
+import { Icono } from '../../compartido/ui/Iconos.jsx';
 import { SelectorMes } from '../../compartido/ui/SelectorMes.jsx';
 import { fecha, mesActual, nombreMes, pesos } from '../../compartido/utilidades/formato.js';
 import { comprimirImagen } from '../../compartido/utilidades/imagenes.js';
@@ -169,7 +170,7 @@ function Factura({ factura: f, esAdmin, alCambiar, alVer }) {
       <div className="factura-acciones">
         {f.tieneFoto ? (
           <button type="button" className="boton-secundario-oscuro" onClick={alVer}>
-            📷 Ver foto
+            <Icono nombre="camara" tamano={18} /> Ver foto
           </button>
         ) : (
           f.editable && (

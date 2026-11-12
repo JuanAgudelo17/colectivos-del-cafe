@@ -115,13 +115,21 @@
   gap: 12px;
 }
 
+/* Etiqueta, cifra y nota en filas compartidas (subgrid): las cifras de una
+   misma fila quedan a la misma altura aunque una etiqueta ocupe dos líneas. */
 .mr-dato {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  display: grid;
+  grid-row: span 3;
+  grid-template-rows: subgrid;
+  align-content: start;
+  row-gap: 2px;
   padding: 16px 18px;
   background: var(--niebla);
   border-radius: var(--radio);
+}
+
+.mr-dato > span {
+  align-self: end;
 }
 
 .mr-dato span,
