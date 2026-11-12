@@ -796,3 +796,90 @@
   font-weight: 600;
   border-bottom: 1px solid var(--linea);
 }
+
+/* ---- Digitar planillas: formulario arriba, planillas del mes por día abajo ---- */
+.planillas {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* De a dos campos también en el celular: el formulario cabe sin bajar tanto. */
+.planillas .fila {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+/* Fecha y trayecto: el trayecto ("Cartago → Pereira") necesita más ancho. */
+.planillas .fila:first-of-type {
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+}
+
+.planillas-formulario .ok {
+  margin: 0;
+}
+
+.planillas-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.planillas-dia {
+  border-top: 1px solid var(--negro);
+}
+
+.planillas-dia-cabeza {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0 12px;
+  padding: 10px 0 6px;
+}
+
+.planillas-dia-cabeza strong:first-child::first-letter {
+  text-transform: uppercase;
+}
+
+.planillas-dia-cabeza span,
+.planillas-dia-cabeza small {
+  font-size: var(--texto-sm);
+  color: var(--pizarra);
+}
+
+.planillas-dia-total {
+  grid-row: 1;
+  grid-column: 2;
+  text-align: right;
+}
+
+.planillas-dia-cabeza small {
+  grid-column: 2;
+  grid-row: 2;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.planillas-dia ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.planillas-dia li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-top: 1px solid var(--linea);
+  font-size: var(--texto-sm);
+}
+
+.planillas-dia li small {
+  color: var(--pizarra);
+}
+
+.planillas-dia li .boton-enlace {
+  padding: 0;
+  font-size: var(--texto-sm);
+}
