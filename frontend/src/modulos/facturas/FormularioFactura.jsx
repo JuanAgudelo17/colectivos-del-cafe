@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { api } from '../../compartido/api.js';
 import { Campo, CampoPesos, CampoSeleccion, CampoTexto } from '../../compartido/ui/Campos.jsx';
+import { Icono } from '../../compartido/ui/Iconos.jsx';
 import { hoyBogota } from '../../compartido/utilidades/formato.js';
 import { comprimirImagen } from '../../compartido/utilidades/imagenes.js';
 import { useEnvio } from '../../compartido/utilidades/useEnvio.js';
@@ -96,7 +97,7 @@ export function FormularioFactura({ busetas = null, busetaInicial = null, alGuar
         </button>
         {foto && (
           <span className="detalle">
-            📷 {foto.name}{' '}
+            <Icono nombre="camara" tamano={16} /> {foto.name}{' '}
             <button type="button" className="boton-enlace" onClick={() => setFoto(null)}>
               Quitar
             </button>

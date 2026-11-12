@@ -40,6 +40,26 @@ const TRAZOS = {
       <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
     </>
   ),
+  vencido: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7.5v5.5" />
+      <path d="M12 16.5v.01" />
+    </>
+  ),
+  pregunta: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.4c-.6.3-1 .8-1 1.4v.3" />
+      <path d="M12 16.8v.01" />
+    </>
+  ),
+  camara: (
+    <>
+      <path d="M4 8h3l1.6-2.5h6.8L17 8h3v11H4V8Z" />
+      <circle cx="12" cy="13.2" r="3.3" />
+    </>
+  ),
   alerta: (
     <>
       <path d="M12 3.5 2.5 20h19L12 3.5Z" />
@@ -121,6 +141,24 @@ const TRAZOS = {
     </>
   ),
 };
+
+// Icono de un estado (documentos, mantenimiento, indicadores): siempre va con texto.
+const DE_ESTADO = {
+  vencido: 'vencido',
+  critico: 'vencido',
+  por_vencer: 'alerta',
+  advertencia: 'alerta',
+  pronto: 'alerta',
+  vigente: 'listo',
+  al_dia: 'listo',
+  bien: 'listo',
+  sin_fecha: 'pregunta',
+  sin_registro: 'pregunta',
+};
+
+export function IconoEstado({ estado, tamano = 14 }) {
+  return <Icono nombre={DE_ESTADO[estado]} tamano={tamano} />;
+}
 
 export function Icono({ nombre, tamano = 20 }) {
   return (

@@ -1,10 +1,12 @@
 // Tarjeta de indicador del dashboard: etiqueta, valor grande y una nota opcional.
 // `estado` (critico | advertencia | bien) agrega una etiqueta con icono y texto;
 // nunca solo color.
+import { IconoEstado } from './Iconos.jsx';
+
 const ESTADOS = {
-  critico: { icono: '⛔', texto: 'Requiere atención', clase: 'documento-vencido' },
-  advertencia: { icono: '⚠️', texto: 'Revisar pronto', clase: 'documento-por_vencer' },
-  bien: { icono: '✓', texto: 'Al día', clase: '' },
+  critico: { texto: 'Requiere atención', clase: 'documento-vencido' },
+  advertencia: { texto: 'Revisar pronto', clase: 'documento-por_vencer' },
+  bien: { texto: 'Al día', clase: '' },
 };
 
 export function Indicador({ etiqueta, valor, nota, estado }) {
@@ -15,7 +17,7 @@ export function Indicador({ etiqueta, valor, nota, estado }) {
       <strong className="indicador-valor">{valor ?? '…'}</strong>
       {e && (
         <span className={`documento ${e.clase}`}>
-          <span aria-hidden="true">{e.icono}</span> {e.texto}
+          <IconoEstado estado={estado} /> {e.texto}
         </span>
       )}
       {nota && <span className="indicador-nota">{nota}</span>}

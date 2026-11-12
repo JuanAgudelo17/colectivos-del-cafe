@@ -6,7 +6,7 @@ const nombreLargo = new Intl.DateTimeFormat('es-CO', { month: 'long', timeZone: 
 
 // Parte de `total` que es `valor` ("15,8 %"); sin total no hay porcentaje.
 export function porcentaje(valor, total) {
-  return total > 0 ? formatoPorcentaje.format(valor / total) : '—';
+  return total > 0 ? formatoPorcentaje.format(valor / total).replace(/^-\s?/, '−') : '—';
 }
 
 // División para promedios: sin divisor no hay promedio.

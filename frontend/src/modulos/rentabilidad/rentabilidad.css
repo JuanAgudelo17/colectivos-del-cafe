@@ -10,6 +10,19 @@
   min-width: 200px;
 }
 
+@media (max-width: 640px) {
+  .rentabilidad-filtros {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .rentabilidad-filtros label {
+    min-width: 0;
+  }
+}
+
 .rentabilidad-buseta {
   margin: 0 0 16px;
   color: var(--pizarra);
@@ -313,9 +326,21 @@
   background: var(--negro);
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1440px) {
   .rentabilidad-columnas {
     grid-template-columns: 1fr;
+  }
+}
+
+/* A una columna en computador, el desglose en dos para no estirar las barras. */
+@media (min-width: 900px) and (max-width: 1440px) {
+  .rentabilidad-columnas .desglose {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 48px;
+  }
+
+  .rentabilidad-columnas .desglose-utilidad {
+    grid-column: 1 / -1;
   }
 }
 

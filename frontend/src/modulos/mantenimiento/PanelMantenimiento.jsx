@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { api } from '../../compartido/api.js';
 import { useSesion } from '../../compartido/sesion/contexto.js';
 import { Dialogo } from '../../compartido/ui/Dialogo.jsx';
+import { IconoEstado } from '../../compartido/ui/Iconos.jsx';
 import { fecha, kilometros } from '../../compartido/utilidades/formato.js';
 import { useDatos } from '../../compartido/utilidades/useDatos.js';
 import { useEnvio } from '../../compartido/utilidades/useEnvio.js';
@@ -78,7 +79,7 @@ export function PanelMantenimiento({ busetaId, resumido = false }) {
           <div className="aviso mantenimiento-alerta" role="alert">
             {alertas.map((e) => (
               <p key={e.tipo}>
-                <span aria-hidden="true">{e.estado === 'vencido' ? '⛔' : '⚠️'}</span> <strong>{e.nombre}.</strong>{' '}
+                <IconoEstado estado={e.estado} /> <strong>{e.nombre}.</strong>{' '}
                 {textoEstado(e)}.
               </p>
             ))}

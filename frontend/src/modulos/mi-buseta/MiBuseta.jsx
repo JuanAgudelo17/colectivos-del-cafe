@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Link } from 'react-router';
 import { api } from '../../compartido/api.js';
 import { useSesion } from '../../compartido/sesion/contexto.js';
+import { IconoEstado } from '../../compartido/ui/Iconos.jsx';
 import { IlustracionBuseta } from '../../compartido/ui/Ilustraciones.jsx';
 import { DOCUMENTOS } from '../../compartido/utilidades/documentos.js';
 import { fecha, fechaLargaHoy, kilometros, mesActual, textoDocumento } from '../../compartido/utilidades/formato.js';
@@ -179,7 +180,7 @@ function ConBuseta({ buseta }) {
           <ul>
             {atencion.map((a) => (
               <li key={`${a.a ?? 'mant'}-${a.clave}`} className={a.gravedad === 0 ? 'atencion-grave' : 'atencion-pronto'}>
-                <span aria-hidden="true">{a.gravedad === 0 ? '⛔' : '⚠️'}</span>
+                <IconoEstado estado={a.gravedad === 0 ? 'vencido' : 'pronto'} tamano={18} />
                 <span>
                   <strong>{a.titulo}</strong> · {a.texto}
                 </span>
@@ -202,14 +203,14 @@ function ConBuseta({ buseta }) {
 
 // Punto de estado con icono y texto oculto para lectores (nunca solo color).
 function Indicador({ gravedad }) {
-  const { icono, texto } = [
-    { icono: '⛔', texto: 'Requiere atención' },
-    { icono: '⚠️', texto: 'Revisar pronto' },
-    { icono: '✓', texto: 'Al día' },
+  const { estado, texto } = [
+    { estado: 'vencido', texto: 'Requiere atención' },
+    { estado: 'pronto', texto: 'Revisar pronto' },
+    { estado: 'bien', texto: 'Al día' },
   ][gravedad];
   return (
     <span className={`mi-buseta-indicador mi-buseta-indicador-${gravedad}`} role="img" aria-label={texto}>
-      {icono}
+      <IconoEstado estado={estado} tamano={18} />
     </span>
   );
 }

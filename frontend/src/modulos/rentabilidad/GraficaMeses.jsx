@@ -28,9 +28,11 @@ export function GraficaMeses({ meses, ultimoMes }) {
   return (
     <div className="grafica" onMouseLeave={() => setActivo(null)}>
       <div className="grafica-escala" aria-hidden="true">
-        <span style={{ top: 0 }}>{maximo > 0 ? pesos(maximo) : ''}</span>
+        {/* Un extremo pegado al cero se montaría sobre "$ 0": ahí no se escribe
+            (el valor sigue en el detalle de la barra y en la tabla). */}
+        {maximo > 0 && arriba >= 12 && <span style={{ top: 0 }}>{pesos(maximo)}</span>}
         <span style={{ top: `${arriba}%` }}>$ 0</span>
-        {minimo < 0 && <span style={{ top: '100%' }}>{pesos(minimo)}</span>}
+        {minimo < 0 && arriba <= 88 && <span style={{ top: '100%' }}>{pesos(minimo)}</span>}
       </div>
 
       <div className="grafica-area" style={{ '--columnas': columnas.length }}>

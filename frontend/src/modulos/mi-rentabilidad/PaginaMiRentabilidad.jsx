@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { CampoSeleccion } from '../../compartido/ui/Campos.jsx';
-import { diasDelMes, hoyBogota, pesos } from '../../compartido/utilidades/formato.js';
+import { deCada100, diasDelMes, hoyBogota, pesos } from '../../compartido/utilidades/formato.js';
 import { useDatos } from '../../compartido/utilidades/useDatos.js';
 import {
   DesgloseCostos,
@@ -74,7 +74,6 @@ function Rentabilidad({ datos }) {
   const trabajados = diasConRegistro(meses);
   const corridos = conDias.reduce((t, m) => t + diasCorridos(anio, m.mes, mesActual), 0);
   const sinTrabajar = Math.max(corridos - trabajados, 0);
-  const quedan = total.bruto > 0 ? Math.round((total.neto / total.bruto) * 100) : 0;
 
   return (
     <div className="mr-cuerpo">
@@ -82,7 +81,7 @@ function Rentabilidad({ datos }) {
         <span className="mr-principal-titulo">{total.neto < 0 ? 'Pérdida' : 'Utilidad'} de {anio}</span>
         <strong className="mr-principal-valor">{pesos(total.neto)}</strong>
         <p>
-          De {pesos(total.bruto)} producidos, quedaron <strong>$ {quedan} de cada $ 100</strong>.
+          De {pesos(total.bruto)} producidos, quedaron <strong>{deCada100(total.neto, total.bruto)} de cada $ 100</strong>.
         </p>
         <small>
           {meses.length} {meses.length === 1 ? 'mes con registro' : 'meses con registro'}
@@ -218,7 +217,7 @@ function TablaMeses({ anio, meses, mesActual }) {
                 <strong>{pesos(m.neto)}</strong>
               </td>
               <td className="numero" data-etiqueta="De cada $ 100">
-                {m.bruto > 0 ? `$ ${Math.round((m.neto / m.bruto) * 100)}` : '—'}
+                {deCada100(m.neto, m.bruto)}
               </td>
               <td className="numero" data-etiqueta="Días">
                 {m.deLiquidacion ? 'Liquidación' : `${m.diasTrabajados} de ${diasCorridos(anio, m.mes, mesActual)}`}

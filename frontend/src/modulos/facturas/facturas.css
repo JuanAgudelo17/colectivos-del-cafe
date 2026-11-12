@@ -140,7 +140,9 @@
 }
 
 @media (max-width: 640px) {
-  .facturas-filtros .campo {
+  .facturas-filtros .campo,
+  .facturas-filtros .selector-mes,
+  .facturas-filtros .selector-mes input {
     min-width: 0;
     width: 100%;
   }

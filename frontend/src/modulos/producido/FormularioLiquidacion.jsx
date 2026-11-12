@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { api } from '../../compartido/api.js';
 import { CampoPesos, CampoTexto } from '../../compartido/ui/Campos.jsx';
+import { IconoEstado } from '../../compartido/ui/Iconos.jsx';
 import { hoyBogota, nombreMes, pesos } from '../../compartido/utilidades/formato.js';
 import { useEnvio } from '../../compartido/utilidades/useEnvio.js';
 import { NOMINA, OPERATIVOS, netoCalculado } from './liquidacion.js';
@@ -150,7 +151,7 @@ export function FormularioLiquidacion({ mes, alGuardar }) {
       )}
       {lectura?.avisos?.map((a) => (
         <p key={a} className="aviso">
-          ⚠️ {a}
+          <IconoEstado estado="advertencia" /> {a}
         </p>
       ))}
       {mes.cierre?.origen === 'calculado' && (
@@ -213,7 +214,7 @@ export function FormularioLiquidacion({ mes, alGuardar }) {
         )}
         {guaca?.avisos?.map((a) => (
           <p key={a} className="aviso">
-            ⚠️ {a}
+            <IconoEstado estado="advertencia" /> {a}
           </p>
         ))}
         <CampoPesos
