@@ -8,23 +8,29 @@ import { enviadorDesdeEntorno, notificar } from '../notificaciones/index.js';
 import { calcularResumen } from './calculo.js';
 import { conciliar } from './conciliacion.js';
 import { cierreDeLiquidacion, cierreDeResumen, netoDeLiquidacion, resumenDeCierre } from './liquidacion.js';
-import { ajusteEsquema, diaEsquema, liquidacionEsquema, mesConsulta, rutaEsquema } from './esquemas.js';
+import { ajusteEsquema, diaEsquema, liquidacionEsquema, mesConsulta, planillaEsquema, rutaEsquema } from './esquemas.js';
 import {
   actualizarRuta,
   borrarAjuste,
   borrarCierre,
   borrarDia,
+  borrarPlanilla,
   crearAjuste,
+  crearPlanilla,
   guardarCierre,
   guardarDia,
   listarAjustes,
   listarDias,
+  listarPlanillas,
   listarRutas,
   mesCerrado,
   obtenerAjuste,
   obtenerCierre,
+  obtenerPlanilla,
   parametrosDelMes,
+  planillaPorConsecutivo,
   rangoDelMes,
+  sumaPlanillasDelDia,
 } from './repositorio.js';
 
 const router = Router();
@@ -328,6 +334,85 @@ router.delete('/:busetaId/ajustes/:id', async (req, res) => {
   await verificarMesAbierto(db, buseta.id, ajuste.anio, ajuste.mes);
   await borrarAjuste(db, ajuste.id);
   res.json(await armarMes(db, buseta, ajuste.anio, ajuste.mes));
+});
+
+// ---- Planillas de despacho: se digitan una por una y el día suma solo ----------
+const CAMPOS_DEL_DIA = ['ingreso', 'peajes', 'salidas', 'acpm', 'acpmCredito', 'mantenimiento'];
+const ddmm = (fecha) => `${fecha.slice(8, 10)}/${fecha.slice(5, 7)}`;
+
+// El día toma de sus planillas el producido, los peajes y las salidas; lo demás
+// (ACPM, La Guaca, mantenimiento, relevo, nota) queda como estaba. Sin planillas
+// ni nada más, el día se borra (como al vaciarlo en la cuadrícula).
+async function sincronizarDia(db, buseta, fecha, usuarioId) {
+  const suma = await sumaPlanillasDelDia(db, buseta.id, fecha);
+  const [actual] = await listarDias(db, buseta.id, fecha, fecha);
+  const dia = {
+    acpm: 0,
+    acpmCredito: 0,
+    mantenimiento: 0,
+    relevo: false,
+    observacion: null,
+    ...actual,
+    ingreso: suma.ingreso,
+    peajes: suma.peajes,
+    salidas: suma.salidas,
+  };
+  const vacio = !dia.relevo && !dia.observacion && CAMPOS_DEL_DIA.every((c) => Number(dia[c]) === 0);
+  if (vacio) return borrarDia(db, buseta.id, fecha);
+  const conductorId = actual?.conductorId ?? buseta.conductor?.id;
+  await guardarDia(db, { busetaId: buseta.id, fecha, conductorId, creadoPor: usuarioId }, dia);
+}
+
+async function conPlanillas(db, buseta, anio, mes) {
+  const { desde, hasta } = rangoDelMes(anio, mes);
+  return { planillas: await listarPlanillas(db, buseta.id, desde, hasta), mes: await armarMes(db, buseta, anio, mes) };
+}
+
+router.get('/:busetaId/planillas', async (req, res) => {
+  const buseta = await busetaDeRuta(req);
+  const { anio, mes } = validar(mesConsulta, req.query);
+  const { desde, hasta } = rangoDelMes(anio, mes);
+  res.json({ planillas: await listarPlanillas(req.app.locals.db, buseta.id, desde, hasta) });
+});
+
+router.post('/:busetaId/planillas', async (req, res) => {
+  const db = req.app.locals.db;
+  const buseta = await busetaDeRuta(req);
+  const datos = validar(planillaEsquema, req.body);
+  const anio = Number(datos.fecha.slice(0, 4));
+  const mes = Number(datos.fecha.slice(5, 7));
+  await verificarMesAbierto(db, buseta.id, anio, mes);
+  if (!buseta.conductor) throw new ErrorHttp(400, 'Asigna un conductor a la buseta antes de registrar su producido');
+
+  const repetida = (fecha) => {
+    const texto = `La planilla ${datos.consecutivo} ya está registrada${fecha ? ` (el ${ddmm(fecha)})` : ''}`;
+    return new ErrorHttp(409, texto, { consecutivo: texto });
+  };
+  if (datos.consecutivo) {
+    const existente = await planillaPorConsecutivo(db, buseta.id, datos.consecutivo);
+    if (existente) throw repetida(existente.fecha);
+  }
+  try {
+    await crearPlanilla(db, { ...datos, busetaId: buseta.id, creadoPor: req.usuario.id });
+  } catch (err) {
+    if (err.code === '23505') throw repetida(null); // la guardaron al mismo tiempo
+    throw err;
+  }
+  await sincronizarDia(db, buseta, datos.fecha, req.usuario.id);
+  res.status(201).json(await conPlanillas(db, buseta, anio, mes));
+});
+
+router.delete('/:busetaId/planillas/:id', async (req, res) => {
+  const db = req.app.locals.db;
+  const buseta = await busetaDeRuta(req);
+  const planilla = await obtenerPlanilla(db, idDeRuta(req));
+  if (!planilla || planilla.busetaId !== buseta.id) throw noEncontrado('La planilla');
+  const anio = Number(planilla.fecha.slice(0, 4));
+  const mes = Number(planilla.fecha.slice(5, 7));
+  await verificarMesAbierto(db, buseta.id, anio, mes);
+  await borrarPlanilla(db, planilla.id);
+  await sincronizarDia(db, buseta, planilla.fecha, req.usuario.id);
+  res.json(await conPlanillas(db, buseta, anio, mes));
 });
 
 export default router;

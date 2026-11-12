@@ -13,6 +13,7 @@ import { CierreMes } from './CierreMes.jsx';
 import { Conciliacion } from './Conciliacion.jsx';
 import { CuadriculaMes } from './CuadriculaMes.jsx';
 import { DescargarPdf } from './DescargarPdf.jsx';
+import { DigitarPlanillas } from './DigitarPlanillas.jsx';
 import { FormularioLiquidacion } from './FormularioLiquidacion.jsx';
 import { ImprimirConstancias } from './ImprimirConstancias.jsx';
 import { LiquidacionCooperativa } from './LiquidacionCooperativa.jsx';
@@ -72,6 +73,14 @@ export function PaginaProducido() {
           <p className="subtitulo">Registro diario de cada buseta y resumen del mes.</p>
         </div>
         <div className="producido-herramientas">
+          <button
+            type="button"
+            className="boton-secundario-oscuro"
+            disabled={!mes || mes.cerrado || !rutas.datos}
+            onClick={() => setDialogo({ tipo: 'planillas' })}
+          >
+            Digitar planillas
+          </button>
           <button
             type="button"
             className="boton-secundario-oscuro"
@@ -182,6 +191,21 @@ export function PaginaProducido() {
               dialogo.aplicar(peajes, salidas);
               cerrarDialogo();
             }}
+          />
+        )}
+      </Dialogo>
+
+      <Dialogo
+        abierto={dialogo?.tipo === 'planillas'}
+        titulo={mes ? `Planillas · ${mes.buseta.numeroInterno} · ${nombreMes(mes.anio, mes.mes)}` : 'Planillas'}
+        alCerrar={cerrarDialogo}
+      >
+        {mes && rutas.datos && dialogo?.tipo === 'planillas' && (
+          <DigitarPlanillas
+            key={`${mes.buseta.id}-${mes.anio}-${mes.mes}`}
+            mes={mes}
+            rutas={rutas.datos.rutas}
+            alActualizar={alActualizar}
           />
         )}
       </Dialogo>

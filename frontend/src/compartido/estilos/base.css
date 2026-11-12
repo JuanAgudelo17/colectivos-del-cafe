@@ -444,7 +444,7 @@ select:focus {
 
 .fila {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr)); /* minmax(0): un campo no empuja al otro */
   gap: 16px;
 }
 
@@ -501,6 +501,7 @@ legend {
 
 .entrada-pesos input {
   flex: 1;
+  min-width: 0;
   padding-left: 30px;
 }
 

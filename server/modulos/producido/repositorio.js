@@ -273,3 +273,63 @@ export async function pendientesDeCierre(db, anio, mes) {
   );
   return rows;
 }
+
+// ---- Planillas de despacho ----------------------------------------------------
+
+const CAMPOS_PLANILLA = `
+  p.id, p.fecha, p.ruta_id AS "rutaId", r.nombre AS ruta, p.sentido, p.consecutivo, p.valor, p.peaje, p.salida,
+  p.creado_en AS "creadoEn"
+`;
+
+export async function listarPlanillas(db, busetaId, desde, hasta) {
+  const { rows } = await db.query(
+    `SELECT ${CAMPOS_PLANILLA}
+       FROM planilla p LEFT JOIN ruta r ON r.id = p.ruta_id
+      WHERE p.buseta_id = $1 AND p.fecha BETWEEN $2 AND $3
+      ORDER BY p.fecha, p.creado_en, p.id`,
+    [busetaId, desde, hasta],
+  );
+  return rows;
+}
+
+export async function obtenerPlanilla(db, id) {
+  const { rows } = await db.query(
+    'SELECT id, buseta_id AS "busetaId", fecha FROM planilla WHERE id = $1',
+    [id],
+  );
+  return rows[0] ?? null;
+}
+
+// La planilla con ese consecutivo en la buseta (para no digitarla dos veces).
+export async function planillaPorConsecutivo(db, busetaId, consecutivo) {
+  const { rows } = await db.query(
+    'SELECT id, fecha FROM planilla WHERE buseta_id = $1 AND consecutivo = $2',
+    [busetaId, consecutivo],
+  );
+  return rows[0] ?? null;
+}
+
+export async function crearPlanilla(db, p) {
+  const { rows } = await db.query(
+    `INSERT INTO planilla (buseta_id, fecha, ruta_id, sentido, consecutivo, valor, peaje, salida, creado_por)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+    [p.busetaId, p.fecha, p.rutaId ?? null, p.sentido, p.consecutivo, p.valor, p.peaje, p.salida, p.creadoPor],
+  );
+  return rows[0].id;
+}
+
+export async function borrarPlanilla(db, id) {
+  await db.query('DELETE FROM planilla WHERE id = $1', [id]);
+}
+
+// Suma de las planillas de un día: producido (valor), peajes, salidas y cuántas son.
+export async function sumaPlanillasDelDia(db, busetaId, fecha) {
+  const { rows } = await db.query(
+    `SELECT COALESCE(SUM(valor), 0)::bigint AS ingreso, COALESCE(SUM(peaje), 0)::bigint AS peajes,
+            COALESCE(SUM(salida), 0)::bigint AS salidas, COUNT(*)::int AS cuantas
+       FROM planilla WHERE buseta_id = $1 AND fecha = $2`,
+    [busetaId, fecha],
+  );
+  const r = rows[0];
+  return { ingreso: Number(r.ingreso), peajes: Number(r.peajes), salidas: Number(r.salidas), cuantas: r.cuantas };
+}

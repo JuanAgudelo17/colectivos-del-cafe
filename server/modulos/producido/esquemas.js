@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { hoyBogota } from '../../compartido/fecha.js';
 import { fechaOpcional, pesos, textoOpcional } from '../../compartido/http/validacion.js';
 
 // Vacío o ausente = 0 (en la planilla los días sin ACPM se dejan en blanco).
@@ -59,4 +60,17 @@ export const liquidacionEsquema = z.object({
   // No es del documento de la cooperativa: la cuenta de cobro de La Guaca.
   combustibleLaGuaca: pesosDia,
   netoAPagar: z.coerce.number({ message: 'Valor inválido' }).int('Sin decimales'),
+});
+
+// Planilla de despacho (un tiquete): fecha, trayecto, valor y lo que se le entrega
+// al conductor para el peaje y la salida. El consecutivo es opcional; se guardan
+// solo sus dígitos para reconocer la misma planilla aunque se escriba distinto.
+export const planillaEsquema = z.object({
+  fecha: z.iso.date({ message: 'Fecha inválida' }).refine((f) => f <= hoyBogota(), 'No puede ser una fecha futura'),
+  rutaId: z.preprocess((v) => (v === null || v === '' ? undefined : v), z.coerce.number().int().positive().optional()),
+  sentido: z.enum(['ida', 'regreso']).default('ida'),
+  consecutivo: textoOpcional(30).transform((v) => (v ? v.replace(/\D/g, '').replace(/^0+/, '') || null : null)),
+  valor: pesos.min(1, 'Escribe el valor de la planilla'),
+  peaje: pesosDia,
+  salida: pesosDia,
 });
