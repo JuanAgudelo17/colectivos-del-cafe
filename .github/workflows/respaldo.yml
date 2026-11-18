@@ -78,7 +78,7 @@ jobs:
             echo "- Se guarda 90 días en los artifacts de esta ejecución."
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.respaldo.outputs.archivo }}
           path: ${{ steps.respaldo.outputs.archivo }}
